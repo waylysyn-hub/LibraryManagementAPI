@@ -1,0 +1,4 @@
+D:\Midad\Section 2\Training\Work\Main\obj\Debug\net9.0\Main.GeneratedMSBuildEditorConfig.editorconfig
+D:\Midad\Section 2\Training\Work\Main\obj\Debug\net9.0\Main.AssemblyInfoInputs.cache
+D:\Midad\Section 2\Training\Work\Main\obj\Debug\net9.0\Main.AssemblyInfo.cs
+D:\Midad\Section 2\Training\Work\Main\obj\Debug\net9.0\Main.csproj.CoreCompileInputs.cache

@@ -1,0 +1,25 @@
+D:\Midad\Section 2\Training\Work\Domain\bin\Debug\net9.0\Domain.deps.json
+D:\Midad\Section 2\Training\Work\Domain\bin\Debug\net9.0\Domain.dll
+D:\Midad\Section 2\Training\Work\Domain\bin\Debug\net9.0\Domain.pdb
+D:\Midad\Section 2\Training\Work\Domain\obj\Debug\net9.0\Domain.csproj.AssemblyReference.cache
+D:\Midad\Section 2\Training\Work\Domain\obj\Debug\net9.0\Domain.GeneratedMSBuildEditorConfig.editorconfig
+D:\Midad\Section 2\Training\Work\Domain\obj\Debug\net9.0\Domain.AssemblyInfoInputs.cache
+D:\Midad\Section 2\Training\Work\Domain\obj\Debug\net9.0\Domain.AssemblyInfo.cs
+D:\Midad\Section 2\Training\Work\Domain\obj\Debug\net9.0\Domain.csproj.CoreCompileInputs.cache
+D:\Midad\Section 2\Training\Work\Domain\obj\Debug\net9.0\Domain.sourcelink.json
+D:\Midad\Section 2\Training\Work\Domain\obj\Debug\net9.0\Domain.dll
+D:\Midad\Section 2\Training\Work\Domain\obj\Debug\net9.0\refint\Domain.dll
+D:\Midad\Section 2\Training\Work\Domain\obj\Debug\net9.0\Domain.pdb
+D:\Midad\Section 2\Training\Work\Domain\obj\Debug\net9.0\ref\Domain.dll
+D:\Projects\SchoolManagementAPI-0.0.3\Domain\bin\Debug\net9.0\Domain.deps.json
+D:\Projects\SchoolManagementAPI-0.0.3\Domain\bin\Debug\net9.0\Domain.dll
+D:\Projects\SchoolManagementAPI-0.0.3\Domain\bin\Debug\net9.0\Domain.pdb
+D:\Projects\SchoolManagementAPI-0.0.3\Domain\obj\Debug\net9.0\Domain.csproj.AssemblyReference.cache
+D:\Projects\SchoolManagementAPI-0.0.3\Domain\obj\Debug\net9.0\Domain.GeneratedMSBuildEditorConfig.editorconfig
+D:\Projects\SchoolManagementAPI-0.0.3\Domain\obj\Debug\net9.0\Domain.AssemblyInfoInputs.cache
+D:\Projects\SchoolManagementAPI-0.0.3\Domain\obj\Debug\net9.0\Domain.AssemblyInfo.cs
+D:\Projects\SchoolManagementAPI-0.0.3\Domain\obj\Debug\net9.0\Domain.csproj.CoreCompileInputs.cache
+D:\Projects\SchoolManagementAPI-0.0.3\Domain\obj\Debug\net9.0\Domain.dll
+D:\Projects\SchoolManagementAPI-0.0.3\Domain\obj\Debug\net9.0\refint\Domain.dll
+D:\Projects\SchoolManagementAPI-0.0.3\Domain\obj\Debug\net9.0\Domain.pdb
+D:\Projects\SchoolManagementAPI-0.0.3\Domain\obj\Debug\net9.0\ref\Domain.dll
