@@ -1,0 +1,180 @@
+/* تحسين بنية الصفحة */
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #f4f6f9;
+  color: #333;
+}
+
+/* بنر الغلاف */
+.books-hero {
+  position: relative;
+  width: 100%;
+  height: 250px; 
+  background-image: url('/img/book-hero.jpg');
+  background-size: cover;
+  background-position: center;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.hero-overlay {
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.hero-overlay h2 {
+  font-size: 32px;
+  font-weight: 600;
+}
+
+.hero-overlay p {
+  font-size: 18px;
+  line-height: 1.4;
+  margin-top: 10px;
+}
+
+/* رأس الجدول */
+.head {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.head h2 {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.head .meta {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.actions {
+  margin-left: auto;
+  display: flex;
+  gap: 12px;
+}
+
+button.primary {
+  background-color: #4f46e5;
+  color: white;
+  padding: 10px 20px;
+  font-weight: 600;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+button.primary:hover {
+  background-color: #3740d7;
+}
+
+button.secondary {
+  background-color: #fff;
+  border: 1px solid #e5e7eb;
+  padding: 10px 20px;
+  font-weight: 600;
+  border-radius: 5px;
+}
+
+button.secondary:hover {
+  background-color: #f1f5f9;
+}
+
+/* تحسين مظهر الجدول */
+.table-wrap {
+  background-color: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 16px;
+}
+
+th {
+  background-color: #f8fafc;
+  font-weight: 700;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+tbody tr:hover {
+  background-color: #f1f5f9;
+}
+
+.empty {
+  text-align: center;
+  color: #64748b;
+}
+
+/* تحسين العناصر الصغيرة */
+.actions-td {
+  display: flex;
+  gap: 8px;
+}
+
+.mini {
+  padding: 6px 10px;
+  font-size: 14px;
+  color: #4f46e5;
+  background: none;
+  border: 1px solid #e5e7eb;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.mini.danger {
+  color: #991b1b;
+  border-color: #fca5a5;
+  background-color: #fee2e2;
+}
+
+.mini:hover {
+  background-color: #f1f5f9;
+}
+
+/* استجابة للموبايل */
+@media (max-width: 768px) {
+  .head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .books-hero {
+    height: 200px;
+  }
+
+  .hero-overlay h2 {
+    font-size: 26px;
+  }
+
+  .hero-overlay p {
+    font-size: 16px;
+  }
+
+  table {
+    font-size: 14px;
+  }
+
+  .table-wrap {
+    margin-top: 20px;
+  }
+}

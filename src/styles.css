@@ -1,0 +1,6 @@
+/* You can add global styles to this file, and also import other style files */
+.primary, .secondary, .ghost{ height:38px; padding:0 14px; border-radius:10px }
+.primary{ border:0; background:#4f46e5; color:#fff; font-weight:700 }
+.secondary{ border:1px solid #e5e7eb; background:#fff }
+.ghost{ border:0; background:transparent; color:#64748b }
+.control{ height:36px; padding:0 10px; border:1px solid #e5e7eb; border-radius:10px; background:#fff }

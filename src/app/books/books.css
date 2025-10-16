@@ -1,0 +1,243 @@
+/* غلاف الصفحة - صورة رأسية بانورامية مع تأثير الإضاءة */
+/* ===== رأس القسم + الأزرار ===== */
+.head{
+  position: relative; /* لضمان ظهور الزر حتى لو في تراكب بصري */
+  z-index: 2;
+  display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+  background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+  padding:1rem 1.25rem; margin-top:1rem; box-shadow:0 6px 18px rgba(0,0,0,.06);
+}
+.head h2{margin:0; font-weight:800; color:#111827}
+.meta{background:#1118270d; color:#111827; padding:.35rem .7rem; border-radius:8px; font-weight:700}
+
+/* أزرار الهيدر */
+.actions{display:flex; gap:.6rem; flex-wrap:wrap}
+.actions .primary, .actions .secondary{
+  border:none; border-radius:10px; font-weight:800; font-size:.92rem;
+  padding:.6rem 1.1rem; cursor:pointer; transition:.2s;
+}
+.actions .primary{ background:#4f46e5; color:#fff }
+.actions .primary:hover{ filter:brightness(1.05); transform:translateY(-1px) }
+.actions .secondary{ background:#fff; color:#374151; border:2px solid #e5e7eb }
+.actions .secondary:hover{ background:#f9fafb }
+
+/* ===== فلاتر البحث ===== */
+.filters{
+  background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+  padding:1rem 1.25rem; margin-top:1rem; box-shadow:0 3px 12px rgba(0,0,0,.04)
+}
+.filters, .sortbar { position: sticky; top: 72px; z-index: 5; }
+.filters .control{ margin-bottom:.75rem }
+.filters input{
+  width:100%; height:42px; border:2px solid #e5e7eb; border-radius:10px;
+  padding:0 .9rem; transition:.2s; background:#fff;
+}
+.filters input:focus{ outline:none; border-color:#4f46e5; box-shadow:0 0 0 3px rgba(79,70,229,.12) }
+.filters .grid{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:.75rem;
+}
+
+/* ===== شريط الترتيب ===== */
+.sortbar{
+  display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;
+  background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+  padding:.6rem .8rem; margin-top:.8rem; box-shadow:0 2px 10px rgba(0,0,0,.04)
+}
+.sortbar .label{font-weight:800; color:#374151; margin-inline-end:.25rem}
+.sortbar .chip{
+  background:#f3f4f6; border:1px solid #e5e7eb; color:#374151;
+  border-radius:999px; padding:.4rem .8rem; cursor:pointer; transition:.2s; font-weight:700;
+}
+.sortbar .chip:hover{ background:#eef2ff; border-color:#c7d2fe }
+.sortbar .chip.active{ background:#4f46e5; color:#fff; border-color:#4f46e5 }
+.sortbar .chip small{ opacity:.85; margin-inline-start:.25rem }
+.sortbar .dir{
+  margin-inline-start:auto;
+  background:#111827; color:#fff; border:none; border-radius:10px;
+  padding:.45rem .8rem; font-weight:800; cursor:pointer; transition:.2s;
+}
+.sortbar .dir:hover{ filter:brightness(1.05) }
+
+/* ===== شريط التحكم/الباجينيشن ===== */
+.toolbar{
+  display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+  background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+  padding:.8rem 1rem; margin-top:.8rem; box-shadow:0 2px 10px rgba(0,0,0,.04)
+}
+.paging{ display:flex; align-items:center; gap:.5rem }
+.paging button{
+  width:36px; height:36px; border-radius:50%; border:1px solid #e5e7eb; background:#f9fafb;
+  color:#374151; font-weight:900; cursor:pointer; transition:.15s;
+}
+.paging button:hover:not(:disabled){ background:#4f46e5; color:#fff; transform:translateY(-1px) }
+.paging span{ font-weight:800; color:#111827 }
+.page-size{ display:flex; align-items:center; gap:.5rem; font-weight:800; color:#374151 }
+.page-size select{
+  height:36px; border:2px solid #e5e7eb; border-radius:10px; background:#fff; padding:0 .5rem; cursor:pointer
+}
+.chip.active{ background:#eef2ff; border-color:#6366f1; color:#4338ca; }
+
+/* ===== شبكة الكتب (تبقى كما هي، فقط تحسين بسيط لمساحة أعلى) ===== */
+.books-container{ margin-top:1rem; position:relative }
+.books-container.loading::before{
+  content:""; position:absolute; left:0; right:0; top:-3px; height:3px;
+  background:linear-gradient(90deg,#4f46e5,#6366f1); animation:bar-move 1.3s infinite
+}
+@keyframes bar-move{ 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+.book-card{ transition:transform .18s ease, box-shadow .18s ease; }
+.book-card:hover{ transform:translateY(-4px); box-shadow:0 10px 24px rgba(0,0,0,.08); }
+.books-container.loading::before{
+  content:""; position:absolute; left:0; right:0; top:-3px; height:3px;
+  background:linear-gradient(90deg,#4f46e5,#6366f1); animation:move 1.2s infinite;
+}
+@keyframes move{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+.books-hero {
+  color: #111;
+  position: relative;
+  height: 100vh; /* الغلاف يأخذ كامل العرض */
+  width: 100%;
+  background-image: url('/book-hero.jpg'); /* صورة الغلاف */
+  background-size: cover;
+  background-position: center;
+  filter: brightness(40%); /* زيادة السطوع قليلاً */
+  transition: filter 0.7s ease;
+}
+
+/* تأثيرات عند التمرير */
+.books-hero:hover {
+  filter: brightness(80%); /* تأثير السطوع عند المرور بالفأرة */
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 20%; /* رفع العبارة للأعلى */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: white;
+  padding: 3rem;
+  background: rgba(0, 0, 0, 0.4); /* إضافة شفافية بسيطة */
+  transition: background 0.3s ease;
+}
+.filters, .sortbar {
+  position: sticky;
+  top: 0; /* بدل 72px */
+  z-index: 100; /* اجعلها أعلى من الغلاف وأي عناصر أخرى */
+  margin-top: 0; /* إزالة أي مسافة إضافية */
+}
+.filters {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.filters, .sortbar {
+  margin-top: 0;
+}
+
+/* عنوان ونص غلاف الصفحة مع تأثير مميز */
+.hero-overlay h2 {
+  font-size: 3.5rem;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  margin: 0;
+  animation: fadeInUp 1s ease-out;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.hero-overlay p {
+  font-size: 1.5rem;
+  margin-top: 1rem;
+  font-weight: 500;
+  opacity: 0.9;
+  animation: fadeInUp 1s ease-out 0.5s both;
+}
+
+/* تأثيرات ظهور النص بشكل مميز */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* بطاقة الكتاب - تصميم أكثر أناقة */
+.book-card {
+  background: linear-gradient(135deg, #ffffff, #f3f4f6);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  text-align: center;
+  width: 300px;
+  margin: 1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.book-card:hover {
+  transform: translateY(-10px); /* رفع البطاقة عند التمرير */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* تصميم النص داخل البطاقة */
+.book-card h4 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.book-card p {
+  font-size: 1rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+/* تصميم الأزرار داخل البطاقة */
+.book-card .actions button {
+  padding: 0.5rem 1rem;
+  background: #4f46e5;
+  color: white;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.book-card .actions button:hover {
+  background: #4338ca;
+}
+
+/* تحسين واجهة عرض الكتب */
+.books-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+.cover.hidden-cover { display: none; }
+.cover img { width: 120px; height: 160px; object-fit: cover; border-radius: 10px; }
+.id-chip{
+  font-weight:800;
+  color:#64748b;
+  background:#fff;
+  border:1px solid var(--stroke);
+  border-radius:10px;
+  padding:4px 8px;
+}
+.book-card .top, .member-card .top{
+  display:flex; align-items:center; justify-content:space-between;
+}
+.top{ display:flex; justify-content:flex-end; margin-bottom:6px }
+.id-chip{
+  font-weight:800; color:#64748b; background:#fff;
+  border:1px solid var(--stroke, #e5e7eb); border-radius:10px; padding:4px 8px;
+}
+.muted{ color:#6b7280 }

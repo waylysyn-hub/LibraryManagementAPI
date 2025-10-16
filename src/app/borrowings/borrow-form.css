@@ -1,0 +1,76 @@
+/* src/app/borrowings/borrow-form.css */
+.error-messages{
+  background:#FEF2F2; color:#B91C1C; border:1px solid #FECACA;
+  border-radius:10px; padding:.75rem 1rem; margin:.5rem 0 1rem;
+  font-weight:600;
+}
+.error-messages ul{margin:.25rem 0 0 1rem}
+label.err input{ border-color:#EF4444 !important; box-shadow:0 0 0 3px rgba(239,68,68,.15) }
+/* ——— تحسين شكل المودال ——— */
+.modal { border:0; padding:0; border-radius:20px; background:#fff; box-shadow:var(--shadow-md); }
+.modal::backdrop{ background:rgba(2,6,23,.55); backdrop-filter: blur(2px) }
+.modal .box{ padding:20px; min-width:560px; max-width:680px; }
+
+.modal .head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.modal .head h3{ margin:0; font-size:1.15rem; letter-spacing:.2px; }
+.modal .x{
+  height:34px; width:34px; display:grid; place-items:center;
+  border-radius:10px; border:1px solid var(--stroke); background:#fff; cursor:pointer;
+}
+.modal .x:hover{ background:#f8fafc }
+
+.modal .grid{
+  display:grid; gap:14px; margin:14px 0 6px;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+}
+.modal .grid .span-2{ grid-column: span 2; }
+
+.field{ display:flex; flex-direction:column; gap:8px; }
+.field .label{ font-weight:800; color:var(--text) }
+.field .label small{ color:var(--muted); font-weight:700; margin-inline-start:6px }
+
+.modal input{
+  height:42px; border:1px solid var(--stroke); border-radius:12px; padding:0 12px;
+  background:#fff; outline:none; transition:.15s ease;
+  box-shadow: 0 2px 0 rgba(15,23,42,.02) inset;
+}
+.modal input::placeholder{ color:#9aa4b2 }
+.modal input:focus{ border-color:transparent; box-shadow: var(--ring) }
+
+.with-addon{ position:relative; }
+.with-addon .addon{
+  position:absolute; inset-inline-end:8px; inset-block:7px auto;
+  height:28px; display:inline-grid; place-items:center;
+  padding:0 10px; border-radius:8px; font-weight:800;
+  background:#f1f5f9; color:#0f172a; border:1px solid var(--stroke);
+}
+.with-addon input{ padding-inline-end:64px; }
+
+.hint{ color:var(--muted); font-weight:700; font-size:.86rem }
+
+.modal .actions{
+  display:flex; gap:10px; justify-content:flex-start; margin-top:8px;
+}
+
+/* زر حفظ بارز (موروث من عندك + تعديل خفيف) */
+.modal .actions .primary{
+  min-width:112px;
+  background: linear-gradient(180deg, #5b56f7, #4f46e5);
+  color:#fff; border:0; font-weight:800; letter-spacing:.2px;
+  box-shadow: 0 10px 24px rgba(79,70,229,.25);
+}
+.modal .actions .primary:hover{ filter:brightness(1.03); transform:translateY(-1px) }
+
+/* صندوق أخطاء الباك */
+.error-messages{
+  background:#FEF2F2; color:#B91C1C; border:1px solid #FECACA;
+  border-radius:12px; padding:.75rem 1rem; margin:.25rem 0 1rem; font-weight:700;
+}
+.error-messages ul{ margin:.25rem 0 0 1rem }
+
+/* استجابة */
+@media (max-width: 640px){
+  .modal .box{ min-width: 94vw; max-width: 94vw; }
+  .modal .grid{ grid-template-columns: 1fr; }
+  .modal .grid .span-2{ grid-column: auto; }
+}

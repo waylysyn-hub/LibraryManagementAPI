@@ -1,0 +1,64 @@
+<dialog #dlg class="modal" dir="rtl">
+  <form class="box" method="dialog" (submit)="$event.preventDefault(); submit()" [formGroup]="form">
+    <header class="head">
+      <h3>{{ title }}</h3>
+      <button type="button" class="x" (click)="close(); cancel.emit()">✕</button>
+    </header>
+
+    <!-- ✅ أخطاء الخادم -->
+    <div *ngIf="backendErrors().length" class="error-messages" role="alert" aria-live="assertive">
+      <ul>
+        <li *ngFor="let e of backendErrors()">{{ e }}</li>
+      </ul>
+    </div>
+
+<div class="grid">
+  <!-- الاسم -->
+  <div class="field"
+       [class.invalid]="form.controls.name.touched && form.controls.name.invalid">
+    <label for="m-name">الاسم</label>
+    <input id="m-name" type="text" formControlName="name" placeholder="مثال: أحمد العلي"
+           aria-describedby="m-name-err" />
+    <small class="error" id="m-name-err"
+           *ngIf="form.controls.name.touched && form.controls.name.errors as er">
+      <ng-container *ngIf="er['required']">الاسم مطلوب.</ng-container>
+      <ng-container *ngIf="er['minlength']">يجب ألا يقل عن حرفين.</ng-container>
+      <ng-container *ngIf="er['backend']">{{ er['backend'] }}</ng-container>
+    </small>
+  </div>
+
+  <!-- الإيميل -->
+  <div class="field"
+       [class.invalid]="form.controls.email.touched && form.controls.email.invalid">
+    <label for="m-email">الإيميل</label>
+    <input id="m-email" type="email" formControlName="email" placeholder="name@example.com"
+           aria-describedby="m-email-err" />
+    <small class="error" id="m-email-err"
+           *ngIf="form.controls.email.touched && form.controls.email.errors as er">
+      <ng-container *ngIf="er['required']">الإيميل مطلوب.</ng-container>
+      <ng-container *ngIf="er['email']">صيغة الإيميل غير صحيحة.</ng-container>
+      <ng-container *ngIf="er['backend']">{{ er['backend'] }}</ng-container>
+    </small>
+  </div>
+
+  <!-- الهاتف -->
+  <div class="field"
+       [class.invalid]="form.controls.phone.touched && form.controls.phone.invalid">
+    <label for="m-phone">الهاتف</label>
+    <input id="m-phone" type="text" formControlName="phone" placeholder="مثال: 0999xxxxxx"
+           aria-describedby="m-phone-err" />
+    <small class="hint">اختياري</small>
+    <small class="error" id="m-phone-err"
+           *ngIf="form.controls.phone.touched && form.controls.phone.errors as er">
+      <ng-container *ngIf="er['backend']">{{ er['backend'] }}</ng-container>
+    </small>
+  </div>
+</div>
+
+
+    <footer class="actions">
+      <button type="button" class="ghost" (click)="close(); cancel.emit()">إلغاء</button>
+      <button type="submit" class="primary">حفظ</button>
+    </footer>
+  </form>
+</dialog>
