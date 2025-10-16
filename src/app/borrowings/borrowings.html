@@ -1,0 +1,204 @@
+<!-- src/app/borrowings/borrowings.html -->
+<app-borrow-form #borrowForm (save)="save($event)" (cancel)="borrowForm.close()"></app-borrow-form>
+
+<section dir="rtl" aria-labelledby="br-title">
+  <header class="head">
+    <div class="left">
+      <h2 id="br-title">الاستعارات</h2>
+      <div class="meta">
+        إجمالي: <b>{{ total() }}</b>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="secondary" type="button" (click)="export()" [disabled]="loading()">
+        تصدير Excel
+      </button>
+      <button class="secondary" type="button" (click)="reload()" [disabled]="loading()">
+        تحديث
+      </button>
+      <button class="primary" type="button" *ngIf="canCreate" (click)="openCreate()">
+        إضافة استعارة
+      </button>
+    </div>
+  </header>
+
+  <!-- إحصاءات -->
+  <div class="stats">
+    <div class="card total">
+      <div class="n">{{ statTotal() }}</div>
+      <div class="t">المجموع</div>
+    </div>
+    <div class="card active">
+      <div class="n">{{ statActive() }}</div>
+      <div class="t">فعّالة</div>
+    </div>
+    <div class="card overdue">
+      <div class="n">{{ statOverdue() }}</div>
+      <div class="t">متأخرة</div>
+    </div>
+    <div class="card returned">
+      <div class="n">{{ statReturned() }}</div>
+      <div class="t">مُرجعة</div>
+    </div>
+  </div>
+
+  <!-- فلاتر وترتيب -->
+  <div class="filters" [formGroup]="filters">
+    <div class="grid">
+      <label
+        >العضو ID <input type="number" formControlName="memberId" placeholder="مثال: 12"
+      /></label>
+      <label
+        >الكتاب ID <input type="number" formControlName="bookId" placeholder="مثال: 45"
+      /></label>
+      <label
+        >العرض
+        <select formControlName="view">
+          <option value="cards">شبكة كروت</option>
+          <option value="table">جدول</option>
+        </select>
+      </label>
+    </div>
+    <div class="sortbar">
+      <span>ترتيب حسب:</span>
+      <button
+        type="button"
+        class="chip"
+        [class.active]="filters.value.sortBy === 'borrowedDate'"
+        (click)="toggleSort('borrowedDate')"
+      >
+        تاريخ الاستعارة <small>{{ sortIcon('borrowedDate') }}</small>
+      </button>
+      <button
+        type="button"
+        class="chip"
+        [class.active]="filters.value.sortBy === 'dueDate'"
+        (click)="toggleSort('dueDate')"
+      >
+        موعد الإرجاع <small>{{ sortIcon('dueDate') }}</small>
+      </button>
+      <button
+        type="button"
+        class="chip"
+        [class.active]="filters.value.sortBy === 'returnedDate'"
+        (click)="toggleSort('returnedDate')"
+      >
+        تاريخ الإرجاع <small>{{ sortIcon('returnedDate') }}</small>
+      </button>
+    </div>
+  </div>
+
+  <!-- شريط الباجينيشن -->
+  <div class="toolbar">
+    <div class="paging">
+      <button (click)="prev()" [disabled]="page() <= 1">‹</button>
+      <span>صفحة {{ page() }} من {{ totalPages() }}</span>
+      <button (click)="next()" [disabled]="page() >= totalPages()">›</button>
+    </div>
+    <div class="page-size">
+      <label for="ps">حجم الصفحة:</label>
+      <select id="ps" [value]="pageSize()" (change)="setPageSize($any($event.target).value)">
+        <option *ngFor="let s of [12, 24, 48, 96]" [value]="s">{{ s }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- شبكة الكروت -->
+  <div *ngIf="filters.value.view === 'cards'" class="cards" [class.loading]="loading()">
+    <div *ngIf="!items().length && !loading()" class="empty">لا توجد بيانات</div>
+
+    <div class="borrow-card" *ngFor="let r of items()" [attr.data-status]="statusKey(r)">
+      <!-- شريط جانبي ملون حسب الحالة -->
+      <span class="accent"></span>
+
+      <div class="top">
+        <span
+          class="badge"
+          [class.ok]="isActive(r)"
+          [class.late]="isLate(r)"
+          [class.done]="isReturned(r)"
+        >
+          {{ statusLabel(r) }}
+        </span>
+        <div class="id">#{{ r.id }}</div>
+      </div>
+
+      <div class="body">
+      <!-- عرض اسم العضو بدلاً من ID -->
+      <div class="row">
+        <span>العضو:</span><b>{{ getMemberName(r.memberId) }}</b>
+      </div>
+      <!-- عرض اسم الكتاب بدلاً من ID -->
+      <div class="row">
+        <span>الكتاب:</span><b>{{ getBookTitle(r.bookId) }}</b>
+      </div>
+        <div class="row">
+          <span>الاستعارة:</span><b>{{ r.borrowedDate | date : 'yyyy/MM/dd' }}</b>
+        </div>
+        <div class="row">
+          <span>الاستحقاق:</span><b>{{ r.dueDate | date : 'yyyy/MM/dd' }}</b>
+        </div>
+        <div class="row" *ngIf="r.returnedDate">
+          <span>الإرجاع:</span><b>{{ r.returnedDate | date : 'yyyy/MM/dd' }}</b>
+        </div>
+
+        <!-- عدّاد الأيام -->
+        <div class="days" *ngIf="!r.returnedDate">
+          <span *ngIf="daysLeft(r) > 0">متبقي {{ daysLeft(r) }} يوم</span>
+          <span *ngIf="daysLeft(r) === 0">اليوم آخر موعد</span>
+          <span *ngIf="daysLeft(r) < 0">متأخر {{ abs(daysLeft(r)) }} يوم</span>
+        </div>
+
+        <!-- شريط التقدّم -->
+        <div class="progress" [attr.aria-valuenow]="progressPct(r)">
+          <div class="bar" [style.width.%]="progressPct(r)"></div>
+        </div>
+      </div>
+
+      <div class="cta" *ngIf="canUpdate || canDelete">
+        <button *ngIf="canUpdate" class="ghost" (click)="openEdit(r)">تعديل</button>
+        <button *ngIf="canUpdate && !r.returnedDate" class="primary attn" (click)="returnNow(r)">
+          إرجاع الآن
+        </button>
+        <button *ngIf="canDelete" class="danger" (click)="remove(r)">حذف</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- الجدول -->
+  <div *ngIf="filters.value.view === 'table'" class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>العضو</th>
+          <th>الكتاب</th>
+          <th>تاريخ الاستعارة</th>
+          <th>موعد الإرجاع</th>
+          <th>الإرجاع</th>
+          <th *ngIf="canUpdate || canDelete">إجراءات</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of items(); index as i">
+          <td>{{ (page() - 1) * pageSize() + i + 1 }}</td>
+          <td>{{ r.memberId }}</td>
+          <td>{{ r.bookId }}</td>
+          <td>{{ r.borrowedDate | date : 'yyyy/MM/dd' }}</td>
+          <td>{{ r.dueDate | date : 'yyyy/MM/dd' }}</td>
+          <td>{{ r.returnedDate ? (r.returnedDate | date : 'yyyy/MM/dd') : 'لم يُرجع' }}</td>
+          <td *ngIf="canUpdate || canDelete" class="row-actions">
+            <button *ngIf="canUpdate" (click)="openEdit(r)">تعديل</button>
+            <button *ngIf="canUpdate && !r.returnedDate" class="primary" (click)="returnNow(r)">
+              إرجاع الآن
+            </button>
+            <button *ngIf="canDelete" class="danger" (click)="remove(r)">حذف</button>
+          </td>
+        </tr>
+        <tr *ngIf="!items().length && !loading()">
+          <td colspan="7" class="empty">لا توجد بيانات</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

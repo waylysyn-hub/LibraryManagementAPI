@@ -1,0 +1,85 @@
+<div class="auth-layout" dir="rtl">
+  <!-- غلاف الخلفية مع التأثيرات -->
+  <aside class="auth-cover" aria-hidden="true">
+    <div class="cover-overlay">
+      <h2>أهلاً بك 👋</h2>
+      <p>اقرأ • استعر • اكتشف</p>
+    </div>
+  </aside>
+
+  <!-- لوحة تسجيل الدخول -->
+  <div class="auth-panel" role="form" aria-labelledby="login-title">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">📚</div>
+      <h1 id="login-title">تسجيل الدخول</h1>
+      <p class="subtitle">مرحباً بك في نظام إدارة المكتبة</p>
+    </div>
+
+    <!-- نموذج تسجيل الدخول -->
+    <form [formGroup]="form" (ngSubmit)="onLogin()" novalidate>
+      
+      <!-- حقل البريد الإلكتروني -->
+      <div class="field" [class.invalid]="form.controls.email.invalid && form.controls.email.touched">
+        <label for="email">البريد الإلكتروني</label>
+        <div class="input-wrap">
+          <input id="email" type="email" placeholder="name@example.com"
+                 formControlName="email" autocomplete="username" inputmode="email" />
+          <span class="icon" aria-hidden="true">@</span>
+        </div>
+        <small class="error" *ngIf="form.controls.email.touched && form.controls.email.errors">
+          <ng-container *ngIf="form.controls.email.errors['required']">البريد الإلكتروني مطلوب.</ng-container>
+          <ng-container *ngIf="form.controls.email.errors['email']">صيغة البريد غير صحيحة.</ng-container>
+        </small>
+      </div>
+
+      <!-- حقل كلمة المرور -->
+      <div class="field" [class.invalid]="form.controls.password.invalid && form.controls.password.touched">
+        <label for="password">كلمة المرور</label>
+        <div class="input-wrap">
+          <input id="password" [type]="showPassword() ? 'text' : 'password'"
+                 placeholder="••••••••" formControlName="password" autocomplete="current-password" />
+          <button type="button" class="icon-btn"
+                  (click)="togglePassword()" [attr.aria-pressed]="showPassword()"
+                  [title]="showPassword() ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'">
+            <span class="icon" aria-hidden="true">{{ showPassword() ? '🙈' : '👁️' }}</span>
+          </button>
+        </div>
+        <small class="error" *ngIf="form.controls.password.touched && form.controls.password.errors">
+          <ng-container *ngIf="form.controls.password.errors['required']">كلمة المرور مطلوبة.</ng-container>
+          <ng-container *ngIf="form.controls.password.errors['minlength']">يجب ألا تقل عن 6 أحرف.</ng-container>
+        </small>
+      </div>
+
+      <!-- تذكّرني -->
+      <label class="remember">
+        <input type="checkbox" formControlName="rememberMe" />
+        تذكّرني
+      </label>
+
+      <!-- عرض رسائل الأخطاء من الباك -->
+      <div class="alert error" *ngIf="apiErrors().length" role="alert">
+          <div *ngIf="apiError()" class="error-box">{{ apiError() }}</div>
+      </div>
+
+      <!-- زر تسجيل الدخول -->
+      <button class="primary login-btn"
+              type="submit"
+              [disabled]="form.invalid || isSubmitting()">
+        <span *ngIf="!isSubmitting(); else loadingTpl">🔐 تسجيل الدخول</span>
+      </button>
+
+      <!-- سبينر التحميل -->
+      <ng-template #loadingTpl>
+        <span class="spinner" aria-hidden="true"></span>
+        جاري المعالجة...
+      </ng-template>
+
+      <!-- روابط أسفل النموذج -->
+      <div class="footer-links">
+        <a routerLink="/forgot-password">نسيت كلمة المرور؟</a>
+      </div>
+    </form>
+
+    <footer class="legal">© {{ year }} نظام المكتبة — كل الحقوق محفوظة.</footer>
+  </div>
+</div>

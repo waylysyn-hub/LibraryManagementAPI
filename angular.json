@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "course-management-frontend": {
+    "Library-management-frontend": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -61,10 +61,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "course-management-frontend:build:production"
+              "buildTarget": "Library-management-frontend:build:production"
             },
             "development": {
-              "buildTarget": "course-management-frontend:build:development"
+              "buildTarget": "Library-management-frontend:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -93,5 +93,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "e8d9889c-da18-47d8-bba8-1c87115870e6"
   }
 }

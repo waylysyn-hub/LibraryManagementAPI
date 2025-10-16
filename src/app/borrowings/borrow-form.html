@@ -1,0 +1,56 @@
+<dialog #dlg class="modal" dir="rtl">
+  <form method="dialog"
+        class="box"
+        novalidate
+        (submit)="$event.preventDefault(); submit()"
+        [formGroup]="form">
+
+    <header class="head">
+      <h3>{{ title }}</h3>
+      <button type="button" class="x" (click)="close()" aria-label="إغلاق">✕</button>
+    </header>
+
+    <!-- أخطاء الباك -->
+    <div *ngIf="backendErrors().length" class="error-messages" role="alert">
+      <ul>
+        <li *ngFor="let error of backendErrors()">{{ error }}</li>
+      </ul>
+    </div>
+
+    <div class="grid">
+      <!-- قائمة الأعضاء -->
+      <label class="field">
+        <span class="label">العضو</span>
+        <select formControlName="memberId">
+          <option *ngFor="let member of members()" [value]="member.id">{{ member.name }}</option>
+        </select>
+      </label>
+
+      <!-- قائمة الكتب -->
+      <label class="field">
+        <span class="label">الكتاب</span>
+        <select formControlName="bookId">
+          <option *ngFor="let book of books()" [value]="book.id">{{ book.title }}</option>
+        </select>
+      </label>
+
+      <!-- مدة الإعارة -->
+      <label class="field span-2">
+        <span class="label">مدة الإعارة (أيام)</span>
+        <div class="with-addon">
+          <input type="number"
+                 formControlName="durationDays"
+                 placeholder="14"
+                 min="1" max="365" inputmode="numeric">
+          <span class="addon">يوم</span>
+        </div>
+        <small class="hint">المدّة المسموحة: 1–365 يوماً</small>
+      </label>
+    </div>
+
+    <footer class="actions">
+      <button type="button" class="ghost" (click)="close(); cancel.emit()">إلغاء</button>
+      <button type="submit" class="primary attn">حفظ</button>
+    </footer>
+  </form>
+</dialog>

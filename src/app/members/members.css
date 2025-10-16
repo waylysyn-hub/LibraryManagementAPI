@@ -1,0 +1,112 @@
+:root{
+  --bg:#f6f7fb; --card:rgba(255,255,255,.8); --stroke:#e7eaf3;
+  --text:#0f172a; --muted:#64748b;
+  --primary:#4f46e5; --primary-600:#4338ca; --primary-100:#eef2ff;
+  --ring:0 0 0 6px rgba(79,70,229,.10);
+  --shadow-sm:0 4px 12px rgba(15,23,42,.06);
+  --shadow-md:0 10px 30px rgba(15,23,42,.08);
+  --radius:16px; --radius-sm:12px; --radius-lg:22px;
+}
+section[dir="rtl"]{ color:var(--text) }
+
+/* رأس */
+.head{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin:10px 0 18px }
+.head h2{ margin:0; font-size:1.4rem; letter-spacing:.2px }
+.head .meta{ margin-top:6px; color:var(--muted); font-weight:700 }
+.head .actions{ display:flex; gap:10px; flex-wrap:wrap }
+
+button{ height:38px; padding:0 14px; border:1px solid transparent; border-radius:12px; font-weight:800; cursor:pointer; transition:.2s; background:#fff }
+button:disabled{ opacity:.6; cursor:default }
+button.primary{ background:linear-gradient(180deg,#5b56f7,#4f46e5); color:#fff; border:0; box-shadow:var(--shadow-sm),0 10px 24px rgba(79,70,229,.18) }
+button.primary:hover{ filter:brightness(1.02); transform:translateY(-2px) }
+button.secondary{ background:var(--primary-100); color:var(--primary) }
+button.secondary:hover{ filter:brightness(.98) }
+button.ghost{ background:transparent; border-color:var(--stroke); color:var(--text) }
+button.ghost:hover{ background:#fff }
+button.danger{ background:#fee2e2; color:#b91c1c }
+button.danger:hover{ filter:brightness(.98) }
+button.primary.attn{ position:relative; isolation:isolate }
+button.primary.attn::after{
+  content:""; position:absolute; inset:-4px; border-radius:14px;
+  background:radial-gradient(18px 18px at 12% 50%,rgba(255,255,255,.55),transparent 60%),
+             radial-gradient(220px 40px at 50% -10%,rgba(79,70,229,.18),transparent 60%);
+  z-index:-1; filter:blur(2px)
+}
+
+/* تنبيه صفحة */
+.page-error{ background:#fff1f2; border:1px solid #fecdd3; color:#9f1239; padding:10px 12px; border-radius:12px; margin:8px 0 14px; font-weight:800; display:flex; align-items:center; gap:10px }
+
+/* إحصاءات */
+.stats{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-bottom:14px }
+.stats .card{ position:relative; background:var(--card); backdrop-filter:saturate(180%) blur(6px); border:1px solid var(--stroke); border-radius:var(--radius); padding:16px 14px; box-shadow:var(--shadow-sm); overflow:hidden }
+.stats .card::after{ content:""; position:absolute; inset:0; background:radial-gradient(1200px 160px at 90% -20%,rgba(79,70,229,.08),transparent 40%) }
+.stats .n{ font-size:1.4rem; font-weight:800 }
+.stats .t{ color:var(--muted); font-weight:700 }
+
+/* فلاتر + ترتيب */
+.filters{ background:var(--card); border:1px solid var(--stroke); border-radius:var(--radius); padding:14px; box-shadow:var(--shadow-sm); margin-bottom:14px }
+.filters .grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px }
+.filters label{ display:flex; flex-direction:column; gap:6px; font-weight:800; color:var(--muted) }
+.filters input,.filters select{ height:38px; border:1px solid var(--stroke); background:#fff; border-radius:12px; padding:0 12px; outline:none; transition:.15s }
+.filters input:focus,.filters select:focus{ box-shadow:var(--ring); border-color:transparent }
+.sortbar{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:12px }
+.sortbar span{ color:var(--muted); font-weight:800 }
+.sortbar .chip{ height:32px; padding:0 10px; border-radius:999px; border:1px solid var(--stroke); background:#fff; color:var(--text); font-weight:800; transition:.15s }
+.sortbar .chip:hover{ transform:translateY(-1px); box-shadow:var(--shadow-sm) }
+.sortbar .chip.active{ background:var(--primary-100); color:var(--primary); border-color:transparent }
+
+/* باجينيشن */
+.toolbar{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin:10px 0 18px }
+.toolbar .paging{ display:flex; align-items:center; gap:8px }
+.toolbar .paging>button{ width:36px; padding:0 }
+.toolbar .page-size{ display:flex; align-items:center; gap:8px; color:var(--muted); font-weight:800 }
+
+/* بطاقات */
+.cards{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px }
+.cards.loading{ opacity:.6; pointer-events:none }
+.empty{ padding:26px; text-align:center; color:var(--muted); font-weight:800 }
+
+.member-card{ position:relative; background:var(--card); backdrop-filter:saturate(180%) blur(6px); border:1px solid var(--stroke); border-radius:var(--radius-lg); padding:14px; box-shadow:var(--shadow-sm); transition:.2s }
+.member-card:hover{ transform:translateY(-4px); box-shadow:var(--shadow-md) }
+.member-card .top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px }
+.member-card .avatar{ width:38px; height:38px; border-radius:50%; display:grid; place-items:center; background:linear-gradient(180deg,#f5f3ff,#e0e7ff); color:#4f46e5; font-weight:900; border:1px solid var(--stroke) }
+.member-card .id{ font-weight:800; color:var(--muted); background:#fff; border:1px solid var(--stroke); border-radius:10px; padding:4px 8px }
+.member-card .body{ display:grid; gap:8px; margin:10px 0 }
+.member-card .name{ font-size:1.05rem; font-weight:900 }
+.member-card .meta-row{ display:flex; justify-content:space-between; align-items:center }
+.member-card .meta-row span{ color:var(--muted); font-weight:800 }
+.member-card .meta-row b{ font-weight:900 }
+.member-card .cta{ display:flex; gap:8px; flex-wrap:wrap }
+
+/* جدول */
+.table-wrap{ overflow:auto; background:var(--card); border:1px solid var(--stroke); border-radius:var(--radius); box-shadow:var(--shadow-sm) }
+table{ width:100%; border-collapse:collapse }
+th,td{ padding:12px 14px; border-bottom:1px solid var(--stroke); text-align:right }
+thead th{ background:#fff; position:sticky; top:0; z-index:1; color:var(--muted); font-weight:900 }
+.row-actions{ display:flex; gap:8px; align-items:center }
+
+/* مودالات + أخطاء الخادم */
+.modal{ border:0; padding:0; border-radius:20px; background:#fff; box-shadow:var(--shadow-md) }
+.modal::backdrop{ background:rgba(2,6,23,.55); backdrop-filter: blur(2px) }
+.modal .box{ padding:18px; min-width:520px }
+.modal .head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px }
+.modal .x{ height:32px; width:32px; display:grid; place-items:center; border-radius:10px }
+.modal .grid{ display:grid; gap:12px; grid-template-columns:repeat(2,minmax(0,1fr)); margin:12px 0 }
+.modal label{ display:flex; flex-direction:column; gap:6px; font-weight:800; color:var(--muted) }
+.modal input{ height:38px; border:1px solid var(--stroke); border-radius:12px; padding:0 12px }
+.modal input:focus{ box-shadow:var(--ring); border-color:transparent }
+.modal .actions{ display:flex; gap:10px; justify-content:flex-start }
+
+/* إبراز حقول فيها خطأ */
+label.err input,
+.modal label.ng-invalid.ng-touched input{
+  border-color:#EF4444 !important;
+  box-shadow:0 0 0 3px rgba(239,68,68,.15);
+}
+
+/* بانر أخطاء السيرفر */
+.error-messages{
+  background:#FEF2F2; color:#B91C1C; border:1px solid #FECACA;
+  border-radius:12px; padding:.75rem 1rem; margin:.5rem 0 1rem; font-weight:800;
+}
+.error-messages ul{ margin:.25rem 0 0 1rem }

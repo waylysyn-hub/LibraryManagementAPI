@@ -1,0 +1,94 @@
+:root{
+  --primary-color:#4f46e5; --primary-hover:#4338ca;
+  --secondary-color:#6366f1;
+  --success-color:#10b981;
+  --danger-color:#ef4444;
+  --gray-50:#f9fafb; --gray-100:#f3f4f6; --gray-200:#e5e7eb; --gray-300:#d1d5db; --gray-400:#9ca3af; --gray-500:#6b7280; --gray-600:#4b5563; --gray-700:#374151; --gray-800:#1f2937; --gray-900:#111827;
+  --white:#fff;
+  --shadow-sm:0 1px 2px 0 rgb(0 0 0 / .05);
+  --shadow-md:0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1);
+  --shadow-lg:0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1);
+  --shadow-xl:0 20px 25px -5px rgb(0 0 0 / .1), 0 8px 10px -6px rgb(0 0 0 / .1);
+  --border-radius:12px; --border-radius-sm:8px;
+  --transition:all .3s cubic-bezier(.4,0,.2,1);
+}
+
+.error-messages{background:rgba(239,68,68,.08);border:1px solid #ef4444;color:#b91c1c;padding:12px 14px;border-radius:10px;margin-bottom:14px}
+.error-messages ul{margin:0;padding-inline-start:18px}
+.error-messages li{margin:4px 0}
+
+.modal{padding:0;border:0;border-radius:14px;box-shadow:var(--shadow-xl);width:min(700px,95vw);backdrop-filter:blur(10px)}
+.modal::backdrop{background:rgba(0,0,0,.5);backdrop-filter:blur(5px)}
+.box{padding:2rem;background:#fff;border-radius:14px}
+.head{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid var(--gray-100)}
+.head h3{margin:0;font-size:1.5rem;font-weight:700;color:var(--gray-900)}
+.x{margin-inline-start:auto;border:0;background:var(--gray-100);color:var(--gray-600);width:2.5rem;height:2.5rem;border-radius:50%;font-size:1.25rem;cursor:pointer;transition:var(--transition)}
+.x:hover{background:var(--danger-color);color:#fff;transform:rotate(90deg)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem;margin:1.5rem 0}
+label{display:flex;flex-direction:column;gap:.5rem;font-weight:600;color:var(--gray-700)}
+input{height:2.75rem;padding:0 1rem;border:2px solid var(--gray-300);border-radius:8px;font-size:1rem;transition:var(--transition);background:#fff}
+input:focus{outline:none;border-color:var(--primary-color);box-shadow:0 0 0 3px rgba(79,70,229,.1)}
+input.err{border-color:var(--danger-color);box-shadow:0 0 0 3px rgba(239,68,68,.1)}
+.error-message{color:var(--danger-color);font-size:.875rem;margin-top:.25rem}
+
+.actions{display:flex;gap:1rem;justify-content:flex-end;margin-top:2rem;padding-top:1.5rem;border-top:2px solid var(--gray-100)}
+.primary{background:linear-gradient(135deg,var(--primary-color),var(--secondary-color));color:#fff;padding:.75rem 1.5rem;box-shadow:var(--shadow-md);border:none;border-radius:8px;font-weight:600;font-size:.875rem;cursor:pointer;transition:var(--transition)}
+.primary:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.primary:disabled{opacity:.6;cursor:not-allowed;background:var(--gray-400)}
+.ghost{background:transparent;color:var(--gray-600);border:2px solid var(--gray-300);padding:.75rem 1.5rem;border-radius:8px;font-weight:600;font-size:.875rem;cursor:pointer;transition:var(--transition)}
+.ghost:hover{background:var(--gray-100);color:var(--gray-800)}
+
+@media (max-width:640px){.grid{grid-template-columns:1fr}}
+/* Footer actions inside the modal */
+.actions{
+  display:flex;
+  gap:12px;
+  justify-content:flex-end;
+  align-items:center;
+  margin-top:1.25rem;
+  padding-top:1rem;
+  border-top:2px solid #f3f4f6;
+}
+
+/* Cancel button (ghost) */
+.actions .ghost{
+  background:#fff;                   /* أبيض واضح */
+  color:#374151;                     /* نص غامق */
+  border:2px solid #e5e7eb;
+  padding:.6rem 1.1rem;
+  border-radius:10px;
+  font-weight:800;
+  font-size:.95rem;                  /* تأكد النص واضح */
+  line-height:1;
+  cursor:pointer;
+  transition:.2s ease;
+}
+.actions .ghost:hover{
+  background:#f9fafb;
+}
+
+/* Save button (primary) */
+.actions .primary{
+  background:#4f46e5;               /* بنفسجي واضح */
+  color:#fff;                        /* نص أبيض */
+  border:none;
+  padding:.65rem 1.2rem;
+  border-radius:10px;
+  font-weight:900;
+  font-size:.98rem;                  /* لا يكون 0 أبداً */
+  line-height:1;
+  cursor:pointer;
+  box-shadow:0 4px 10px rgba(79,70,229,.25);
+  transition:.2s ease;
+}
+.actions .primary:hover{ filter:brightness(1.05); transform:translateY(-1px) }
+.actions .primary:disabled{ opacity:.6; cursor:not-allowed; box-shadow:none }
+
+/* لو في أنماط عامة كانت تعمل text-fill transparent، امنعها هنا */
+.actions .primary, .actions .ghost{
+  -webkit-text-fill-color: initial;
+}
+
+/* ترتيب رسائل الأخطاء والعناوين عشان ما تزاحم الأزرار */
+.error-messages{ margin-bottom:12px }

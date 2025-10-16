@@ -1,0 +1,165 @@
+<app-book-form
+  #bookForm
+  (save)="save($event)"
+  (cancel)="bookForm.close()">
+</app-book-form>
+
+<section dir="rtl" aria-labelledby="books-title">
+  <!-- بانر الغلاف -->
+  <div class="books-hero" role="img" aria-label="مكتبتك بين يديك">
+    <div class="hero-overlay">
+      <div>
+        <h2 id="books-title">مكتبتك بين يديك</h2>
+        <p>اكتشف، أضف، عدل، وصدّر الكتب المميزة بسهولة.</p>
+      </div>
+    </div>
+  </div>
+
+  <header class="head">
+    <h2>الكتب</h2>
+    <div class="meta">إجمالي: <b>{{ total() }}</b> كتاب</div>
+    <div class="actions">
+      <button
+        type="button"
+        class="secondary"
+        (click)="export()"
+        [disabled]="loading()"
+        title="تصدير النتائج الحالية إلى Excel">
+        تصدير Excel
+      </button>
+
+      <!-- يظهر فقط لمن يملك صلاحية الإضافة -->
+      <button
+        *ngIf="canCreate"
+        type="button"
+        class="primary"
+        (click)="openCreate()"
+        title="إضافة كتاب جديد">
+        إضافة كتاب
+      </button>
+    </div>
+  </header>
+
+  <!-- فلاتر البحث -->
+  <div class="filters" [formGroup]="filters" aria-label="فلاتر البحث">
+    <div *ngIf="!items().length && !loading()" class="empty">
+      لا توجد نتائج مطابقة.
+      <button type="button" (click)="reset()">مسح الفلاتر</button>
+    </div>
+
+    <div class="control">
+      <input formControlName="Q" placeholder="ابحث عن كتاب..." autocomplete="off" />
+    </div>
+    <div class="grid">
+      <label>العنوان
+        <input type="text" formControlName="Title" placeholder="ابحث بالعنوان" autocomplete="off">
+      </label>
+      <label>المؤلف
+        <input type="text" formControlName="Author" placeholder="ابحث بالمؤلف" autocomplete="off">
+      </label>
+      <label>التصنيف
+        <input type="text" formControlName="Category" placeholder="ابحث بالتصنيف" autocomplete="off">
+      </label>
+      <label>ISBN
+        <input type="text" formControlName="Isbn" placeholder="ابحث بالـ ISBN" autocomplete="off">
+      </label>
+    </div>
+  </div>
+
+  <!-- شريط الترتيب -->
+  <div class="sortbar" aria-label="الترتيب">
+    <span class="label">ترتيب حسب:</span>
+
+    <button type="button"
+            class="chip"
+            [class.active]="filters.value.SortBy==='title'"
+            (click)="sort('title')">
+      العنوان <small>{{ sortIcon('title') }}</small>
+    </button>
+
+    <button type="button"
+            class="chip"
+            [class.active]="filters.value.SortBy==='author'"
+            (click)="sort('author')">
+      المؤلف <small>{{ sortIcon('author') }}</small>
+    </button>
+
+    <button type="button"
+            class="chip"
+            [class.active]="filters.value.SortBy==='year'"
+            (click)="sort('year')">
+      السنة <small>{{ sortIcon('year') }}</small>
+    </button>
+
+    <button type="button"
+            class="chip"
+            [class.active]="filters.value.SortBy==='isbn'"
+            (click)="sort('isbn')">
+      ISBN <small>{{ sortIcon('isbn') }}</small>
+    </button>
+
+    <!-- زر عكْس الاتجاه بسرعة -->
+    <button type="button" class="dir" (click)="toggleDir()">
+      {{ filters.value.SortDir==='Asc' ? 'تصاعدي ▲' : 'تنازلي ▼' }}
+    </button>
+  </div>
+
+  <!-- شريط التحكم/الباجينايشن -->
+  <div class="toolbar" aria-label="الترقيم والتحكم">
+    <div class="paging">
+      <button type="button" (click)="prev()" [disabled]="page()<=1">‹</button>
+      <span>صفحة {{ page() }} من {{ totalPages() }}</span>
+      <button type="button" (click)="next()" [disabled]="page()>=totalPages()">›</button>
+    </div>
+    <div class="page-size">
+      <label for="pgSize">حجم الصفحة:</label>
+      <select id="pgSize" [value]="pageSize()" (change)="setPageSize($any($event.target).value)">
+        <option *ngFor="let s of [6,12,20,50,100]" [value]="s">{{ s }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- شبكة الكتب (بطاقات) -->
+  <div class="books-container" [class.loading]="loading()">
+    <div *ngIf="items().length === 0 && !loading()" class="no-books-message">
+      لا توجد كتب حالياً في المكتبة.
+    </div>
+
+    <div class="book-card slide-up" *ngFor="let b of items()">
+      <!-- سطر علوي لعرض الـID -->
+      <div class="top">
+        <span class="id-chip">#{{ b.id }}</span>
+      </div>
+
+      <div class="cover" *ngIf="coverOf(b) as img">
+        <img [src]="img" alt="غلاف {{ b.title }}" (error)="onCoverError($event)">
+      </div>
+
+      <h4 class="text-gradient">{{ b.title }}</h4>
+      <p class="muted">ID: <b>#{{ b.id }}</b></p>
+      <p>المؤلف: {{ b.author }}</p>
+      <p>السنة: {{ b.year || '—' }}</p>
+      <p>التصنيف: {{ b.category || '—' }}</p>
+       <p>عدد النسخ: {{ b.copiesCount }}</p>
+      <p *ngIf="b.isbn">ISBN: {{ b.isbn }}</p>
+
+      <!-- لا تظهر الحاوية إن لم توجد أي صلاحية -->
+      <div class="actions" *ngIf="canUpdate || canDelete">
+        <button
+          *ngIf="canUpdate"
+          type="button"
+          (click)="openEdit(b)"
+          title="تعديل هذا الكتاب">
+          تعديل
+        </button>
+        <button
+          *ngIf="canDelete"
+          type="button"
+          (click)="remove(b)"
+          title="حذف هذا الكتاب">
+          حذف
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
