@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Domain.DTOs
 {
+
     public class BorrowRecordCreateDto
     {
         [Required(ErrorMessage = "MemberId is required.")]
@@ -27,20 +28,20 @@ namespace Domain.DTOs
         [Required]
         public int DurationDays { get; set; } // نستخدم DurationDays بدل إدخال تواريخ يدوياً
     }
-            public class BorrowRecordExportRow
-        {
-            public int Id { get; set; }
-            public int MemberId { get; set; }
-            public string? MemberName { get; set; }
-            public int BookId { get; set; }
-            public string? BookTitle { get; set; }
-            public DateTime BorrowedDate { get; set; }
-            public DateTime DueDate { get; set; }
-            public DateTime? ReturnedDate { get; set; }
+    public class BorrowRecordExportRow
+    {
+        public int Id { get; set; }
+        public int MemberId { get; set; }
+        public string? MemberName { get; set; }
+        public int BookId { get; set; }
+        public string? BookTitle { get; set; }
+        public DateTime BorrowedDate { get; set; }
+        public DateTime DueDate { get; set; }
+        public DateTime? ReturnedDate { get; set; }
 
-            public string Status { get; set; } = "";
-            public int OverdueDays { get; set; }
-        }
+        public string Status { get; set; } = "";
+        public int OverdueDays { get; set; }
+    }
     public class BorrowRecordDto
     {
         public int Id { get; set; }

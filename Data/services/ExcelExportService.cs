@@ -20,7 +20,7 @@ namespace Data.Services
             if (headers == null || headers.Count == 0)
                 throw new ArgumentException("Headers must be provided");
 
-            data ??= Enumerable.Empty<T>();
+            data ??= [];
 
             var wb = new XLWorkbook();
             var ws = wb.Worksheets.Add(string.IsNullOrWhiteSpace(sheetName) ? "Sheet1" : sheetName);

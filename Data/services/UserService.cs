@@ -1,8 +1,10 @@
-﻿using Domain.Entities;
+﻿using Domain.DTOs;
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Data.Services
 {
@@ -14,7 +16,12 @@ namespace Data.Services
         {
             _context = context;
         }
-
+        public async Task<Member> GetMemberByEmailAsync(string email, CancellationToken ct = default)
+        {
+            return await _context.Members
+                                 .AsNoTracking()
+                                 .FirstOrDefaultAsync(m => m.Email.ToLower() == email.ToLower(), ct);
+        }
         private static string HashPassword(string password)
         {
             using var sha256 = SHA256.Create();
@@ -34,8 +41,7 @@ namespace Data.Services
                                  .FirstOrDefaultAsync(u => u.Email == email);
         }
 
-        // إضافة مستخدم جديد
-        public async Task<User> AddUserAsync(string username, string email, string password, int roleId = 3)
+        public async Task<User> AddUserAsync(string username, string email, string password, int roleId = 3, string? phone = null)
         {
             if (string.IsNullOrWhiteSpace(username)) throw new InvalidOperationException("Username is required");
             if (string.IsNullOrWhiteSpace(email)) throw new InvalidOperationException("Email is required");
@@ -46,33 +52,46 @@ namespace Data.Services
 
             var normEmail = email.Trim().ToLowerInvariant();
             var normUser = username.Trim();
+            var normPhone = string.IsNullOrWhiteSpace(phone) ? null : phone.Trim();
 
-            // تحقّق فريد — غير حساس لحالة الأحرف للإيميل
-            var emailTaken = await _context.Users
-                .AsNoTracking()
-                .AnyAsync(u => u.Email.ToLower() == normEmail);
-            if (emailTaken) throw new DuplicateNameException($"Email '{email}' is already in use."); // 👈 نوع أَدَق
+            // ✅ Regex للهاتف إذا موجود
+            if (!string.IsNullOrEmpty(normPhone) && !Regex.IsMatch(normPhone, @"^(?:09\d{9}|\+963\d{9})$"))
+            {
+                throw new InvalidOperationException("رقم الهاتف يجب أن يبدأ بـ 09 أو +963 ثم 9 أرقام.");
+            }
 
-            var userTaken = await _context.Users
-                .AsNoTracking()
-                .AnyAsync(u => u.Username == normUser);
-            if (userTaken) throw new DuplicateNameException($"Username '{username}' is already in use.");
+            // تفريد
+            if (await _context.Users.AsNoTracking().AnyAsync(u => u.Email.ToLower() == normEmail))
+                throw new DuplicateNameException($"Email '{email}' is already in use.");
 
+            if (await _context.Users.AsNoTracking().AnyAsync(u => u.Username == normUser))
+                throw new DuplicateNameException($"Username '{username}' is already in use.");
+
+            if (!string.IsNullOrEmpty(normPhone))
+            {
+                if (await _context.Users.AsNoTracking().AnyAsync(u => u.Phone == normPhone))
+                    throw new DuplicateNameException($"Phone '{normPhone}' is already in use.");
+            }
+
+            // إنشاء المستخدم
             var user = new User
             {
                 Username = normUser,
                 Email = normEmail,
                 RoleId = roleId,
                 PasswordHash = HashPassword(password),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                Phone = normPhone
             };
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+
+         
             return user;
         }
-
-        public async Task EnsureMemberProfileAsync(int userId, string name, string email, CancellationToken ct = default)
+        public async Task EnsureMemberProfileAsync(
+            int userId, string name, string email, string? phone = null, CancellationToken ct = default)
         {
             var user = await _context.Users.FindAsync(new object[] { userId }, ct);
             if (user == null) throw new InvalidOperationException("User not found.");
@@ -81,9 +100,17 @@ namespace Data.Services
                 .AnyAsync(m => m.Email.ToLower() == email.ToLower(), ct);
             if (exists) return;
 
-            _context.Members.Add(new Member { Name = name.Trim(), Email = email.Trim() });
+            _context.Members.Add(new Member
+            {
+                UserId = userId,            // لو علاقتك واحد-لواحد موجودة
+                Name = name.Trim(),
+                Email = email.Trim(),
+                Phone = string.IsNullOrWhiteSpace(phone) ? null : phone.Trim()
+            });
             await _context.SaveChangesAsync(ct);
         }
+        public Task<bool> ExistsByPhoneAsync(string phone) =>
+         _context.Users.AsNoTracking().AnyAsync(u => u.Phone == phone);
 
         // تحديث بيانات المستخدم + باسورد اختياري
         public async Task<bool> UpdateUserAsync(User user, string? newPassword = null)
@@ -91,11 +118,30 @@ namespace Data.Services
             var existing = await _context.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
             if (existing == null) return false;
 
-            if (await _context.Users.AnyAsync(u => u.Email == user.Email && u.Id != user.Id))
+            var newUsername = user.Username?.Trim() ?? existing.Username;
+            var newEmail = user.Email?.Trim() ?? existing.Email;
+            var newPhoneRaw = string.IsNullOrWhiteSpace(user.Phone) ? null : user.Phone.Trim();
+
+            // ✅ Regex للهاتف لو موجود
+            if (!string.IsNullOrEmpty(newPhoneRaw) &&
+                !Regex.IsMatch(newPhoneRaw, @"^(?:09\d{9}|\+963\d{9})$"))
+                throw new InvalidOperationException("رقم الهاتف يجب أن يبدأ بـ 09 أو +963 ثم 9 أرقام.");
+
+            // ✅ تفريد Email / Username / Phone (باستثناء السجل الحالي)
+            if (await _context.Users.AnyAsync(u => u.Email.ToLower() == newEmail.ToLower() && u.Id != existing.Id))
                 throw new InvalidOperationException("Email already in use by another user");
 
-            existing.Username = user.Username.Trim();
-            existing.Email = user.Email.Trim();
+            if (await _context.Users.AnyAsync(u => u.Username == newUsername && u.Id != existing.Id))
+                throw new InvalidOperationException("Username already in use by another user");
+
+            if (!string.IsNullOrEmpty(newPhoneRaw) &&
+                await _context.Users.AnyAsync(u => u.Phone == newPhoneRaw && u.Id != existing.Id))
+                throw new InvalidOperationException("Phone already in use by another user");
+
+            // ✅ تطبيق التعديلات
+            existing.Username = newUsername;
+            existing.Email = newEmail;
+            existing.Phone = newPhoneRaw;
 
             if (!string.IsNullOrEmpty(newPassword))
                 existing.PasswordHash = HashPassword(newPassword);
@@ -103,7 +149,6 @@ namespace Data.Services
             await _context.SaveChangesAsync();
             return true;
         }
-
         // حذف مستخدم
         public async Task<bool> DeleteUserAsync(int id)
         {

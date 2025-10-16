@@ -7,6 +7,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Data;
+using System.Text.RegularExpressions;
 
 namespace ApiProject.Controllers
 {
@@ -88,10 +89,86 @@ namespace ApiProject.Controllers
                 }
             });
         }
+        [HttpPost("public-register")]
+        [AllowAnonymous]
+        public async Task<IActionResult> PublicRegister([FromBody] UserRegisterDto dto, CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Invalid input data. Please check the fields.",
+                    errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
+                });
+            }
 
-        // ===========================
-        // Admin Register (Form + Dropdown للـ Role) — Admin/Employee فقط
-        // ===========================
+            if (dto.Password != dto.ConfirmPassword)
+            {
+                return BadRequest(new { success = false, message = "Password and Confirm Password do not match." });
+            }
+
+            var phone = string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim();
+            if (!string.IsNullOrEmpty(phone) && !Regex.IsMatch(phone, @"^(?:09\d{9}|\+963\d{9})$"))
+                return BadRequest(new { success = false, field = "Phone", message = "رقم الهاتف يجب أن يبدأ بـ 09 أو +963 ثم 9 أرقام." });
+
+            try
+            {
+                // التحقق من وجود البريد الإلكتروني في جدول الأعضاء فقط
+                var existingMemberByEmail = await _userService.GetMemberByEmailAsync(dto.Email);
+                if (existingMemberByEmail != null)
+                {
+                    return BadRequest(new { success = false, message = "Email is already in use. Please choose a different one." });
+                }
+
+                // التحقق من وجود رقم الهاتف في جدول الأعضاء فقط
+                if (!string.IsNullOrEmpty(phone) && await _userService.ExistsByPhoneAsync(phone))
+                {
+                    return Conflict(new { success = false, field = "Phone", message = "رقم الهاتف مستخدم مسبقاً." });
+                }
+
+                // تسجيل العضو
+                var user = await _authService.RegisterMemberAsync(dto, ct); // تأكد من تمرير Phone للـ User
+
+                var role = await _userService.GetRoleByIdAsync(user.RoleId);
+                var rolePerms = await _permissionService.GetPermissionsByRoleIdAsync(user.RoleId);
+
+                return StatusCode(201, new
+                {
+                    success = true,
+                    message = "User registered successfully.",
+                    data = new
+                    {
+                        user.Id,
+                        user.Username,
+                        user.Email,
+                        RoleId = user.RoleId,
+                        RoleName = role?.Name ?? "Member",
+                        Permissions = rolePerms.Select(p => new { p.Id, p.Name })
+                    }
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "PublicRegister conflict");
+                return Conflict(new { success = false, message = ex.Message });
+            }
+            catch (DuplicateNameException ex)
+            {
+                var field =
+                    ex.Message.Contains("Email", StringComparison.OrdinalIgnoreCase) ? "email" :
+                    ex.Message.Contains("Username", StringComparison.OrdinalIgnoreCase) ? "username" :
+                    ex.Message.Contains("Phone", StringComparison.OrdinalIgnoreCase) ? "phone" : null;
+
+                return Conflict(new { success = false, message = ex.Message, field });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "PublicRegister error");
+                return StatusCode(500, new { success = false, message = "Unexpected server error." });
+            }
+        }
+
         [HttpPost("admin-register")]
         [Authorize(Roles = "Admin")]
         [Consumes("application/x-www-form-urlencoded")]
@@ -114,11 +191,16 @@ namespace ApiProject.Controllers
             if (dto.Password != dto.ConfirmPassword)
                 return BadRequest(new { success = false, message = "Password and Confirm Password do not match." });
 
+            // ✅ تحقّق صيغة الهاتف (اختياريًا إذا مُرسل)
+            var phone = string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim();
+            if (!string.IsNullOrEmpty(phone) && !Regex.IsMatch(phone, @"^(?:09\d{9}|\+963\d{9})$"))
+                return BadRequest(new { success = false, field = "Phone", message = "رقم الهاتف يجب أن يبدأ بـ 09 أو +963 ثم 9 أرقام." });
+
             var roleId = (int)dto.Role; // Admin=1, Employee=2
 
             try
             {
-                var user = await _userService.AddUserAsync(dto.Username, dto.Email, dto.Password, roleId);
+                var user = await _userService.AddUserAsync(dto.Username, dto.Email, dto.Password, roleId, phone);
 
                 // لا ننشئ Member هنا
 
@@ -142,27 +224,24 @@ namespace ApiProject.Controllers
             }
             catch (DuplicateNameException ex)
             {
-                // رُميّت من الخدمة لما يكون الإيميل/اليوزرنيم مستعمل
-                var field = ex.Message.Contains("Email", StringComparison.OrdinalIgnoreCase) ? "email" :
-                            ex.Message.Contains("Username", StringComparison.OrdinalIgnoreCase) ? "username" : null;
+                var field =
+                    ex.Message.Contains("Email", StringComparison.OrdinalIgnoreCase) ? "email" :
+                    ex.Message.Contains("Username", StringComparison.OrdinalIgnoreCase) ? "username" :
+                    ex.Message.Contains("Phone", StringComparison.OrdinalIgnoreCase) ? "phone" : null;
 
                 return Conflict(new { success = false, message = ex.Message, field });
             }
-            catch (DbUpdateException ex) when (ex.InnerException is SqlException sql &&
-                                               (sql.Number == 2627 || sql.Number == 2601))
+            catch (DbUpdateException ex) when (ex.InnerException is SqlException sql && (sql.Number == 2627 || sql.Number == 2601))
             {
-                // 2627: Primary/Unique key violation, 2601: duplicate key
-                // في حال ما قدرنا نمسك التضارب مسبقًا
                 return Conflict(new
                 {
                     success = false,
-                    message = "Email or Username already exists.",
+                    message = "Email, Username or Phone already exists.",
                     detail = ex.InnerException.Message
                 });
             }
             catch (InvalidOperationException ex)
             {
-                // أخطاء فاليديشن أُخرى من الخدمة
                 return BadRequest(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
@@ -171,10 +250,6 @@ namespace ApiProject.Controllers
                 return StatusCode(500, new { success = false, message = "Unexpected server error." });
             }
         }
-
-
-
-
 
         // ===========================
         // Update Password
@@ -197,7 +272,6 @@ namespace ApiProject.Controllers
             if (user == null)
                 return NotFound(new { success = false, message = $"User with ID {id} not found." });
 
-            // التحقق من الصلاحيات: فقط Admin أو صاحب الحساب نفسه
             var currentUserEmail = User.Identity?.Name;
             if (currentUserEmail != user.Email && !User.IsInRole("Admin"))
                 return Forbid("You can only change your own password.");
@@ -215,6 +289,7 @@ namespace ApiProject.Controllers
         // ===========================
         // Update User Info
         // ===========================
+
         [HttpPut("{id:int}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int id, [FromBody] UserUpdateDto dto, CancellationToken ct)
@@ -230,16 +305,31 @@ namespace ApiProject.Controllers
                     errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
                 });
 
-            var existingUser = await _userService.GetByEmailAsync(dto.Email);
-            if (existingUser != null && existingUser.Id != id)
-                return Conflict(new { success = false, message = $"Email '{dto.Email}' is already used by another user." });
+            try
+            {
+                var user = new User
+                {
+                    Id = id,
+                    Username = dto.Username,
+                    Email = dto.Email,
+                    Phone = string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim()
+                };
 
-            var user = new User { Id = id, Username = dto.Username, Email = dto.Email };
-            var updated = await _userService.UpdateUserAsync(user);
-            if (!updated)
-                return NotFound(new { success = false, message = $"User with ID {id} not found." });
+                var updated = await _userService.UpdateUserAsync(user);
+                if (!updated)
+                    return NotFound(new { success = false, message = $"User with ID {id} not found." });
 
-            return Ok(new { success = true, message = "User updated successfully." });
+                return Ok(new { success = true, message = "User updated successfully." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                // تجي من الخدمة: Email/Username/Phone in use أو regex الهاتف
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (DbUpdateException ex) when (ex.InnerException is SqlException sql && (sql.Number == 2627 || sql.Number == 2601))
+            {
+                return Conflict(new { success = false, message = "Email, Username or Phone already exists.", detail = ex.InnerException.Message });
+            }
         }
 
         // ===========================

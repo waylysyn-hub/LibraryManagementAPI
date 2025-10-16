@@ -2,12 +2,15 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 
 namespace Domain.DTOs
 {
-
-
+    public static class Regexes
+    {
+        public const string SyrianPhone = @"^(?:09\d{9}|\+963\d{9})$";
+    }
 
     public class UserRegisterDto
     {
@@ -25,7 +28,14 @@ namespace Domain.DTOs
 
         [Required, Compare(nameof(Password))]
         public string ConfirmPassword { get; set; } = string.Empty;
+
+        // ✅ جديد (اختياري): 09 + 9 أرقام أو +963 + 9 أرقام
+        [MaxLength(14)]
+        [RegularExpression(Regexes.SyrianPhone,
+            ErrorMessage = "رقم الهاتف يجب أن يبدأ بـ 09 أو +963 ثم 9 أرقام.")]
+        public string? Phone { get; set; }
     }
+
     [JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
     public enum AdminRoleKey
     {
@@ -54,12 +64,19 @@ namespace Domain.DTOs
         [Required, Compare(nameof(Password))]
         public string ConfirmPassword { get; set; } = default!;
 
-        [Required] // 👈 Dropdown: Admin | Employee
+        [Required]
         public AdminRoleKey Role { get; set; } = AdminRoleKey.Employee;
 
         [MaxLength(150)]
-        public string? Name { get; set; } // للعرض فقط، لن ننشئ Member هنا
+        public string? Name { get; set; }
+
+        // ✅ جديد (اختياري)
+        [MaxLength(14)]
+        [RegularExpression(Regexes.SyrianPhone,
+            ErrorMessage = "رقم الهاتف يجب أن يبدأ بـ 09 أو +963 ثم 9 أرقام.")]
+        public string? Phone { get; set; }
     }
+
     // ============================================================
     // Update User Info DTO
     // ============================================================
@@ -71,6 +88,11 @@ namespace Domain.DTOs
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid email format")]
         public string Email { get; set; } = null!;
+        // اختياري: 09 + 9 أرقام أو +963 + 9 أرقام
+        [MaxLength(14)]
+        [RegularExpression(@"^(?:09\d{9}|\+963\d{9})$",
+            ErrorMessage = "رقم الهاتف يجب أن يبدأ بـ 09 أو +963 ثم 9 أرقام.")]
+        public string? Phone { get; set; }
     }
 
     // ============================================================

@@ -19,9 +19,7 @@ namespace ApiProject.Controllers
             _logger = logger;
         }
 
-        // ============================
-        // الحصول على جميع سجلات الإعارة (Paged)
-        // ============================
+
         [Authorize(Policy = "borrow.read")]
         [HttpGet]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
@@ -65,9 +63,7 @@ namespace ApiProject.Controllers
             }
         }
 
-        // =====================================
-        // الحصول على سجل إعارة بواسطة المعرف ID
-        // =====================================
+
         [Authorize(Policy = "borrow.read")]
         [HttpGet("{id:int}")]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
@@ -90,9 +86,7 @@ namespace ApiProject.Controllers
             }
         }
 
-        // ============================
-        // إنشاء سجل إعارة جديد
-        // ============================
+
         [Authorize(Policy = "borrow.create")]
         [HttpPost]
         [Consumes("application/json")]
@@ -139,9 +133,7 @@ namespace ApiProject.Controllers
             }
         }
 
-        // ============================
-        // تحديث سجل إعارة موجود
-        // ============================
+
         [Authorize(Policy = "borrow.update")]
         [HttpPut("{id:int}")]
         [Consumes("application/json")]

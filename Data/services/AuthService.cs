@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Data.Services
 {
@@ -19,9 +20,7 @@ namespace Data.Services
             _jwtService = jwtService;
         }
 
-        /// <summary>
-        /// Verifies a plaintext password against a stored SHA256 Base64 hash.
-        /// </summary>
+
         private static bool VerifyPassword(string password, string hash)
         {
             if (string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(hash))
@@ -32,9 +31,7 @@ namespace Data.Services
             return computed == hash;
         }
 
-        /// <summary>
-        /// Registers a standard user as Member (RoleId=3) and creates a Member profile within a DB transaction.
-        /// </summary>
+
         public async Task<User> RegisterMemberAsync(UserRegisterDto dto, CancellationToken ct = default)
         {
             // تطبيع المدخلات
@@ -43,12 +40,15 @@ namespace Data.Services
             var name = dto.Name?.Trim() ?? throw new InvalidOperationException("Name is required.");
             if (string.IsNullOrWhiteSpace(dto.Password) || dto.Password.Length < 6)
                 throw new InvalidOperationException("Password must be at least 6 characters.");
+            var phone = string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim(); // التأكد من أن الهاتف موجود
+            if (!string.IsNullOrEmpty(phone) && !Regex.IsMatch(phone, @"^(?:09\d{9}|\+963\d{9})$"))
+                throw new InvalidOperationException("رقم الهاتف يجب أن يبدأ بـ 09 أو +963 ثم 9 أرقام.");
 
-            // فحوصات فريدة (case-insensitive للإيميل)
-            if (await _context.Users.AsNoTracking().AnyAsync(u => u.Email.ToLower() == email, ct))
+            if (await _context.Members.AsNoTracking().AnyAsync(m => m.Email.ToLower() == email, ct))
                 throw new DuplicateNameException($"Email '{dto.Email}' is already in use.");
-            if (await _context.Users.AsNoTracking().AnyAsync(u => u.Username == username, ct))
-                throw new DuplicateNameException($"Username '{dto.Username}' is already in use.");
+
+            if (!string.IsNullOrEmpty(phone) && await _context.Members.AsNoTracking().AnyAsync(m => m.Phone == phone, ct))
+                throw new DuplicateNameException($"Phone number '{phone}' is already in use.");
 
             await using var tx = await _context.Database.BeginTransactionAsync(ct);
             try
@@ -65,20 +65,23 @@ namespace Data.Services
                     CreatedAt = DateTime.UtcNow
                 };
 
-                // 2) إنشاء Member مربوط على UserId (واحد-لواحد)
+                // 2) إضافة الـ User إلى قاعدة البيانات
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync(ct);
 
+                // 3) إنشاء Member مربوط على UserId
                 var member = new Member
                 {
-                    UserId = user.Id,          // 👈 هذا مهم
+                    UserId = user.Id,          // ربط العضو بالمستخدم
                     Name = dto.Name.Trim(),
-                    Email = email
+                    Email = email,
+                    Phone = phone  // إضافة الهاتف هنا إذا كان موجودًا
                 };
+
                 _context.Members.Add(member);
-
-
                 await _context.SaveChangesAsync(ct);
+
+                // 4) إتمام المعاملات
                 await tx.CommitAsync(ct);
 
                 return user;
@@ -95,9 +98,7 @@ namespace Data.Services
                 throw;
             }
         }
-        /// <summary>
-        /// Authenticates a user, computes effective permissions: Role ∪ User − Denied, and issues a JWT.
-        /// </summary>
+
         public async Task<LoginResultDto?> LoginAsync(string email, string password, CancellationToken ct = default)
         {
             try

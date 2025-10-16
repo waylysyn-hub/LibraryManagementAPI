@@ -19,7 +19,20 @@ namespace Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-          
+            modelBuilder.Entity<User>()
+                .Property(u => u.Phone)
+                .HasMaxLength(14);
+
+                        modelBuilder.Entity<User>()
+                            .HasIndex(u => u.Phone)
+                            .IsUnique()
+            #if NET7_0_OR_GREATER
+                            .HasFilter("[Phone] IS NOT NULL"); // SQL Server
+            #else
+                .HasFilter("[Phone] IS NOT NULL");
+            #endif
+
+
             modelBuilder.Entity<Book>()
                 .HasIndex(b => new { b.Title, b.Author });
 

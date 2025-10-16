@@ -180,9 +180,6 @@ namespace Data.Services
             return record;
         }
 
-        // ============================
-        // تحديث
-        // ============================
         public async Task<bool> UpdateAsync(int id, BorrowRecordUpdateDto dto, CancellationToken ct = default)
         {
             if (dto.DurationDays <= 0 || dto.DurationDays > 365)
@@ -191,15 +188,28 @@ namespace Data.Services
             var record = await _context.BorrowRecords.FindAsync(new object?[] { id }, ct);
             if (record == null) return false;
 
+            // تحقق من وجود الكتاب
             var bookExists = await _context.Books.AnyAsync(b => b.Id == dto.BookId, ct);
             if (!bookExists)
                 throw new ArgumentException($"Book with ID {dto.BookId} not found.");
 
+            // تحقق من وجود العضو
             var memberExists = await _context.Members.AnyAsync(m => m.Id == dto.MemberId, ct);
             if (!memberExists)
                 throw new ArgumentException($"Member with ID {dto.MemberId} not found.");
 
-            // إعادة ضبط المدة من الآن
+            // تحقق إذا كان الكتاب معاراً لنفس العضو
+            var isAlreadyBorrowedBySameMember = await _context.BorrowRecords
+                .AnyAsync(br => br.BookId == dto.BookId && br.MemberId == dto.MemberId && br.Id != id && br.ReturnedDate == null, ct);
+            if (isAlreadyBorrowedBySameMember)
+                throw new ArgumentException("This book has already been borrowed by the same member.");
+
+            // تحقق من وجود نسخ متاحة من الكتاب
+            var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == dto.BookId, ct);
+            if (book == null || book.CopiesCount <= 0)
+                throw new ArgumentException("No available copies of the book.");
+
+            // إذا تم التحقق بنجاح، نواصل التحديث
             var now = DateTime.UtcNow;
             record.MemberId = dto.MemberId;
             record.BookId = dto.BookId;
@@ -212,9 +222,7 @@ namespace Data.Services
             return true;
         }
 
-        // ============================
-        // حذف
-        // ============================
+
         public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
         {
             var record = await _context.BorrowRecords.FindAsync(new object?[] { id }, ct);
@@ -227,9 +235,7 @@ namespace Data.Services
             return true;
         }
 
-        // ============================
-        // إرجاع كتاب
-        // ============================
+
         public async Task<bool> ReturnAsync(int id, CancellationToken ct = default)
         {
             var record = await _context.BorrowRecords.FindAsync(new object?[] { id }, ct);

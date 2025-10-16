@@ -218,17 +218,17 @@ namespace ApiProject.Controllers
                 var data = await _service.GetForExportAsync(qp, 10000, ct);
                 if (data.Count == 0) return NoContent();
 
-                var headers = new List<(string Header, Func<BookDto, object>)>
+                var headers = new List<(string Header, Func<BookDto, object?>)>
                 {
-                    ("ID",         x => x.Id),
-                    ("Title",      x => x.Title),
-                    ("Author",     x => x.Author),
-                    ("Category",   x => x.Category),
-                    ("Year",       x => x.Year),
-                    ("Copies",     x => x.CopiesCount),
-                    ("Active Borrows", x => x.ActiveBorrowCount),
-                    ("Available",       x => x.AvailableCopies),
-                    ("ISBN",       x => x.ISBN),
+                    ("ID",             x => (object?) x.Id),
+                    ("Title",          x => (object?) x.Title),
+                    ("Author",         x => (object?) x.Author),
+                    ("Category",       x => (object?) x.Category),
+                    ("Year",           x => (object?) x.Year),            // لو كانت DateTime وتريد سنة فقط: (object?) (x.Year as DateTime?)?.ToString("yyyy")
+                    ("Copies",         x => (object?) x.CopiesCount),
+                    ("Active Borrows", x => (object?) x.ActiveBorrowCount),
+                    ("Available",      x => (object?) x.AvailableCopies),
+                    ("ISBN",           x => (object?) x.ISBN),
                 };
 
                 var stream = ExcelExportService.ExportToExcel(data, headers, "Books");

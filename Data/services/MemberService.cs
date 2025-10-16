@@ -174,6 +174,24 @@ namespace Data.Services
             var newEmail = dto.Email.Trim().ToLowerInvariant();
             var newPhone = string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim();
 
+            // تحقق من صيغة الهاتف
+            if (!string.IsNullOrEmpty(newPhone) && !System.Text.RegularExpressions.Regex.IsMatch(newPhone, @"^(09\d{9}|\+963\d{9})$"))
+            {
+                throw new ArgumentException("رقم الهاتف يجب أن يبدأ بـ 09 أو +963 ثم 9 أرقام.");
+            }
+
+            // تحقق من أن الهاتف غير مكرر في قاعدة البيانات
+            if (!string.IsNullOrEmpty(newPhone))
+            {
+                var phoneTaken = await _context.Members.AsNoTracking()
+                    .AnyAsync(m => m.Phone == newPhone && m.Id != id, ct);
+                if (phoneTaken)
+                {
+                    throw new ArgumentException("رقم الهاتف مستخدم مسبقاً.");
+                }
+            }
+
+            // التحقق من البريد الإلكتروني
             if (!string.Equals(member.Email, newEmail, StringComparison.OrdinalIgnoreCase))
             {
                 var emailTaken = await _context.Members
@@ -183,7 +201,7 @@ namespace Data.Services
 
                 member.Email = newEmail;
 
-                // (اختياري) مزامنة بريد المستخدم المرتبط
+                // (اختياري) مزامنة البريد الإلكتروني للمستخدم المرتبط
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == member.UserId, ct);
                 if (user != null) user.Email = newEmail;
             }
@@ -199,18 +217,26 @@ namespace Data.Services
         public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
         {
             var member = await _context.Members
-                .Include(m => m.BorrowRecords)
+                .Include(m => m.BorrowRecords) // نضمن أن نسحب سجلات الاستعارة
                 .FirstOrDefaultAsync(m => m.Id == id, ct);
 
-            if (member == null) return false;
+            if (member == null)
+            {
+                throw new InvalidOperationException($"العضو {id} غير موجود في النظام.");
+            }
 
+            // تحقق من وجود سجلات استعارة
             if (member.BorrowRecords?.Count > 0)
+            {
                 throw new InvalidOperationException("لا يمكن حذف عضو لديه سجلات استعارة.");
+            }
 
+            // حذف العضو
             _context.Members.Remove(member);
             await _context.SaveChangesAsync(ct);
             return true;
         }
+
 
         // تصدير
         public async Task<List<MemberDto>> GetForExportAsync(MemberQueryParams qp, int maxRows = 10000, CancellationToken ct = default)

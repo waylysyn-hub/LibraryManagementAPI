@@ -166,31 +166,38 @@ namespace ApiProject.Controllers
             }
         }
 
-        // =======================
-        // PUT /api/members/{id} (إداري)
-        // =======================
-        [Authorize(Roles = "Admin,Employee")]
         [HttpPut("{id:int}")]
+        [Authorize(Policy = "member.update")]
         [Consumes("application/json")]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(object), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AdminUpdate(int id, [FromBody] MemberAdminUpdateDto dto, CancellationToken ct)
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(new
                 {
                     success = false,
                     message = "Invalid input data.",
                     errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
                 });
+            }
 
             try
             {
+                // هنا يتم تحديث الهاتف و البيانات
                 var updated = await _service.AdminUpdateAsync(id, dto, ct);
-                if (!updated) return NotFound(new { success = false, message = $"Member {id} not found" });
+                if (!updated)
+                    return NotFound(new { success = false, message = $"Member {id} not found" });
+
                 return Ok(new { success = true, message = $"Member {id} updated successfully" });
+            }
+            catch (ArgumentException ex) // إذا كان هناك خطأ في التحقق من البيانات (مثل الهاتف أو البريد الإلكتروني)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
             }
             catch (DuplicateNameException ex)
             {
@@ -203,13 +210,12 @@ namespace ApiProject.Controllers
             }
         }
 
-        // =======================
-        // DELETE /api/members/{id} (إداري)
-        // =======================
-        [Authorize(Roles = "Admin")]
+
+        [Authorize(Policy = "member.delete")]
         [HttpDelete("{id:int}")]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
@@ -223,6 +229,7 @@ namespace ApiProject.Controllers
             }
             catch (InvalidOperationException ex)
             {
+                // إرجاع الخطأ مع الرسالة في الجسم
                 return BadRequest(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
@@ -232,9 +239,8 @@ namespace ApiProject.Controllers
             }
         }
 
-        // =======================
-        // GET /api/members/export
-        // =======================
+
+
         [Authorize(Policy = "member.read")]
         [HttpGet("export")]
         [Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
@@ -248,15 +254,15 @@ namespace ApiProject.Controllers
                 var data = await _service.GetForExportAsync(qp, 10000, ct);
                 if (data.Count == 0) return NoContent();
 
-                List<(string Header, Func<MemberDto, object?>)> headers = new()
-                {
+                List<(string Header, Func<MemberDto, object?>)> headers =
+                [
                     ("ID",          x => x.Id),
                     ("UserId",      x => x.UserId),
                     ("Name",        x => x.Name),
                     ("Email",       x => x.Email),
                     ("Phone",       x => x.Phone ?? ""),
                     ("Registered",  x => x.RegisteredAt)
-                };
+                ];
 
                 var dateFormat = "yyyy-MM-dd HH:mm";
                 var stream = ExcelExportService.ExportToExcel<MemberDto>(data, headers, "Members", dateFormat);

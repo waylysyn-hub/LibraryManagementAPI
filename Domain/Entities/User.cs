@@ -12,6 +12,7 @@ namespace Domain.Entities
         public int RoleId { get; set; }
         public Role Role { get; set; } = null!;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public string? Phone { get; set; }
 
         // 🔹 العلاقة مع Member (واحد لواحد)
         public Member? Member { get; set; }
