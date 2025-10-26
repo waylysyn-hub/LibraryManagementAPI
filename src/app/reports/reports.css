@@ -1,0 +1,609 @@
+:host { display:block; }
+.reports{
+  --bg: #0b1020;
+  --card: rgba(255,255,255,.06);
+  --stroke: rgba(255,255,255,.12);
+  --text: #e7ecf7;
+  --muted: #9aa4bd;
+  --primary: #6d7cff;
+  --primary-2: #7c3aed;
+  --success: #10b981;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+
+  color: var(--text);
+  background:
+    radial-gradient(1200px 600px at 100% -10%, rgba(124,58,237,.20), transparent 50%),
+    radial-gradient(900px 400px at -10% 0%, rgba(109,124,255,.18), transparent 60%),
+    linear-gradient(180deg, #0b1020 0%, #0b1226 100%);
+  border-radius: 16px;
+  padding: 18px;
+}
+
+/* ===== Hero / Toolbar ===== */
+.hero{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  border:1px solid var(--stroke); border-radius: 16px;
+  padding: 16px 18px; box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+.hero-left h2{ margin:0; font-size: 24px; font-weight:900; letter-spacing:.3px }
+.hero-left p{ margin:6px 0 0; color: var(--muted) }
+.hero-actions{ display:flex; gap:8px; flex-wrap:wrap }
+
+.btn{
+  appearance: none; border:1px solid var(--stroke);
+  background: rgba(255,255,255,.06); color: var(--text);
+  border-radius: 12px; padding: 10px 14px; font-weight:800; cursor:pointer;
+  transition: transform .15s ease, filter .15s ease, background .15s ease;
+}
+.btn:hover{ transform: translateY(-1px); filter: brightness(1.05); }
+.btn.solid{
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  border-color: transparent; color:#fff;
+  box-shadow: 0 12px 26px rgba(124,58,237,.35);
+}
+.btn.ghost{ background: transparent }
+.btn.mini{ padding:6px 10px; border-radius: 10px }
+
+/* ===== KPI Cards ===== */
+.cards{
+  display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px;
+  margin-top: 12px;
+}
+.kpi{
+  display:flex; align-items:center; gap:12px;
+  padding: 14px; border-radius: 16px; border:1px solid var(--stroke);
+  background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+  box-shadow: 0 10px 24px rgba(0,0,0,.25);
+  transform: translateZ(0);
+}
+.kpi .icon{
+  width:48px; height:48px; display:grid; place-items:center; font-size:22px;
+  border-radius: 12px; background: rgba(109,124,255,.15); border:1px solid rgba(109,124,255,.35);
+}
+.kpi .meta .label{ color: var(--muted); font-weight:800; font-size:12px }
+.kpi .meta .value{ font-size:26px; font-weight: 900; line-height: 1.1; margin-top: 4px }
+.kpi.danger .icon{ background: rgba(239,68,68,.15); border-color: rgba(239,68,68,.35) }
+
+/* skeleton pulse */
+.kpi.loading .value::after{
+  content:'…'; animation: dots 1s infinite;
+}
+@keyframes dots{
+  0%{ content:'·' } 33%{ content:'··' } 66%{ content:'···' } 100%{ content:'·' }
+}
+
+/* ===== Panels / Tables ===== */
+.panel{
+  margin-top:12px;
+  background: var(--card); border:1px solid var(--stroke);
+  border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.25);
+}
+.panel-head{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding: 14px 16px; border-bottom: 1px dashed var(--stroke);
+}
+.panel-head h4{ margin:0; font-weight:900; letter-spacing:.2px }
+.panel-sub{ color: var(--muted); font-size: 12px }
+
+.table-wrap{
+  position:relative; overflow:auto; border-radius: 0 0 16px 16px;
+  max-height: 480px;
+}
+.table-wrap.big{ max-height: none }
+.table-wrap.loading::after{
+  content:'جاري التحميل…'; position:absolute; inset:0; display:grid; place-items:center;
+  background: rgba(11,16,32,.55); border-radius: 0 0 16px 16px; font-weight:900;
+}
+
+table{ width:100%; border-collapse: collapse; font-size: 14px }
+thead th{
+  position: sticky; top: 0; z-index: 1;
+  text-align:right; padding: 12px 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+  border-bottom: 1px solid var(--stroke);
+  backdrop-filter: blur(4px);
+}
+tbody td{
+  padding: 10px 14px; border-bottom:1px dashed rgba(255,255,255,.08);
+}
+tbody tr:hover{ background: rgba(255,255,255,.04) }
+.tight{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 0; }
+.muted{ color: var(--muted) }
+
+.rank{
+  display:inline-grid; place-items:center; width:30px; height:30px; border-radius:10px;
+  background: rgba(255,255,255,.08); border:1px solid var(--stroke); font-weight:900;
+}
+.badge{
+  display:inline-block; min-width: 48px; text-align:center; padding:6px 10px; border-radius: 999px;
+  background: rgba(109,124,255,.15); border:1px solid rgba(109,124,255,.35);
+  font-weight:900; color:#dfe4ff;
+}
+.pill{
+  display:inline-block; min-width: 48px; text-align:center; padding:6px 10px; border-radius: 999px;
+  background: rgba(255,255,255,.08); border:1px solid var(--stroke); font-weight:900;
+}
+.pill.ok{ background: rgba(16,185,129,.12); border-color: rgba(16,185,129,.35); color:#b7f3da }
+.pill.warn{ background: rgba(245,158,11,.12); border-color: rgba(245,158,11,.35); color:#ffe0a6 }
+.pill.danger{ background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.35); color:#ffd3d3 }
+
+.empty{ padding:16px; text-align:center; color: var(--muted) }
+
+/* ===== Filters ===== */
+.filters{ padding: 12px 16px }
+.f-grid{
+  display:grid; gap:10px; grid-template-columns: repeat(4, minmax(160px, 1fr));
+}
+@media (max-width: 1100px){
+  .f-grid{ grid-template-columns: repeat(2, 1fr) }
+}
+@media (max-width: 640px){
+  .f-grid{ grid-template-columns: 1fr }
+}
+
+label{ display:flex; flex-direction:column; gap:6px; font-weight:800; color:#d3dbef }
+input{
+  height: 42px; border-radius: 12px; border:1px solid var(--stroke);
+  background: rgba(255,255,255,.06); color: var(--text);
+  padding: 0 12px; outline: none;
+}
+input:focus{ border-color: rgba(109,124,255,.55); box-shadow: 0 0 0 3px rgba(109,124,255,.22) }
+
+.f-actions{ display:flex; gap:8px; margin-top:12px }
+
+/* ===== 3-Grid Section ===== */
+.grid-3{
+  display:grid; gap:12px; grid-template-columns: repeat(3, 1fr);
+}
+@media (max-width: 1200px){
+  .grid-3{ grid-template-columns: repeat(2, 1fr) }
+}
+@media (max-width: 800px){
+  .grid-3{ grid-template-columns: 1fr }
+}
+
+/* === Trend bars (بدون مكتبات) === */
+/* === Trend bars (بدون مكتبات) === */
+.trend-wrap{ padding: 10px 14px; position:relative }
+.trend-wrap.loading::after{
+  content:'جاري التحميل…'; position:absolute; inset:0; display:grid; place-items:center;
+  background: rgba(11,16,32,.55); border-radius: 0 0 16px 16px; font-weight:900;
+}
+.legend{ display:flex; gap:12px; align-items:center; color: var(--muted); margin-bottom:8px; font-weight:800 }
+.legend .dot{ width:10px; height:10px; border-radius:999px; display:inline-block }
+.legend .borrow{ background:#7c3aed }
+.legend .ret{ background:#10b981 }
+
+.trend-bars{ display:flex; flex-direction:column; gap:6px; max-height: 280px; overflow:auto }
+.bar-row{ display:flex; align-items:center; gap:10px }
+.bar-row .date{ width:112px; font-size:12px; color: var(--muted) }
+.bar-row .bars{ display:flex; gap:6px; flex:1 }
+
+.bar{
+  flex:1; height:12px; border-radius: 999px;
+  background: rgba(255,255,255,.08); border:1px solid var(--stroke);
+  overflow:hidden; position:relative;
+}
+.bar .fill{
+  position:absolute; inset-block:0; inset-inline-start:0;
+  height:100%; border-radius:inherit;
+}
+.fill.borrow{ background: linear-gradient(90deg,#7c3aed,#6d7cff) }
+.fill.ret{ background: linear-gradient(90deg,#10b981,#34d399) }
+
+/* === Category share bar === */
+.share{
+  position:relative; height:12px; border-radius:999px; background: rgba(255,255,255,.08);
+  border:1px solid var(--stroke);
+}
+.share-fill{
+  position:absolute; inset-block:0; inset-inline-start:0;
+  border-radius:999px; background: linear-gradient(90deg,#6d7cff,#7c3aed);
+}
+.share-txt{ margin-inline-start:8px; color:#dfe4ff; font-weight:800 }
+
+/* === Cohorts pills === */
+.cohorts{ padding: 12px 16px; position:relative }
+.cohorts.loading::after{
+  content:'جاري التحميل…'; position:absolute; inset:0; display:grid; place-items:center;
+  background: rgba(11,16,32,.55); border-radius: 0 0 16px 16px; font-weight:900;
+}
+.coh-row{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px }
+.coh-pill{
+  border:1px solid var(--stroke); border-radius:999px; padding:6px 10px; font-weight:900;
+  background: rgba(255,255,255,.06);
+}
+.coh-pill.very{ background: rgba(109,124,255,.15); border-color: rgba(109,124,255,.35) }
+.coh-pill.act{ background: rgba(59,130,246,.15); border-color: rgba(59,130,246,.35) }
+.coh-pill.light{ background: rgba(245,158,11,.15); border-color: rgba(245,158,11,.35) }
+.coh-pill.off{ background: rgba(239,68,68,.15); border-color: rgba(239,68,68,.35) }
+/* === Trend bars (بدون مكتبات) === */
+.trend-wrap{ padding: 10px 14px; position:relative }
+.trend-wrap.loading::after{
+  content:'جاري التحميل…'; position:absolute; inset:0; display:grid; place-items:center;
+  background: rgba(11,16,32,.55); border-radius: 0 0 16px 16px; font-weight:900;
+}
+.legend{ display:flex; gap:12px; align-items:center; color: var(--muted); margin-bottom:8px; font-weight:800 }
+.legend .dot{ width:10px; height:10px; border-radius:999px; display:inline-block }
+.legend .borrow{ background:#7c3aed }
+.legend .ret{ background:#10b981 }
+
+.trend-bars{ display:flex; flex-direction:column; gap:6px; max-height: 280px; overflow:auto }
+.bar-row{ display:flex; align-items:center; gap:10px }
+.bar-row .date{ width:112px; font-size:12px; color: var(--muted) }
+.bar-row .bars{ display:flex; gap:6px; flex:1 }
+
+.bar{
+  flex:1; height:12px; border-radius: 999px;
+  background: rgba(255,255,255,.08); border:1px solid var(--stroke);
+  overflow:hidden; position:relative;
+}
+.bar .fill{
+  position:absolute; inset-block:0; inset-inline-start:0;
+  height:100%; border-radius:inherit;
+}
+.fill.borrow{ background: linear-gradient(90deg,#7c3aed,#6d7cff) }
+.fill.ret{ background: linear-gradient(90deg,#10b981,#34d399) }
+/* ===== Combo (searchable select) ===== */
+.combo { position: relative; }
+.combo-box{
+  position: relative; display:flex; align-items:center;
+}
+.combo .x{
+  position:absolute; inset-inline-end:8px; inset-block:0;
+  margin:auto; height:28px; width:28px; border-radius:8px;
+  border:1px solid var(--stroke); background: rgba(255,255,255,.06);
+  color: var(--text); cursor:pointer;
+}
+.combo-list{
+  position:absolute; inset-inline:0; top: calc(100% + 6px);
+  background: #0e142a; border:1px solid var(--stroke); border-radius:12px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.35);
+  max-height: 260px; overflow:auto; z-index: 40;
+}
+.combo-item{
+  width:100%; text-align: start; padding:10px 12px; background:transparent; border:0; color:var(--text);
+  cursor:pointer; display:flex; justify-content:space-between; gap:10px;
+}
+.combo-item:hover{ background: rgba(255,255,255,.06) }
+
+/* === Trend bars (من التعديلات السابقة) === */
+.trend-wrap{ padding: 10px 14px; position:relative }
+.trend-wrap.loading::after{
+  content:'جاري التحميل…'; position:absolute; inset:0; display:grid; place-items:center;
+  background: rgba(11,16,32,.55); border-radius: 0 0 16px 16px; font-weight:900;
+}
+.legend{ display:flex; gap:12px; align-items:center; color: var(--muted); margin-bottom:8px; font-weight:800 }
+.legend .dot{ width:10px; height:10px; border-radius:999px; display:inline-block }
+.legend .borrow{ background:#7c3aed }
+.legend .ret{ background:#10b981 }
+
+.trend-bars{ display:flex; flex-direction:column; gap:6px; max-height: 280px; overflow:auto }
+.bar-row{ display:flex; align-items:center; gap:10px }
+.bar-row .date{ width:112px; font-size:12px; color: var(--muted) }
+.bar-row .bars{ display:flex; gap:6px; flex:1 }
+.bar{
+  flex:1; height:12px; border-radius: 999px;
+  background: rgba(255,255,255,.08); border:1px solid var(--stroke);
+  overflow:hidden; position:relative;
+}
+.bar .fill{
+  position:absolute; inset-block:0; inset-inline-start:0;
+  height:100%; border-radius:inherit;
+}
+.fill.borrow{ background: linear-gradient(90deg,#7c3aed,#6d7cff) }
+.fill.ret{ background: linear-gradient(90deg,#10b981,#34d399) }
+
+/* ===== Responsive tweaks ===== */
+@media (max-width: 900px){
+  .hero{ flex-direction: column; align-items: stretch }
+  .hero-actions{ width:100%; display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px }
+  .btn{ width:100% }
+  .f-grid{ grid-template-columns: 1fr 1fr }
+}
+@media (max-width: 640px){
+  .hero-actions{ grid-template-columns: 1fr; }
+  .f-grid{ grid-template-columns: 1fr }
+  .grid-3{ grid-template-columns: 1fr } /* كل البطاقات عمود واحد */
+  thead th, tbody td{ padding: 10px 10px } /* ضيق الحواف قليلاً */
+}
+/* ==== Filters: improved search styling (ONLY) ==== */
+
+/* عنوان الحقل */
+.filters .f-grid label > span{
+  font-size: 16px;
+  font-weight: 800;
+  color: #d3dbef;
+  margin-inline-start: 2px;
+}
+
+/* حقول الإدخال الأساسية */
+.filters input,
+.filters select{
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--stroke);
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  padding: 0 12px;
+  outline: none;
+  font: inherit;
+  width: 100%;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+/* تباين بسيط عند المرور */
+.filters input:hover,
+.filters select:hover{
+  background: rgba(255,255,255,.08);
+}
+
+/* حالة التركيز */
+.filters input:focus,
+.filters select:focus{
+  border-color: rgba(109,124,255,.55);
+  box-shadow: 0 0 0 3px rgba(109,124,255,.22);
+}
+
+/* سهم الـ select (RTL-aware) */
+.filters select{
+  appearance: none;
+  /* خلفية خفيفة + سهم */
+  background-image:
+    linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0)),
+    url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23dbe1ff' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat, no-repeat;
+  background-size: 100% 100%, 12px 8px;
+  /* في RTL السهم يسار، في LTR يمين */
+  background-position: 0 0, left 12px center;
+  padding-inline-start: 34px; /* مساحة للسهم */
+}
+[dir="ltr"] .filters select{
+  background-position: 0 0, right 12px center;
+  padding-inline-start: 12px;
+  padding-inline-end: 34px;
+}
+
+/* خيارات القائمة */
+.filters option{
+  background: #0f1430;
+  color: #e7ecf7;
+}
+
+/* شبكة الفلاتر: توسيع المسافات قليلاً */
+.filters .f-grid{
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+}
+
+/* صف الأزرار تحت الفلاتر */
+.filters .f-actions{
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.filters .f-actions .btn{
+  min-width: 160px;
+}
+
+/* تلميح تحميل القوائم (اختياري لو بتعرض نص "تحميل القوائم…") */
+.filters .opts-loading{
+  color: var(--muted);
+  font-size: 12px;
+  padding: 6px 2px 0;
+}
+
+/* تحسينات الاستجابة */
+@media (max-width: 1100px){
+  .filters .f-grid{
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 640px){
+  .filters .f-grid{
+    grid-template-columns: 1fr;
+  }
+  .filters .f-actions .btn{
+    flex: 1 1 auto;
+    width: 100%;
+  }
+}
+/* 1) خَلّي الحقل اللي عليه فوكس يظهر فوق جاره */
+.filters .f-grid input:focus,
+.filters .f-grid select:focus {
+  position: relative;
+  z-index: 2;                /* أهم سطر */
+  /* حافة مزدوجة: قص بسيط بلون الخلفية ثم حلقة لون */
+  box-shadow:
+    0 0 0 2px var(--bg),     /* يفصل بصريًا عن الحقل المجاور */
+    0 0 0 4px rgba(109,124,255,.45);
+  border-color: transparent;
+}
+
+/* 2) زيد فجوة الشبكة شوي لراحة العين */
+.filters .f-grid { gap: 14px; }
+
+/* 3) حقول التاريخ بالـRTL: مساحة للأيقونة */
+.filters input[type="date"] {
+  padding-inline-start: 36px;          /* مساحة لأيقونة التاريخ */
+  background-clip: padding-box;        /* يمنع تداخل الخلفية مع الحواف */
+}
+
+/* 4) حسّن ظهور أيقونة الـdate على الثيم الداكن */
+.filters input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: .85;
+  filter: invert(1) brightness(0.9);   /* تخليها فاتحة وواضحة */
+}
+
+/* (اختياري) لو بدك تزيد الفاصل أكثر بالموبايل */
+@media (max-width: 640px){
+  .filters .f-grid { gap: 12px; }
+}
+/* === Date fields: floating label truly INSIDE the field === */
+.reports .filters .f-grid label:has(> input[type="date"]) {
+  position: relative;
+  padding: 18px 12px 8px;        /* مساحة للعنوان داخل الحقل */
+  border-radius: 12px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--stroke);
+}
+
+/* العنوان داخل الإطار */
+.reports .filters .f-grid label:has(> input[type="date"]) > span {
+  position: absolute;
+  inset-block-start: 6px;
+  inset-inline-start: 14px;      /* RTL/LTR-aware */
+  font-size: 12px;
+  font-weight: 800;
+  color: #cfd7f7;
+  pointer-events: none;
+  line-height: 1;
+  opacity: .95;
+}
+
+/* الـinput نفسه شفاف وبدون حد لتفادي “الإطارين” */
+.reports .filters .f-grid label:has(> input[type="date"]) input[type="date"] {
+  height: 34px;
+  width: 100%;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--text);
+  padding: 0 12px;
+  padding-inline-start: 36px;    /* مساحة لأيقونة التقويم */
+  background-clip: padding-box;
+}
+
+/* فوكس على الحاوية بدل الحقل */
+.reports .filters .f-grid label:has(> input[type="date"]):focus-within {
+  border-color: rgba(109,124,255,.55);
+  box-shadow: 0 0 0 3px rgba(109,124,255,.22);
+}
+
+/* وضوح أيقونة التقويم على الثيم الداكن */
+.reports .filters .f-grid label:has(> input[type="date"]) input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: .85;
+  filter: invert(1) brightness(.9);
+}
+
+/* — Fallback للمتصفحات اللي ما بتدعم :has() —
+   بس وقتها حط class="date-in" على لابل التاريخين */
+.reports .filters .f-grid label.date-in { position:relative; padding:18px 12px 8px; border-radius:12px; background:rgba(255,255,255,.06); border:1px solid var(--stroke) }
+.reports .filters .f-grid label.date-in > span { position:absolute; inset-block-start:6px; inset-inline-start:14px; font-size:12px; font-weight:800; color:#cfd7f7; pointer-events:none; line-height:1; opacity:.95 }
+.reports .filters .f-grid label.date-in input[type="date"] { height:34px; width:100%; border:0 !important; background:transparent !important; box-shadow:none !important; color:var(--text); padding:0 12px; padding-inline-start:36px; background-clip:padding-box }
+.reports .filters .f-grid label.date-in:focus-within { border-color:rgba(109,124,255,.55); box-shadow:0 0 0 3px rgba(109,124,255,.22) }
+.reports .filters .f-grid label.date-in input[type="date"]::-webkit-calendar-picker-indicator { opacity:.85; filter:invert(1) brightness(.9) }
+/* === Date fields: floating label truly INSIDE the field === */
+.reports .filters .f-grid label:has(> input[type="date"]) {
+  position: relative;
+  padding: 18px 12px 8px;        /* مساحة للعنوان داخل الحقل */
+  border-radius: 12px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--stroke);
+}
+
+/* العنوان داخل الإطار */
+.reports .filters .f-grid label:has(> input[type="date"]) > span {
+  position: absolute;
+  inset-block-start: 6px;
+  inset-inline-start: 14px;      /* RTL/LTR-aware */
+  font-size: 12px;
+  font-weight: 800;
+  color: #cfd7f7;
+  pointer-events: none;
+  line-height: 1;
+  opacity: .95;
+}
+
+/* الـinput نفسه شفاف وبدون حد لتفادي “الإطارين” */
+.reports .filters .f-grid label:has(> input[type="date"]) input[type="date"] {
+  height: 34px;
+  width: 100%;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--text);
+  padding: 0 12px;
+  padding-inline-start: 36px;    /* مساحة لأيقونة التقويم */
+  background-clip: padding-box;
+}
+
+/* فوكس على الحاوية بدل الحقل */
+.reports .filters .f-grid label:has(> input[type="date"]):focus-within {
+  border-color: rgba(109,124,255,.55);
+  box-shadow: 0 0 0 3px rgba(109,124,255,.22);
+}
+
+/* وضوح أيقونة التقويم على الثيم الداكن */
+.reports .filters .f-grid label:has(> input[type="date"]) input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: .85;
+  filter: invert(1) brightness(.9);
+}
+
+/* — Fallback للمتصفحات اللي ما بتدعم :has() —
+   بس وقتها حط class="date-in" على لابل التاريخين */
+.reports .filters .f-grid label.date-in { position:relative; padding:18px 12px 8px; border-radius:12px; background:rgba(255,255,255,.06); border:1px solid var(--stroke) }
+.reports .filters .f-grid label.date-in > span { position:absolute; inset-block-start:6px; inset-inline-start:14px; font-size:12px; font-weight:800; color:#cfd7f7; pointer-events:none; line-height:1; opacity:.95 }
+.reports .filters .f-grid label.date-in input[type="date"] { height:34px; width:100%; border:0 !important; background:transparent !important; box-shadow:none !important; color:var(--text); padding:0 12px; padding-inline-start:36px; background-clip:padding-box }
+.reports .filters .f-grid label.date-in:focus-within { border-color:rgba(109,124,255,.55); box-shadow:0 0 0 3px rgba(109,124,255,.22) }
+.reports .filters .f-grid label.date-in input[type="date"]::-webkit-calendar-picker-indicator { opacity:.85; filter:invert(1) brightness(.9) }
+/* === Date fields inside-field title (no overflow) === */
+.reports .filters .f-grid label:has(> input[type="date"]) {
+  position: relative;
+  padding: 18px 12px 8px;       /* مساحة للعنوان داخل الحقل */
+  border-radius: 12px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--stroke);
+  overflow: hidden;             /* يمنع خروج أي محتوى خارج الإطار */
+}
+
+/* العنوان داخل الحقل */
+.reports .filters .f-grid label:has(> input[type="date"]) > span{
+  position: absolute;
+  inset-block-start: 6px;
+  inset-inline-start: 14px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #cfd7f7;
+  pointer-events: none;
+  line-height: 1;
+  opacity: .95;
+}
+
+/* الـinput: عرض مضبوط داخل الإطار */
+.reports .filters .f-grid label:has(> input[type="date"]) input[type="date"]{
+  display: block;
+  box-sizing: border-box;       /* مهم جداً لعدم الفيض */
+  width: 100%;
+  height: 34px;
+  margin: 0;                    /* يلغي هوامش المتصفح */
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--text);
+  padding: 0 12px;
+  padding-inline-start: 36px;   /* مساحة لأيقونة التاريخ (تحترم RTL) */
+  background-clip: padding-box;
+  box-shadow: none !important;
+}
+
+/* فوكس على الحاوية */
+.reports .filters .f-grid label:has(> input[type="date"]):focus-within{
+  border-color: rgba(109,124,255,.55);
+  box-shadow: 0 0 0 3px rgba(109,124,255,.22);
+}
+
+/* وضوح أيقونة التاريخ */
+.reports .filters .f-grid label:has(> input[type="date"]) input[type="date"]::-webkit-calendar-picker-indicator{
+  opacity: .85;
+  filter: invert(1) brightness(.9);
+}
+
+/* === Fallback للمتصفحات بدون :has() — أضف class="date-in" على لابل التاريخين === */
+.reports .filters .f-grid label.date-in{ position:relative; padding:18px 12px 8px; border-radius:12px; background:rgba(255,255,255,.06); border:1px solid var(--stroke); overflow:hidden }
+.reports .filters .f-grid label.date-in > span{ position:absolute; inset-block-start:6px; inset-inline-start:14px; font-size:12px; font-weight:800; color:#cfd7f7; pointer-events:none; line-height:1; opacity:.95 }
+.reports .filters .f-grid label.date-in input[type="date"]{ display:block; box-sizing:border-box; width:100%; height:34px; margin:0; border:0 !important; background:transparent !important; color:var(--text); padding:0 12px; padding-inline-start:36px; background-clip:padding-box; box-shadow:none !important }
+.reports .filters .f-grid label.date-in:focus-within{ border-color:rgba(109,124,255,.55); box-shadow:0 0 0 3px rgba(109,124,255,.22) }
+.reports .filters .f-grid label.date-in input[type="date"]::-webkit-calendar-picker-indicator{ opacity:.85; filter:invert(1) brightness(.9) }

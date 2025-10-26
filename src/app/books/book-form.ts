@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output, ViewChild, ElementRef, inject, 
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Book } from '../api/types';
+import { NgIf } from '@angular/common';
 
 @Component({
   standalone: true,

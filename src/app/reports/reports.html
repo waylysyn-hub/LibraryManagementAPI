@@ -1,0 +1,357 @@
+<div class="reports" dir="rtl">
+  <!-- Hero / Toolbar -->
+  <header class="hero">
+    <div class="hero-left">
+      <h2>لوحة التقارير</h2>
+      <p>نظرة شاملة على نشاط المكتبة، الاستعارات والمتأخرات — مع تصدير سريع.</p>
+    </div>
+    <div class="hero-actions">
+      <button class="btn solid" (click)="searchBorrowRecords()" title="تحديث النتائج">
+        تحديث النتائج
+      </button>
+      <button class="btn" (click)="exportPdf()" title="تصدير PDF">تصدير PDF</button>
+      <button class="btn" (click)="exportXlsx()" title="تصدير Excel">تصدير Excel</button>
+    </div>
+  </header>
+
+  <!-- KPI Cards -->
+  <section class="cards">
+    <div class="kpi" [class.loading]="loadingStats()">
+      <div class="icon">📚</div>
+      <div class="meta">
+        <div class="label">إجمالي الكتب</div>
+        <div class="value">{{ loadingStats() ? '…' : stats()?.totalBooks ?? '—' }}</div>
+      </div>
+    </div>
+
+    <div class="kpi" [class.loading]="loadingStats()">
+      <div class="icon">👥</div>
+      <div class="meta">
+        <div class="label">إجمالي الأعضاء</div>
+        <div class="value">{{ loadingStats() ? '…' : stats()?.totalMembers ?? '—' }}</div>
+      </div>
+    </div>
+
+    <div class="kpi" [class.loading]="loadingStats()">
+      <div class="icon">🔄</div>
+      <div class="meta">
+        <div class="label">كتب مُستعارة الآن</div>
+        <div class="value">{{ loadingStats() ? '…' : stats()?.borrowedBooks ?? '—' }}</div>
+      </div>
+    </div>
+
+    <div class="kpi danger" [class.loading]="loadingStats()">
+      <div class="icon">⏰</div>
+      <div class="meta">
+        <div class="label">كتب متأخرة</div>
+        <div class="value">{{ loadingStats() ? '…' : stats()?.overdueBooks ?? '—' }}</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Filters (Borrow Records) -->
+  <section class="panel">
+    <header class="panel-head">
+      <h4>فلترة سجلات الاستعارة</h4>
+    </header>
+
+    <form class="filters" [formGroup]="filters" (ngSubmit)="searchBorrowRecords()">
+      <div class="f-grid">
+        <label class="date-in">
+          <span>العضو</span>
+          <select formControlName="memberId">
+            <option [ngValue]="null">— الكل —</option>
+            <option *ngFor="let m of memberOptions()" [ngValue]="m.id">{{ m.label }}</option>
+          </select>
+        </label>
+
+        <label class="date-in">
+          <span>الكتاب</span>
+          <select formControlName="bookId">
+            <option [ngValue]="null">— الكل —</option>
+            <option *ngFor="let b of bookOptions()" [ngValue]="b.id">{{ b.label }}</option>
+          </select>
+        </label>
+
+        <label class="date-in">
+          <span>من تاريخ</span>
+          <input type="date" formControlName="fromDate" />
+        </label>
+        <label class="date-in">
+          <span>إلى تاريخ</span>
+          <input type="date" formControlName="toDate" />
+        </label>
+      </div>
+
+      <div class="f-actions">
+        <button class="btn solid" type="submit" [disabled]="loadingBorrow()">تطبيق الفلاتر</button>
+        <button class="btn ghost" type="button" (click)="onResetFilters()">تصفير</button>
+      </div>
+
+      <!-- مؤشرات تحميل بسيطة للقوائم -->
+      <div
+        class="muted"
+        style="padding-inline: 16px; padding-block: 6px"
+        *ngIf="loadingMemberOpts() || loadingBookOpts()"
+      >
+        تحميل القوائم…
+      </div>
+    </form>
+  </section>
+
+  <!-- Three-panels grid -->
+  <section class="grid-3">
+    <!-- Most Borrowed -->
+    <div class="panel">
+      <header class="panel-head">
+        <h4>أكثر الكتب استعارة</h4>
+        <button class="btn mini" (click)="loadMostBorrowed(10)">تحديث</button>
+      </header>
+      <div class="table-wrap" [class.loading]="loadingMost()">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 64px">#</th>
+              <th>العنوان</th>
+              <th style="width: 140px">مرات الاستعارة</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of mostBorrowed(); let i = index">
+              <td>
+                <span class="rank">{{ i + 1 }}</span>
+              </td>
+              <td class="tight">{{ r.title }}</td>
+              <td>
+                <span class="badge">{{ r.borrowCount }}</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="empty" *ngIf="!loadingMost() && mostBorrowed().length === 0">
+          لا توجد بيانات.
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Members -->
+    <div class="panel">
+      <header class="panel-head">
+        <h4>الأعضاء الأكثر استعارة</h4>
+        <button class="btn mini" (click)="loadActiveMembers(10)">تحديث</button>
+      </header>
+      <div class="table-wrap" [class.loading]="loadingMembers()">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 64px">#</th>
+              <th>العضو</th>
+              <th style="width: 160px">إجمالي الاستعارات</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of activeMembers(); let i = index">
+              <td>
+                <span class="rank">{{ i + 1 }}</span>
+              </td>
+              <td class="tight">{{ r.name }}</td>
+              <td>
+                <span class="badge">{{ r.totalBorrowings }}</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="empty" *ngIf="!loadingMembers() && activeMembers().length === 0">
+          لا توجد بيانات.
+        </div>
+      </div>
+    </div>
+
+    <!-- Overdue Books -->
+    <div class="panel">
+      <header class="panel-head">
+        <h4>الكتب المتأخرة</h4>
+        <button class="btn mini" (click)="loadOverdue()">تحديث</button>
+      </header>
+      <div class="table-wrap" [class.loading]="loadingOverdue()">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 80px">سجل #</th>
+              <th>الكتاب</th>
+              <th>العضو</th>
+              <th style="width: 130px">الاستحقاق</th>
+              <th style="width: 120px">أيام التأخير</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of overdue()">
+              <td>{{ r.id }}</td>
+              <td class="tight">{{ r.bookTitle }}</td>
+              <td class="tight">{{ r.memberName }}</td>
+              <td>{{ (r.dueDate || '').slice(0, 10) }}</td>
+              <td>
+                <span class="pill danger">{{ r.daysLate }}</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="empty" *ngIf="!loadingOverdue() && overdue().length === 0">
+          لا توجد كتب متأخرة.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- === New Analytics Grid === -->
+  <section class="grid-3">
+    <!-- Borrowing Trend -->
+    <div class="panel">
+      <header class="panel-head">
+        <h4>اتجاهات الاستعارة / الإرجاع (آخر 30 يوم)</h4>
+        <div class="actions">
+          <button class="btn mini" (click)="loadTrend(from30ISO, todayISO, 'day')">يومي</button>
+          <button class="btn mini" (click)="loadTrend(from30ISO, todayISO, 'week')">أسبوعي</button>
+          <button class="btn mini" (click)="loadTrend(from30ISO, todayISO, 'month')">شهري</button>
+        </div>
+      </header>
+      <div class="trend-wrap" [class.loading]="loadingTrend()">
+        <div class="legend">
+          <span class="dot borrow"></span> استعارة <span class="dot ret"></span> إرجاع
+        </div>
+        <div class="trend-bars">
+          <div class="bar-row" *ngFor="let p of trend()">
+            <div class="date">{{ p.date }}</div>
+            <div class="bars">
+              <div class="bar">
+                <div
+                  class="fill borrow"
+                  [style.width.%]="percent(p.borrow, maxBorrowInTrend())"
+                  [attr.title]="'استعارات: ' + p.borrow"
+                ></div>
+              </div>
+              <div class="bar">
+                <div
+                  class="fill ret"
+                  [style.width.%]="percent(p.return, maxReturnInTrend())"
+                  [attr.title]="'إرجاعات: ' + p.return"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="empty" *ngIf="!loadingTrend() && trend().length === 0">
+          لا توجد نقاط بيانات.
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Categories -->
+    <div class="panel">
+      <header class="panel-head">
+        <h4>أكثر التصنيفات نشاطًا</h4>
+        <button class="btn mini" (click)="loadCategories(10)">تحديث</button>
+      </header>
+      <div class="table-wrap" [class.loading]="loadingCats()">
+        <table>
+          <thead>
+            <tr>
+              <th>التصنيف</th>
+              <th style="width: 120px">عدد</th>
+              <th style="width: 140px">حصة</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of categories()">
+              <td class="tight">{{ c.category }}</td>
+              <td>
+                <span class="badge">{{ c.count }}</span>
+              </td>
+              <td>
+                <div class="share">
+                  <div class="share-fill" [style.width.%]="(c.share || 0) * 100"></div>
+                  <span class="share-txt">{{ c.share * 100 | number : '1.0-1' }}%</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="empty" *ngIf="!loadingCats() && categories().length === 0">
+          لا توجد بيانات للتصنيفات.
+        </div>
+      </div>
+    </div>
+
+    <!-- Cohorts -->
+    <div class="panel">
+      <header class="panel-head">
+        <h4>شرائح نشاط الأعضاء (آخر {{ cohorts()?.days ?? 0 }} يوم)</h4>
+        <button class="btn mini" (click)="loadCohorts(90)">تحديث</button>
+      </header>
+      <div class="cohorts" [class.loading]="loadingCoh()">
+        <div class="coh-row" *ngIf="cohorts() as ch">
+          <div class="coh-pill very">نشط جدًا: {{ ch.veryActive }}</div>
+          <div class="coh-pill act">نشط: {{ ch.active }}</div>
+          <div class="coh-pill light">خفيف: {{ ch.light }}</div>
+          <div class="coh-pill off">خامل: {{ ch.inactive }}</div>
+        </div>
+        <div class="muted" *ngIf="cohorts()">إجمالي الأعضاء: {{ cohorts()?.totalMembers }}</div>
+        <div class="empty" *ngIf="!loadingCoh() && !cohorts()">لا توجد بيانات.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Borrow Records Table -->
+  <section class="panel">
+    <header class="panel-head">
+      <h4>سجلات الاستعارة</h4>
+      <div class="panel-sub">نتائج البحث حسب الفلاتر أعلاه</div>
+    </header>
+
+    <div class="table-wrap big" [class.loading]="loadingBorrow()">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 80px">#</th>
+            <th>العضو</th>
+            <th>الكتاب</th>
+            <th style="width: 130px">الاستعارة</th>
+            <th style="width: 130px">الاستحقاق</th>
+            <th style="width: 130px">الإرجاع</th>
+            <th style="width: 120px">الحالة</th>
+            <th style="width: 120px">أيام التأخير</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of borrowRows()">
+            <td>{{ r.id }}</td>
+            <td class="tight">
+              {{ r.memberName }} <span class="muted">(#{{ r.memberId }})</span>
+            </td>
+            <td class="tight">
+              {{ r.bookTitle }} <span class="muted">(#{{ r.bookId }})</span>
+            </td>
+            <td>{{ (r.borrowedDate || '').slice(0, 10) }}</td>
+            <td>{{ (r.dueDate || '').slice(0, 10) }}</td>
+            <td>{{ r.returnedDate ? r.returnedDate.slice(0, 10) : '—' }}</td>
+            <td>
+              <span
+                class="pill"
+                [class.ok]="r.status === 'تم الإرجاع'"
+                [class.warn]="r.status !== 'تم الإرجاع'"
+              >
+                {{ r.status }}
+              </span>
+            </td>
+            <td>
+              <span class="pill" [class.danger]="r.overdueDays > 0">{{ r.overdueDays }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="empty" *ngIf="!loadingBorrow() && borrowRows().length === 0">
+        لا توجد سجلات مطابقة.
+      </div>
+    </div>
+  </section>
+</div>

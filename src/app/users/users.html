@@ -1,0 +1,490 @@
+<section class="users-page" dir="rtl" aria-labelledby="u-title">
+  <div class="container">
+    <!-- شريط الأدوات -->
+    <header class="head">
+      <div class="left">
+        <h2 id="u-title">المستخدمون</h2>
+        <div class="meta">
+          إجمالي: <b>{{ total() }}</b>
+        </div>
+      </div>
+
+      <div class="actions">
+        <!-- العمود اليسار: زر الإنشاء وتحته حجم الصفحة + تحديث -->
+        <div class="left-stack">
+          <button
+            class="btn primary create-left"
+            type="button"
+            (click)="openCreate()"
+            [disabled]="!canCreate"
+            data-ico="add"
+          >
+             إنشاء مستخدم جديد
+          </button>
+
+          <div class="under">
+            <label class="muted s" for="pageSizeSel">حجم الصفحة</label>
+            <select
+              id="pageSizeSel"
+              #sizeSel
+              [value]="pageSize()"
+              (change)="setPageSize(sizeSel.value)"
+            >
+              <option>6</option>
+              <option>12</option>
+              <option>24</option>
+              <option>48</option>
+            </select>
+            <button class="btn ghost" type="button" (click)="reload()" data-ico="refresh">
+              تحديث
+            </button>
+          </div>
+        </div>
+
+        <!-- العمود اليمين: الفلاتر -->
+        <div class="right-tools">
+          <div class="filters">
+            <div class="filters-top">
+              <button
+                class="btn ghost clear"
+                type="button"
+                (click)="clearFilters()"
+                
+              >
+                مسح الفلاتر
+              </button>
+            </div>
+
+            <div class="filters-row">
+              <div class="field">
+                <label for="f-name">الاسم</label>
+                <input
+                  id="f-name"
+                  #nameInp
+                  type="search"
+                  placeholder="مثال: Ahmad"
+                  autocomplete="off"
+                  [value]="qName()"
+                  (input)="qName.set(nameInp.value); page.set(1)"
+                />
+              </div>
+
+              <div class="field">
+                <label for="f-email">الإيميل</label>
+                <input
+                  id="f-email"
+                  #emailInp
+                  type="search"
+                  placeholder="name@example.com"
+                  dir="ltr"
+                  inputmode="email"
+                  autocomplete="off"
+                  [value]="qEmail()"
+                  (input)="qEmail.set(emailInp.value); page.set(1)"
+                />
+              </div>
+
+              <div class="field">
+                <label for="f-phone">الهاتف</label>
+                <input
+                  id="f-phone"
+                  #phoneInp
+                  type="search"
+                  placeholder="09######### أو +963#########"
+                  dir="ltr"
+                  inputmode="tel"
+                  autocomplete="off"
+                  [value]="qPhone()"
+                  (input)="qPhone.set(phoneInp.value); page.set(1)"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- حالات عامة -->
+    <div class="state info" *ngIf="loading()">جارِ التحميل…</div>
+    <div class="state error" *ngIf="error()"><strong>تعذّر التحميل:</strong> {{ error() }}</div>
+
+    <!-- شبكة الكروت -->
+    <div class="cards" *ngIf="!loading() && !error()">
+      <article class="card" *ngFor="let u of filtered(); trackBy: trackById">
+        <header class="card-header">
+          <div class="avatar">{{ u.username || 'U' | slice : 0 : 1 | uppercase }}</div>
+          <div class="meta">
+            <div class="role">
+              <span
+                class="badge"
+                [class.admin]="roleName(u.roleId) === 'Admin'"
+                [class.employee]="roleName(u.roleId) === 'Employee'"
+                [class.member]="roleName(u.roleId) === 'Member'"
+                [attr.aria-label]="'الدور: ' + roleName(u.roleId)"
+              >
+                {{ roleName(u.roleId) }}
+              </span>
+            </div>
+          </div>
+          <button
+            *ngIf="canPerm"
+            type="button"
+            class="perm-btn"
+            (click)="openPerm(u)"
+            title="إدارة صلاحيات المستخدم"
+            aria-label="إدارة صلاحيات المستخدم"
+          >
+            <!-- أيقونة درع -->
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 3l7 3v6c0 4.418-3.134 8.418-7 9-3.866-.582-7-4.582-7-9V6l7-3zM10.5 12.5l1.5 1.5 3.5-3.5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span>تعديل الصلاحيات</span>
+          </button>
+        </header>
+
+        <div class="body">
+          <div class="row">
+            <span class="k">الاسم:</span><span class="v" dir="ltr">{{ u.username }}</span>
+          </div>
+          <div class="row">
+            <span class="k">الإيميل:</span><span class="v" dir="ltr">{{ u.email }}</span>
+          </div>
+          <div class="row">
+            <span class="k">الهاتف:</span
+            ><span class="v" dir="ltr">{{ u.phone || 'غير محدد' }}</span>
+          </div>
+          <div class="row">
+            <span class="k">أُنشِئ في:</span>
+            <span class="v">{{ u.createdAt | date : 'yyyy/MM/dd HH:mm' }}</span>
+          </div>
+        </div>
+
+   <footer
+  class="actions card-actions"
+  (mousedown)="$event.stopPropagation()"
+  (touchstart)="$event.stopPropagation()"
+>
+  <button
+    class="btn tiny"
+    type="button"
+    (click)="openEdit(u)"
+    [disabled]="!canUpdate"
+    data-ico="edit"
+  >
+    تعديل
+  </button>
+
+  <button
+    class="btn tiny"
+    type="button"
+    (click)="openPwd(u)"
+    [disabled]="!canUpdate"
+    data-ico="key"
+  >
+    تعديل كلمة المرور
+  </button>
+
+  <button
+    class="btn tiny danger"
+    type="button"
+    (click)="remove(u)"
+    [disabled]="!canDelete"
+    data-ico="trash"
+  >
+    حذف
+  </button>
+</footer>
+
+      </article>
+
+      <div
+        class="empty muted"
+        *ngIf="!filtered().length"
+        style="grid-column: 1/-1; text-align: center; padding: 1rem"
+      >
+        لا يوجد بيانات مطابقة.
+      </div>
+    </div>
+
+    <!-- Pager -->
+<footer class="pager" *ngIf="total()">
+  <div>
+    الكل: <strong>{{ total() }}</strong>
+  </div>
+
+  <div class="pages">
+    <button
+      class="btn tiny"
+      type="button"
+      (click)="prev()"
+      [disabled]="page() <= 1"
+      data-ico="chev-right"
+    >
+      السابق
+    </button>
+
+    <span class="muted">{{ page() }} / {{ totalPages() }}</span>
+
+    <button
+      class="btn tiny"
+      type="button"
+      (click)="next()"
+      [disabled]="page() >= totalPages()"
+      data-ico="chev-left"
+    >
+      التالي
+    </button>
+  </div>
+</footer>
+
+  </div>
+
+  <!-- إنشاء -->
+  <dialog #createDlg class="modal" dir="rtl">
+    <form class="box" [formGroup]="createForm" (submit)="$event.preventDefault(); submitCreate()">
+      <header class="head">
+        <h3>إنشاء مستخدم (Admin / Employee)</h3>
+        <button type="button" class="x" (click)="closeCreate()">✕</button>
+      </header>
+
+      <div class="error-messages" *ngIf="createErrors.length" role="alert" aria-live="assertive">
+        <ul>
+          <li *ngFor="let e of createErrors">{{ e }}</li>
+        </ul>
+      </div>
+
+      <div class="grid">
+        <label [class.err]="isInv(createForm, 'username')">
+          اسم المستخدم
+          <input formControlName="username" placeholder="مثال: admin" />
+          <small class="error" *ngIf="isInv(createForm, 'username')">الحد الأدنى ٣ أحرف</small>
+        </label>
+
+        <label [class.err]="isInv(createForm, 'email')">
+          الإيميل
+          <input formControlName="email" type="email" placeholder="name@example.com" dir="ltr" />
+          <small class="error" *ngIf="isInv(createForm, 'email')">صيغة بريد غير صالحة</small>
+        </label>
+
+        <label
+          [class.err]="
+            isInv(createForm, 'phone') ||
+            hasErr(createForm, 'phone', 'backend') ||
+            hasErr(createForm, 'phone', 'pattern')
+          "
+        >
+          الهاتف
+          <input
+            formControlName="phone"
+            placeholder="09######### أو +963#########"
+            dir="ltr"
+            (blur)="createForm.controls.phone.markAsTouched()"
+          />
+          <ng-container *ngIf="hasErr(createForm, 'phone', 'backend'); else phonePatternErr">
+            <small class="error">{{ getFieldMsg(createForm, 'phone') }}</small>
+          </ng-container>
+          <ng-template #phonePatternErr>
+            <small class="error" *ngIf="hasErr(createForm, 'phone', 'pattern')"
+              >رقم غير مطابق للنمط</small
+            >
+          </ng-template>
+        </label>
+
+        <label>
+          الدور
+          <select formControlName="role">
+            <option value="Admin">مدير (Admin)</option>
+            <option value="Employee">موظف (Employee)</option>
+          </select>
+        </label>
+
+        <label [class.err]="isInv(createForm, 'password')">
+          كلمة المرور
+          <input formControlName="password" type="password" placeholder="••••••••" />
+          <small class="error" *ngIf="isInv(createForm, 'password')">الحد الأدنى ٦ محارف</small>
+        </label>
+
+        <label
+          [class.err]="
+            isInv(createForm, 'confirmPassword') ||
+            hasErr(createForm, 'confirmPassword', 'mismatch')
+          "
+        >
+          تأكيد كلمة المرور
+          <input formControlName="confirmPassword" type="password" placeholder="••••••••" />
+          <small class="error" *ngIf="hasErr(createForm, 'confirmPassword', 'mismatch')"
+            >غير متطابقة</small
+          >
+        </label>
+      </div>
+
+      <footer class="actions">
+        <button type="button" class="ghost" (click)="closeCreate()" data-ico="x">إلغاء</button>
+        <button type="submit" class="primary" [disabled]="creating()" data-ico="save">إنشاء</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- تعديل -->
+  <dialog #editDlg class="modal" dir="rtl">
+    <form class="box" [formGroup]="editForm" (submit)="$event.preventDefault(); submitEdit()">
+      <header class="head">
+        <h3>تعديل مستخدم</h3>
+        <button type="button" class="x" (click)="closeEdit()">✕</button>
+      </header>
+
+      <div class="error-messages" *ngIf="editErrors.length" role="alert" aria-live="assertive">
+        <ul>
+          <li *ngFor="let e of editErrors">{{ e }}</li>
+        </ul>
+      </div>
+
+      <div class="grid">
+        <label [class.err]="isInv(editForm, 'username')">
+          اسم المستخدم
+          <input formControlName="username" />
+          <small class="error" *ngIf="isInv(editForm, 'username')">اسم المستخدم مطلوب</small>
+        </label>
+
+        <label [class.err]="isInv(editForm, 'email')">
+          الإيميل
+          <input formControlName="email" type="email" dir="ltr" />
+          <small class="error" *ngIf="isInv(editForm, 'email')">صيغة البريد غير صالحة</small>
+        </label>
+
+        <label
+          [class.err]="
+            isInv(editForm, 'phone') ||
+            hasErr(editForm, 'phone', 'backend') ||
+            hasErr(editForm, 'phone', 'pattern')
+          "
+        >
+          الهاتف
+          <input
+            formControlName="phone"
+            dir="ltr"
+            (blur)="editForm.controls.phone.markAsTouched()"
+          />
+          <ng-container *ngIf="hasErr(editForm, 'phone', 'backend'); else editPhonePatternErr">
+            <small class="error">{{ getFieldMsg(editForm, 'phone') }}</small>
+          </ng-container>
+          <ng-template #editPhonePatternErr>
+            <small class="error" *ngIf="hasErr(editForm, 'phone', 'pattern')"
+              >رقم غير مطابق للنمط</small
+            >
+          </ng-template>
+        </label>
+      </div>
+
+      <footer class="actions">
+        <button type="button" class="ghost" (click)="closeEdit()" data-ico="x">إلغاء</button>
+        <button type="submit" class="primary" [disabled]="saving()" data-ico="save">حفظ</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- تغيير كلمة المرور -->
+  <dialog #pwdDlg class="modal" dir="rtl">
+    <form class="box" [formGroup]="pwdForm" (submit)="$event.preventDefault(); submitPwd()">
+      <header class="head">
+        <h3>تغيير كلمة المرور</h3>
+        <button type="button" class="x" (click)="closePwd()">✕</button>
+      </header>
+
+      <div class="error-messages" *ngIf="pwdErrors.length" role="alert" aria-live="assertive">
+        <ul>
+          <li *ngFor="let e of pwdErrors">{{ e }}</li>
+        </ul>
+      </div>
+
+      <div class="grid">
+        <label [class.err]="isInv(pwdForm, 'currentPassword')">
+          كلمة المرور الحالية
+          <input formControlName="currentPassword" type="password" />
+        </label>
+
+        <label [class.err]="isInv(pwdForm, 'newPassword')">
+          كلمة المرور الجديدة
+          <input formControlName="newPassword" type="password" />
+        </label>
+
+        <label [class.err]="hasErr(pwdForm, 'confirmNewPassword', 'mismatch')">
+          تأكيد كلمة المرور الجديدة
+          <input formControlName="confirmNewPassword" type="password" />
+          <small class="error" *ngIf="hasErr(pwdForm, 'confirmNewPassword', 'mismatch')"
+            >غير متطابقة</small
+          >
+        </label>
+      </div>
+
+      <footer class="actions">
+        <button type="button" class="ghost" (click)="closePwd()" data-ico="x">إلغاء</button>
+        <button type="submit" class="primary" [disabled]="changingPwd()" data-ico="save">
+          تحديث
+        </button>
+      </footer>
+    </form>
+  </dialog>
+  <dialog #permDlg class="modal" dir="rtl">
+    <form class="box" (submit)="$event.preventDefault()">
+      <header class="head dialog">
+        <h3>إدارة صلاحيات المستخدم</h3>
+        <button type="button" class="x" (click)="closePerm()">✕</button>
+      </header>
+
+      <div *ngIf="permErrors.length" class="error-messages" role="alert" aria-live="assertive">
+        <ul>
+          <li *ngFor="let e of permErrors">{{ e }}</li>
+        </ul>
+      </div>
+
+      <div *ngIf="permLoading()">جارِ تحميل الصلاحيات...</div>
+
+      <!-- ✅ قائمة بكل الصلاحيات -->
+      <div
+        *ngIf="!permLoading()"
+        class="perm-list"
+        style="display: grid; gap: 10px; margin-top: 10px"
+      >
+        <label
+          *ngFor="let p of allPerms()"
+          style="
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.5rem 0.8rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: #fff;
+            transition: 0.2s ease;
+            cursor: pointer;
+          "
+          [style.background]="userPermIds().has(p.id) ? '#eef2ff' : '#fff'"
+          [style.borderColor]="userPermIds().has(p.id) ? '#6366f1' : '#e5e7eb'"
+        >
+          <input
+            type="checkbox"
+            [checked]="userPermIds().has(p.id)"
+            (change)="togglePermission(p.id, $event.target.checked)"
+            style="width: 18px; height: 18px; cursor: pointer"
+          />
+          <span style="font-weight: 800">{{ p.name }}</span>
+        </label>
+      </div>
+
+      <footer
+        class="actions"
+        style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 8px"
+      >
+        <button type="button" class="ghost" (click)="closePerm()">إغلاق</button>
+      </footer>
+    </form>
+  </dialog>
+</section>

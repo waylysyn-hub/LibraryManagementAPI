@@ -1,4 +1,4 @@
-/* تحسين بنية الصفحة */
+تحسين بنية الصفحة
 body {
   font-family: 'Roboto', sans-serif;
   background-color: #f4f6f9;
@@ -35,7 +35,7 @@ body {
 .hero-overlay p {
   font-size: 18px;
   line-height: 1.4;
-  margin-top: 10px;
+  margin-top: 0px;
 }
 
 /* رأس الجدول */
@@ -80,7 +80,7 @@ button.secondary {
   border: 1px solid #e5e7eb;
   padding: 10px 20px;
   font-weight: 600;
-  border-radius: 5px;
+  border-radius: 0px;
 }
 
 button.secondary:hover {
@@ -128,7 +128,7 @@ tbody tr:hover {
 /* تحسين العناصر الصغيرة */
 .actions-td {
   display: flex;
-  gap: 8px;
+  gap: 0px;
 }
 
 .mini {
@@ -175,6 +175,6 @@ tbody tr:hover {
   }
 
   .table-wrap {
-    margin-top: 20px;
+    margin-top: 0px;
   }
 }

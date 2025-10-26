@@ -92,3 +92,75 @@ input.err{border-color:var(--danger-color);box-shadow:0 0 0 3px rgba(239,68,68,.
 
 /* ترتيب رسائل الأخطاء والعناوين عشان ما تزاحم الأزرار */
 .error-messages{ margin-bottom:12px }
+/* ===== Modal: scope + overflow + mobile polish (append) ===== */
+
+/* 1) خلي أزرار الفوتر داخل المودال فقط (منع تعارض مع أزرار خارجية) */
+.modal .actions{
+  display:flex;
+  gap:12px;
+  justify-content:flex-end;
+  align-items:center;
+  margin-top:1.25rem;
+  padding-top:1rem;
+  border-top:2px solid #f3f4f6;
+}
+.modal .actions .primary,
+.modal .actions .ghost{
+  -webkit-text-fill-color: initial; /* يلغي أي تلوين عام */
+}
+
+/* 2) حد أقصى للارتفاع + تمرير داخلي لصندوق المحتوى */
+.modal .box{
+  max-height: min(86vh, 86dvh);
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+/* 3) شبكة الحقول داخل المودال: عمود واحد تحت 900px */
+@media (max-width: 900px){
+  .modal .grid{ grid-template-columns: 1fr; }
+}
+
+/* 4) موبايل: فل سكرين + احترام النوتش + أزرار تتكدّس */
+@media (max-width: 640px){
+  .modal{ border-radius: 0; }
+  .modal .box{
+    width: 100vw;
+    max-height: calc(100dvh - 16px);
+    padding: 16px 14px calc(16px + env(safe-area-inset-bottom));
+    border-radius: 0;
+  }
+  .modal .actions{ flex-wrap: wrap; }
+  .modal .actions .primary,
+  .modal .actions .ghost{ flex: 1 0 160px; }
+}
+
+/* 5) قفل تمرير الخلفية عند فتح المودال (مدعوم حديثاً) */
+html:has(.modal[open]),
+body:has(.modal[open]){
+  overflow: hidden;
+}
+
+/* 6) Focus واضح (إتاحة الوصول) */
+button:focus-visible,
+.x:focus-visible,
+input:focus,
+select:focus,
+textarea:focus{
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(79,70,229,.15);
+  border-color: var(--primary-color, #4f46e5);
+}
+
+/* 7) وحّد select/textarea مع input */
+select, textarea{
+  border:2px solid var(--gray-300);
+  border-radius:8px;
+  padding:.6rem .9rem;
+  font-size:1rem;
+  transition:var(--transition);
+  background:#fff;
+}
+textarea{ min-height: 110px; resize: vertical; }
+select:hover, textarea:hover{ border-color: var(--gray-400); }

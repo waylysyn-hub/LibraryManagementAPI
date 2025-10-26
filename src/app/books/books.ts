@@ -23,6 +23,7 @@ export class BooksComponent implements OnInit {
   private platformId = inject(PLATFORM_ID);
   private toast = inject(ToastService);
   private zone = inject(NgZone);
+ private requestId = 0;
 
   @ViewChild('bookForm') bookForm!: BookFormComponent;
 
@@ -47,13 +48,13 @@ export class BooksComponent implements OnInit {
     SortDir: ['--' as BookQuery['SortDir']],
     Page: [1],
     PageSize: [6],
-    IncludeBorrowCount: [false]
+    IncludeBorrowCount: [true]
   });
 
   items = signal<Book[]>([]);
   total = signal(0);
   page = signal(1);
-  pageSize = signal(12);
+  pageSize = signal(6);
   loading = signal(false);
   totalPages = signal(1);
 
@@ -93,11 +94,10 @@ export class BooksComponent implements OnInit {
 
   constructor() {
     // حساب عدد الصفحات
-    effect(() => {
-      const pages = Math.max(1, Math.ceil(this.total() / this.pageSize()));
-      console.log('Total Pages:', pages); // تتبع عدد الصفحات
-      this.totalPages.set(pages);
-    });
+  effect(() => {
+    this.totalPages.set(Math.max(1, Math.ceil(this.total() / this.pageSize())));
+  });
+
 
     if (isPlatformBrowser(this.platformId)) {
       // حمّل الصلاحيات واسمَع لأي تغيير خارجي على localStorage
@@ -138,39 +138,76 @@ export class BooksComponent implements OnInit {
       MaxCopies: clean<number>(v.MaxCopies),
       SortBy: v.SortBy === '--' ? undefined : v.SortBy,
       SortDir: v.SortDir === '--' ? undefined : v.SortDir,
-      Page: this.page(),
-      PageSize: this.pageSize(),
+    Page: this.page(), PageSize: this.pageSize(),
       IncludeBorrowCount: v.IncludeBorrowCount ? true : undefined
     };
   }
 
+  // ✅ النسخة التي قلت إنها شغالة
   reload() {
     this.loading.set(true);
+
+    const myId = ++this.requestId; // رقم هذا الطلب
     const query = this.toQuery();
 
-    // استدعاء الـ API
     this.api.list(query).subscribe({
       next: (res) => {
-        this.items.set(res.data);  // بيانات الكتب
-        this.total.set(res.meta.total);  // إجمالي العناصر
-        this.page.set(res.meta.page);  // الصفحة الحالية
-        this.pageSize.set(res.meta.pageSize);  // حجم الصفحة
-        this.totalPages.set(res.meta.totalPages);  // إجمالي الصفحات
+        // تجاهل ردود قديمة
+        if (myId !== this.requestId) return;
 
-        // تتبع القيمة في الـ console
-        console.log('Total Pages:', res.meta.totalPages); 
+        this.items.set(res.data ?? []);
+        this.total.set(res.meta?.total ?? res.data?.length ?? 0);
 
+        // لا نغيّر pageSize من استجابة السيرفر إطلاقًا
+        // this.pageSize.set(res.meta.pageSize); // ❌ لا تفعل هذا
+
+        // الصفحة الحالية من السيرفر إن وُجدت
+        if (typeof res.meta?.page === 'number') this.page.set(res.meta.page);
+
+        // احسب إجمالي الصفحات وفق total و pageSize المحلي
+        const pages = Math.max(1, Math.ceil(this.total() / this.pageSize()));
+        this.totalPages.set(pages);
+
+        // لو الصفحة الحالية أصبحت خارج المدى بعد التحديث، قلّمها وأعد طلبًا خفيفًا
+        if (this.page() > this.totalPages()) {
+          this.page.set(this.totalPages());
+          const q2 = this.toQuery();
+          this.api.list(q2).subscribe({
+            next: (res2) => {
+              if (myId !== this.requestId) return;
+              this.items.set(res2.data ?? []);
+              this.total.set(res2.meta?.total ?? res2.data?.length ?? 0);
+              const pages2 = Math.max(1, Math.ceil(this.total() / this.pageSize()));
+              this.totalPages.set(pages2);
+              this.loading.set(false);
+            },
+            error: () => {
+              if (myId !== this.requestId) return;
+              this.items.set([]); this.total.set(0);
+              this.totalPages.set(1);
+              this.loading.set(false);
+              this.toast.error('تعذر تحميل الكتب.');
+            }
+          });
+          return;
+        }
         this.loading.set(false);
       },
       error: (err: HttpErrorResponse) => {
-        console.error('[Books] list error', err);
+        if (myId !== this.requestId) return;
         this.items.set([]);
         this.total.set(0);
+        this.totalPages.set(1);
         this.loading.set(false);
         this.toast.error('تعذر تحميل الكتب.');
       }
     });
   }
+
+
+  // الباقي كما هو (prev/next/sort/…)
+
+
 
   reset() {
     this.filters.reset({
@@ -198,28 +235,11 @@ export class BooksComponent implements OnInit {
     return dir === 'Asc' ? '▲' : '▼';
   }
 
-  prev() {
-    if (this.page() > 1) {
-      this.page.update(p => p - 1);  // التبديل إلى الصفحة السابقة
-      console.log('Current Page:', this.page());  // تتبع الصفحة الحالية
-      this.reload();  // إعادة تحميل البيانات
-    }
-  }
+  prev(){ if (this.page()>1){ this.page.update(p=>p-1); this.reload(); } }
+  next(){ if (this.page()<this.totalPages()){ this.page.update(p=>p+1); this.reload(); } }
+  setPageSize(v:number){ const n=Number(v)||12; this.pageSize.set(n); this.page.set(1); this.reload(); }
 
-  next() {
-    if (this.page() < this.totalPages()) {
-      this.page.update(p => p + 1);  // التبديل إلى الصفحة التالية
-      console.log('Current Page:', this.page());  // تتبع الصفحة الحالية
-      this.reload();  // إعادة تحميل البيانات
-    }
-  }
 
-  setPageSize(v: number) {
-    const n = Number(v) || 12;
-    this.pageSize.set(n);
-    this.page.set(1);  // إعادة تعيين الصفحة إلى 1 عند تغيير حجم الصفحة
-    this.reload();  // إعادة تحميل البيانات
-  }
 
   // ---------- CRUD ----------
   openCreate() {
@@ -275,21 +295,53 @@ export class BooksComponent implements OnInit {
       });
     }
   }
+// ✅ دالة لعرض رسائل النجاح
+ok(msg: string) {
+  this.toast.success(msg); // أو this.toast.showSuccess(msg)
+}
 
-  remove(b: Book) {
-    if (!this.canDelete) return;
-    if (!confirm(`حذف "${b.title}"؟`)) return;
-    this.api.delete(b.id).subscribe({
-      next: () => {
-        this.toast.success('تمّ حذف الكتاب');
-        this.reload();
-      },
-      error: (e) => {
-        console.error(e);
-        this.toast.error('فشل حذف الكتاب');
-      }
-    });
+// ✅ دالة لعرض رسائل الخطأ
+err(msg: string) {
+  this.toast.error(msg); // أو this.toast.showError(msg)
+}
+
+// ✅ دالة ذكية لاستخراج رسالة السيرفر من الخطأ
+serverMessage(e: any): string {
+  if (!e) return 'خطأ غير معروف';
+
+  // في حال السيرفر أرسل رسالة مباشرة
+  if (e.error?.message) return e.error.message;
+
+  // في حال كان فيه كائن أخطاء
+  if (e.error?.errors) {
+    const first = Object.values(e.error.errors)[0];
+    if (Array.isArray(first)) return first[0];
+    return first as string;
   }
+
+  // حالات أخرى عامة
+  if (typeof e.message === 'string') return e.message;
+
+  return 'حدث خطأ أثناء الاتصال بالسيرفر.';
+}
+remove(b: Book) {
+  if (!this.canDelete) return;
+  if (!confirm(`حذف "${b.title}"؟`)) return;
+
+  this.api.delete(b.id).subscribe({
+    next: () => {
+      this.toast.success('تمّ حذف الكتاب');
+      this.reload();
+    },
+    error: (e: any) => {
+      // عرض رسالة الخطأ الفعلية من السيرفر
+      const msg = e?.error?.message || 'حدث خطأ غير معروف';
+      this.toast.error(msg); // 👈 هنا يطلع الخطأ على الشاشة
+      console.error('[Book Delete Error]', e);
+    }
+  });
+}
+
 
   toggleDir() {
     const dir = this.filters.value.SortDir;

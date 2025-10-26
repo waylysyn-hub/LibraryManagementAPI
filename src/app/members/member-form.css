@@ -1,54 +1,232 @@
-.modal{ border:0; padding:0; border-radius:20px; background:#fff; box-shadow:0 10px 30px rgba(15,23,42,.18) }
-.modal::backdrop{ background:rgba(2,6,23,.55); backdrop-filter: blur(2px) }
-.box{ padding:18px; min-width:520px }
-.head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px }
-.x{ height:32px; width:32px; border-radius:10px }
-.grid{ display:grid; gap:12px; grid-template-columns: repeat(2, minmax(0,1fr)); margin:12px 0 }
-label{ display:flex; flex-direction:column; gap:6px; font-weight:700; color:#64748b }
-input{ height:38px; border:1px solid #e5e7eb; border-radius:12px; padding:0 12px }
-input:focus{ outline:none; box-shadow:0 0 0 6px rgba(79,70,229,.10); border-color:transparent }
-.actions{ display:flex; gap:10px }
+/* =========================
+   Modal — لمسة سحرية جمالية (محسّنة + Responsive)
+   ========================= */
+
+/* رموز ألوان متكيفة */
+:root{
+  --ink:#0f172a;
+  --muted:#64748b;
+  --ring: rgba(79,70,229,.16);
+  --danger:#EF4444;
+  --bg: rgba(255,255,255,.94);
+  --card: rgba(255,255,255,.92);
+  --border: rgba(15,23,42,.10);
+  --shadow-1: 0 28px 80px rgba(2,6,23,.28), 0 10px 30px rgba(2,6,23,.16);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --ink:#e2e8f0; --muted:#9fb0c4;
+    --bg: rgba(15,23,42,.80);
+    --card: rgba(15,23,42,.86);
+    --border: rgba(148,163,184,.18);
+    --ring: rgba(99,102,241,.30);
+  }
+}
+
+/* ===== أساسيات <dialog> ===== */
+.modal{
+  border:0; margin:0; padding:0; border-radius:24px; background:transparent;
+}
+.modal[open]{ display:grid; place-items:center; }
+.modal::backdrop{
+  background:rgba(2,6,23,.60);
+  backdrop-filter: blur(6px) saturate(120%);
+}
+
+/* صندوق المحتوى مع وهج خفيف وطبقات ضوء */
+.box{
+  position:relative;
+  width: clamp(320px, 72vw, 980px);
+  max-height: 86vh;
+  overflow:auto;
+  padding: clamp(18px, 2.6vw, 28px) clamp(18px, 2.6vw, 28px) calc(20px + env(safe-area-inset-bottom));
+  border-radius:24px;
+  background:
+    radial-gradient(1100px 580px at 100% -10%, rgba(79,70,229,.07), transparent 60%),
+    radial-gradient(900px 520px at -10% 110%, rgba(99,102,241,.06), transparent 60%),
+    linear-gradient(180deg, var(--card), var(--bg));
+  backdrop-filter: saturate(160%) blur(6px);
+  border:1px solid var(--border);
+  box-shadow: var(--shadow-1);
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  -webkit-font-smoothing: antialiased;
+}
+@supports (height: 100dvh){
+  .box{ max-height: 86dvh; }
+}
+
+/* لمعة خفيفة داخلية */
+.box::before{
+  content:"";
+  position:absolute; inset:1px;
+  border-radius:22px;
+  pointer-events:none;
+  background: linear-gradient(180deg, rgba(255,255,255,.55), transparent 30%);
+  mix-blend-mode: screen;
+}
+
+/* دخول/خروج أنيميشـن (خروج يتطلب data-state="closing" عبر JS) */
+@keyframes modal-in{
+  from{ transform: translateY(8px) scale(.98); opacity:0 }
+  to{ transform: translateY(0) scale(1); opacity:1 }
+}
+@keyframes modal-out{
+  from{ transform: translateY(0) scale(1); opacity:1 }
+  to{ transform: translateY(8px) scale(.98); opacity:0 }
+}
+.modal[open] .box{ animation: modal-in .18s cubic-bezier(.2,.7,.4,1) both; }
+.modal[data-state="closing"] .box{ animation: modal-out .16s ease both; }
+
+@media (prefers-reduced-motion: reduce){
+  .modal[open] .box,
+  .modal[data-state="closing"] .box{ animation: none; }
+  .x, button{ transition: none !important; }
+}
+
+/* ===== رأس المودال ===== */
+.head{
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:16px; padding-bottom:12px;
+  border-bottom:1px dashed color-mix(in oklab, var(--border) 60%, transparent);
+}
+.head h3{
+  margin:0; font-size:1.24rem; font-weight:900; letter-spacing:.2px; color:var(--ink);
+}
+/* خيار لاصق للهيدر */
+.head.sticky{
+  position: sticky; top: -1px; z-index: 2;
+  margin-bottom: 14px; padding-bottom: 10px;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--card) 85%, transparent), transparent);
+  backdrop-filter: blur(4px);
+}
+
+/* زر الإغلاق */
+.x{
+  height:36px; width:36px; display:grid; place-items:center;
+  border-radius:12px; cursor:pointer; border:1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  background:#fff; color:#111;
+  transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
+  box-shadow: 0 6px 14px rgba(15,23,42,.08);
+}
+@media (prefers-color-scheme: dark){ .x{ background: #0b1220; color: var(--ink); } }
+.x:hover{ background:#f8fafc; transform: rotate(3deg) }
+.x:active{ transform: scale(.98) }
+.x:focus-visible{
+  outline:0;
+  box-shadow: 0 0 0 4px var(--ring), 0 6px 14px rgba(15,23,42,.1);
+}
+
+/* ===== شبكة الحقول ===== */
+.grid{
+  display:grid; gap:18px; margin:18px 0 10px;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+}
+@media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
+.grid.compact{ gap:12px; }
+
+/* الحقل */
+.field{ display:flex; flex-direction:column; gap:8px; }
+.field label{ font-weight:900; color:var(--ink) }
+.field .hint{ color:var(--muted); font-size:.9rem; font-weight:700 }
+
+/* إدخالات موحّدة */
+input, select, textarea{
+  height:46px; border:1px solid color-mix(in oklab, var(--border) 85%, transparent);
+  border-radius:14px; padding:0 14px;
+  background:#fff; outline:none; transition:.15s ease;
+  box-shadow: 0 2px 0 rgba(15,23,42,.02) inset;
+  font-weight:600; color:#111;
+}
+textarea{ min-height:110px; padding:12px 14px; resize:vertical; }
+input::placeholder, textarea::placeholder{ color:#94a3b8 }
+input:focus, select:focus, textarea:focus{
+  border-color:transparent;
+  box-shadow: 0 0 0 4px var(--ring), 0 2px 0 rgba(15,23,42,.02) inset;
+}
+input:disabled, select:disabled, textarea:disabled{
+  background: #f1f5f9; color:#64748b; cursor:not-allowed;
+}
+
+/* إبراز الخطأ/النجاح */
+.field.invalid input, .field.invalid select, .field.invalid textarea{
+  border-color:var(--danger) !important;
+  box-shadow:0 0 0 4px color-mix(in oklab, var(--danger) 28%, transparent) !important;
+}
+.field .error{ color:#B91C1C; font-weight:800; margin-top:2px; }
+.field.success input{ box-shadow:0 0 0 4px rgba(16,185,129,.18); }
+
+/* ===== بانر أخطاء الخادم ===== */
 .error-messages{
   background:#FEF2F2; color:#B91C1C; border:1px solid #FECACA;
-  border-radius:12px; padding:.75rem 1rem; margin:.5rem 0 1rem; font-weight:700;
+  border-radius:14px; padding:.85rem 1rem; margin:.4rem 0 1rem; font-weight:800;
+  overflow:hidden;
 }
-.error-messages ul{ margin:.25rem 0 0 1rem }
-button.primary{ background: linear-gradient(180deg, #5b56f7, #4f46e5); color:#fff; border:0; font-weight:800 }
-button.ghost{ background:#fff; border:1px solid #e5e7eb }
-/* غلاف المودال كما عندك */
-.modal{ border:0; padding:0; border-radius:20px; background:#fff; box-shadow:0 10px 30px rgba(15,23,42,.18) }
-.modal::backdrop{ background:rgba(2,6,23,.55); backdrop-filter: blur(2px) }
-.box{ padding:18px; min-width:520px }
-.head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px }
-.x{ height:32px; width:32px; border-radius:10px }
-.grid{ display:grid; gap:12px; grid-template-columns: repeat(2, minmax(0,1fr)); margin:12px 0 }
-
-/* حقول + رسائل */
-.field{ display:flex; flex-direction:column; gap:6px }
-.field label{ font-weight:700; color:#64748b }
-.field .hint{ color:#94a3b8; font-size:.85rem }
-input{ height:38px; border:1px solid #e5e7eb; border-radius:12px; padding:0 12px }
-input:focus{ outline:none; box-shadow:0 0 0 6px rgba(79,70,229,.10); border-color:transparent }
-
-/* إبراز الخطأ */
-.field.invalid input{
-  border-color:#EF4444 !important;
-  box-shadow:0 0 0 3px rgba(239,68,68,.15) !important;
-}
-.field .error{
-  color:#B91C1C;
-  font-weight:700;
-  margin-top:2px;
-}
-
-/* بانر أخطاء الخادم كما هو */
-.error-messages{
-  background:#FEF2F2; color:#B91C1C; border:1px solid #FECACA;
-  border-radius:12px; padding:.75rem 1rem; margin:.5rem 0 1rem; font-weight:700;
+@media (prefers-color-scheme: dark){
+  .error-messages{ background:#2a0f10; color:#fecaca; border-color:#7f1d1d; }
 }
 .error-messages ul{ margin:.25rem 0 0 1rem }
 
-/* أزرار */
-.actions{ display:flex; gap:10px }
-button.primary{ background: linear-gradient(180deg, #5b56f7, #4f46e5); color:#fff; border:0; font-weight:800 }
-button.ghost{ background:#fff; border:1px solid #e5e7eb }
+/* ===== أزرار الإجراءات ===== */
+.actions{ display:flex; gap:12px; justify-content:flex-start; margin-top:14px; flex-wrap:wrap; }
+
+/* رئيسي—فخم */
+button.primary{
+  min-width:128px; min-height:44px; border-radius:12px; padding:.72rem 1rem;
+  background: linear-gradient(180deg, #5b56f7, #4f46e5);
+  color:#fff; border:0; font-weight:900; letter-spacing:.2px;
+  box-shadow: 0 12px 28px rgba(79,70,229,.28);
+  transition: transform .12s ease, filter .12s ease, box-shadow .12s ease;
+  touch-action: manipulation;
+}
+button.primary:hover{
+  filter:brightness(1.04); transform:translateY(-1px);
+  box-shadow: 0 16px 34px rgba(79,70,229,.34);
+}
+button.primary:active{ transform:translateY(0); filter:none }
+button.primary:focus-visible{ outline:0; box-shadow: 0 0 0 4px var(--ring), 0 12px 28px rgba(79,70,229,.28); }
+button.primary,
+button.primary:focus,
+button.primary:active{ color:#fff !important; -webkit-text-fill-color:#fff !important }
+
+/* ثانوي—شفاف أنيق */
+button.ghost{
+  background:#fff; color:#111; border:1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  font-weight:800; border-radius:12px; padding:.66rem 1rem;
+  box-shadow: 0 10px 22px rgba(15,23,42,.06);
+}
+button.ghost:hover{ background:#f8fafc }
+button.ghost:focus-visible{ outline:0; box-shadow: 0 0 0 4px var(--ring) }
+
+/* ===== سكرول بار لطيف داخل المودال ===== */
+.box::-webkit-scrollbar{ width:10px }
+.box::-webkit-scrollbar-track{ background: transparent; }
+.box::-webkit-scrollbar-thumb{
+  background: color-mix(in oklab, #94a3b8 35%, transparent);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+/* ===== فوتر لاصق اختياري للأكشنز ===== */
+.footer.sticky{
+  position: sticky; bottom: -1px; z-index: 1;
+  margin-top: 14px; padding-top: 12px;
+  background: linear-gradient(0deg, color-mix(in oklab, var(--card) 92%, transparent), transparent);
+  backdrop-filter: blur(4px);
+  border-top: 1px dashed color-mix(in oklab, var(--border) 60%, transparent);
+}
+
+/* ===== أحجام جاهزة (اختيارية) ===== */
+.modal.sm .box{ width: clamp(320px, 56vw, 640px); }
+.modal.lg .box{ width: clamp(480px, 80vw, 1120px); }
+
+/* ===== استجابة قوية للموبايل ===== */
+@media (max-width: 640px){
+  .box{
+    width: 100vw; max-height: 100vh; padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+    border-radius: 0; /* فل سكرين مريح على الموبايل */
+  }
+  .grid{ grid-template-columns: 1fr; }
+  .x{ height:40px; width:40px; } /* هدف لمسي أكبر */
+}

@@ -1,0 +1,34 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+export interface PermissionDto { id: number; name: string; }
+export interface ApiList<T> { success: boolean; data: T[]; message?: string; }
+export interface ApiMsg { success: boolean; message: string; }
+
+@Injectable({ providedIn: 'root' })
+export class PermissionsService {
+  private base = 'https://localhost:7091/api/Permissions';
+
+  constructor(private http: HttpClient) {}
+
+  // كل الصلاحيات (مثلاً لعرضها في select)
+  getAll(): Observable<ApiList<PermissionDto>> {
+    return this.http.get<ApiList<PermissionDto>>(this.base);
+  }
+
+  // صلاحيات مستخدم معيّن (Role + User - Denied)
+  getUser(userId: number): Observable<ApiList<PermissionDto>> {
+    return this.http.get<ApiList<PermissionDto>>(`${this.base}/user/${userId}`);
+  }
+
+  // إضافة صلاحية للمستخدم
+  addToUser(userId: number, permissionId: number): Observable<ApiMsg> {
+    return this.http.post<ApiMsg>(`${this.base}/user/${userId}/add/${permissionId}`, {});
+  }
+
+  // إزالة/رفض صلاحية من المستخدم
+  removeFromUser(userId: number, permissionId: number): Observable<ApiMsg> {
+    return this.http.delete<ApiMsg>(`${this.base}/user/${userId}/remove/${permissionId}`);
+  }
+}
