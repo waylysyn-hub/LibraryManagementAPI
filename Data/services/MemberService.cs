@@ -1,4 +1,4 @@
-﻿using Data;
+using Data;
 using Domain.DTOs;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
@@ -143,18 +143,31 @@ namespace Data.Services
             var newEmail = dto.Email.Trim().ToLowerInvariant();
             var newPhone = string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim();
 
+            // تحقق تفرّد البريد (على أعضاء آخرين)
             if (!string.Equals(member.Email, newEmail, StringComparison.OrdinalIgnoreCase))
             {
                 var emailTaken = await _context.Members
                     .AsNoTracking()
                     .AnyAsync(m => m.Email.ToLower() == newEmail && m.UserId != userId, ct);
-                if (emailTaken) throw new DuplicateNameException($"Email '{dto.Email}' is already in use.");
+                if (emailTaken) throw new DuplicateNameException($"البريد الإلكتروني '{dto.Email}' مستخدم مسبقاً.");
 
                 member.Email = newEmail;
 
                 // (اختياري) مزامنة بريد المستخدم
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
                 if (user != null) user.Email = newEmail;
+            }
+
+            // ✅ تحقق صيغة الهاتف وتفرّده (إن وُجد)
+            if (!string.IsNullOrEmpty(newPhone))
+            {
+                if (!System.Text.RegularExpressions.Regex.IsMatch(newPhone, MemberRegexes.SyrianPhone))
+                    throw new ArgumentException("رقم الهاتف يجب أن يبدأ بـ 09 أو +963 ثم 9 أرقام.");
+
+                var phoneTaken = await _context.Members.AsNoTracking()
+                    .AnyAsync(m => m.Phone == newPhone && m.UserId != userId, ct);
+                if (phoneTaken)
+                    throw new ArgumentException("رقم الهاتف مستخدم مسبقاً.");
             }
 
             member.Name = newName;
@@ -175,20 +188,15 @@ namespace Data.Services
             var newPhone = string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim();
 
             // تحقق من صيغة الهاتف
-            if (!string.IsNullOrEmpty(newPhone) && !System.Text.RegularExpressions.Regex.IsMatch(newPhone, @"^(09\d{9}|\+963\d{9})$"))
-            {
+            if (!string.IsNullOrEmpty(newPhone) && !System.Text.RegularExpressions.Regex.IsMatch(newPhone, MemberRegexes.SyrianPhone))
                 throw new ArgumentException("رقم الهاتف يجب أن يبدأ بـ 09 أو +963 ثم 9 أرقام.");
-            }
 
-            // تحقق من أن الهاتف غير مكرر في قاعدة البيانات
+            // تحقق من أن الهاتف غير مكرر
             if (!string.IsNullOrEmpty(newPhone))
             {
                 var phoneTaken = await _context.Members.AsNoTracking()
                     .AnyAsync(m => m.Phone == newPhone && m.Id != id, ct);
-                if (phoneTaken)
-                {
-                    throw new ArgumentException("رقم الهاتف مستخدم مسبقاً.");
-                }
+                if (phoneTaken) throw new ArgumentException("رقم الهاتف مستخدم مسبقاً.");
             }
 
             // التحقق من البريد الإلكتروني
@@ -197,7 +205,7 @@ namespace Data.Services
                 var emailTaken = await _context.Members
                     .AsNoTracking()
                     .AnyAsync(m => m.Email.ToLower() == newEmail && m.Id != id, ct);
-                if (emailTaken) throw new DuplicateNameException($"Email '{dto.Email}' is already in use.");
+                if (emailTaken) throw new DuplicateNameException($"البريد الإلكتروني '{dto.Email}' مستخدم مسبقاً.");
 
                 member.Email = newEmail;
 
@@ -213,30 +221,32 @@ namespace Data.Services
             return true;
         }
 
-        // حذف إداري
-        public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
+        public async Task<bool> DeleteAsync(int userId, CancellationToken ct = default)
         {
+            // 1) جيب المستخدم
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == userId, ct);
+
+            if (user == null)
+                throw new KeyNotFoundException($"المستخدم {userId} غير موجود.");
+
             var member = await _context.Members
-                .Include(m => m.BorrowRecords) // نضمن أن نسحب سجلات الاستعارة
-                .FirstOrDefaultAsync(m => m.Id == id, ct);
+                .Include(m => m.BorrowRecords)
+                .FirstOrDefaultAsync(m => m.UserId == userId, ct);
 
-            if (member == null)
+            if (member != null)
             {
-                throw new InvalidOperationException($"العضو {id} غير موجود في النظام.");
+                if (member.BorrowRecords?.Count > 0)
+                    throw new InvalidOperationException("لا يمكن حذف عضو لديه سجلات استعارة.");
+
+                _context.Members.Remove(member);
             }
 
-            // تحقق من وجود سجلات استعارة
-            if (member.BorrowRecords?.Count > 0)
-            {
-                throw new InvalidOperationException("لا يمكن حذف عضو لديه سجلات استعارة.");
-            }
+            _context.Users.Remove(user);
 
-            // حذف العضو
-            _context.Members.Remove(member);
             await _context.SaveChangesAsync(ct);
             return true;
         }
-
 
         // تصدير
         public async Task<List<MemberDto>> GetForExportAsync(MemberQueryParams qp, int maxRows = 10000, CancellationToken ct = default)

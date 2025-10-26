@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using Data;
 using Domain.DTOs;
 using Domain.Entities;
@@ -18,7 +18,7 @@ namespace Data.Services
             _logger = logger;
         }
 
-        // 🔹 باجينيشن: عناصر + إجمالي
+        // باجينيشن
         public async Task<(List<BorrowRecordDto> items, int total)> GetPagedAsync(
             int? memberId, int? bookId, int page = 1, int pageSize = 50, CancellationToken ct = default)
         {
@@ -63,7 +63,7 @@ namespace Data.Services
                 .FirstOrDefaultAsync(ct);
         }
 
-        // 🔹 تصدير للسجلات مع معلومات مُثرية
+        // تصدير
         public async Task<List<BorrowRecordExportRow>> GetForExportAsync(
             int? memberId, int? bookId, CancellationToken ct = default)
         {
@@ -79,27 +79,26 @@ namespace Data.Services
                 {
                     Id = br.Id,
                     MemberId = br.MemberId,
-                    MemberName = br.Member.Name,  // يتطلب Navigation
+                    MemberName = br.Member.Name,
                     BookId = br.BookId,
-                    BookTitle = br.Book.Title,   // يتطلب Navigation
+                    BookTitle = br.Book.Title,
                     BorrowedDate = br.BorrowedDate,
                     DueDate = br.DueDate,
                     ReturnedDate = br.ReturnedDate
                 })
                 .ToListAsync(ct);
 
-            // حساب الحالة والتأخير
             foreach (var r in rows)
             {
                 var isReturned = r.ReturnedDate.HasValue;
                 var effectiveEnd = r.ReturnedDate ?? now;
 
                 if (!isReturned && now <= r.DueDate)
-                    r.Status = "Active";
+                    r.Status = "نشط";
                 else if (!isReturned && now > r.DueDate)
-                    r.Status = "Overdue";
+                    r.Status = "متأخر";
                 else
-                    r.Status = effectiveEnd > r.DueDate ? "Returned (Late)" : "Returned";
+                    r.Status = effectiveEnd > r.DueDate ? "مُعاد (متأخر)" : "مُعاد";
 
                 r.OverdueDays = effectiveEnd > r.DueDate
                     ? (int)Math.Floor((effectiveEnd - r.DueDate).TotalDays)
@@ -123,15 +122,12 @@ namespace Data.Services
             public int OverdueDays { get; set; }
         }
 
-        // ============================
         // إنشاء
-        // ============================
         public async Task<BorrowRecord> AddAsync(BorrowRecordCreateDto dto, CancellationToken ct = default)
         {
             if (dto.DurationDays <= 0 || dto.DurationDays > 365)
-                throw new ArgumentException("DurationDays must be between 1 and 365.");
+                throw new ArgumentException("عدد أيام الإعارة يجب أن يكون بين 1 و 365.");
 
-            // منع السباقات على توفر النسخ
             await using var tx = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
 
             var bookInfo = await _context.Books
@@ -145,23 +141,22 @@ namespace Data.Services
                 .FirstOrDefaultAsync(ct);
 
             if (bookInfo is null)
-                throw new ArgumentException($"Book with ID {dto.BookId} not found.");
+                throw new ArgumentException($"الكتاب ذو المعرّف {dto.BookId} غير موجود.");
 
             var memberExists = await _context.Members.AnyAsync(m => m.Id == dto.MemberId, ct);
             if (!memberExists)
-                throw new ArgumentException($"Member with ID {dto.MemberId} not found.");
+                throw new ArgumentException($"العضو ذو المعرّف {dto.MemberId} غير موجود.");
 
-            // منع استعارة مكررة نشطة
             var duplicateActive = await _context.BorrowRecords
                 .AnyAsync(br => br.MemberId == dto.MemberId
                              && br.BookId == dto.BookId
                              && br.ReturnedDate == null, ct);
             if (duplicateActive)
-                throw new InvalidOperationException("Member already has an active borrow for this book.");
+                throw new InvalidOperationException("لدى العضو استعارة نشطة لهذا الكتاب بالفعل.");
 
             var available = bookInfo.CopiesCount - bookInfo.Active;
             if (available <= 0)
-                throw new InvalidOperationException("No copies available for this book currently.");
+                throw new InvalidOperationException("لا توجد نسخ متاحة من هذا الكتاب حالياً.");
 
             var now = DateTime.UtcNow;
             var record = new BorrowRecord
@@ -183,33 +178,40 @@ namespace Data.Services
         public async Task<bool> UpdateAsync(int id, BorrowRecordUpdateDto dto, CancellationToken ct = default)
         {
             if (dto.DurationDays <= 0 || dto.DurationDays > 365)
-                throw new ArgumentException("DurationDays must be between 1 and 365.");
+                throw new ArgumentException("عدد أيام الإعارة يجب أن يكون بين 1 و 365.");
 
             var record = await _context.BorrowRecords.FindAsync(new object?[] { id }, ct);
             if (record == null) return false;
 
-            // تحقق من وجود الكتاب
             var bookExists = await _context.Books.AnyAsync(b => b.Id == dto.BookId, ct);
             if (!bookExists)
-                throw new ArgumentException($"Book with ID {dto.BookId} not found.");
+                throw new ArgumentException($"الكتاب ذو المعرّف {dto.BookId} غير موجود.");
 
-            // تحقق من وجود العضو
             var memberExists = await _context.Members.AnyAsync(m => m.Id == dto.MemberId, ct);
             if (!memberExists)
-                throw new ArgumentException($"Member with ID {dto.MemberId} not found.");
+                throw new ArgumentException($"العضو ذو المعرّف {dto.MemberId} غير موجود.");
 
-            // تحقق إذا كان الكتاب معاراً لنفس العضو
             var isAlreadyBorrowedBySameMember = await _context.BorrowRecords
                 .AnyAsync(br => br.BookId == dto.BookId && br.MemberId == dto.MemberId && br.Id != id && br.ReturnedDate == null, ct);
             if (isAlreadyBorrowedBySameMember)
-                throw new ArgumentException("This book has already been borrowed by the same member.");
+                throw new ArgumentException("هذا الكتاب مُستعار مسبقاً من نفس العضو.");
 
-            // تحقق من وجود نسخ متاحة من الكتاب
-            var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == dto.BookId, ct);
-            if (book == null || book.CopiesCount <= 0)
-                throw new ArgumentException("No available copies of the book.");
+            // 🟢 فحص التوفر الحقيقي إذا تم تغيير الكتاب
+            if (dto.BookId != record.BookId)
+            {
+                var target = await _context.Books
+                    .Where(b => b.Id == dto.BookId)
+                    .Select(b => new
+                    {
+                        b.CopiesCount,
+                        Active = b.BorrowRecords.Count(br => br.ReturnedDate == null)
+                    })
+                    .FirstOrDefaultAsync(ct);
 
-            // إذا تم التحقق بنجاح، نواصل التحديث
+                if (target == null || (target.CopiesCount - target.Active) <= 0)
+                    throw new InvalidOperationException("لا توجد نسخ متاحة من الكتاب المستهدف حالياً.");
+            }
+
             var now = DateTime.UtcNow;
             record.MemberId = dto.MemberId;
             record.BookId = dto.BookId;
@@ -221,7 +223,6 @@ namespace Data.Services
 
             return true;
         }
-
 
         public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
         {
@@ -235,14 +236,13 @@ namespace Data.Services
             return true;
         }
 
-
         public async Task<bool> ReturnAsync(int id, CancellationToken ct = default)
         {
             var record = await _context.BorrowRecords.FindAsync(new object?[] { id }, ct);
             if (record == null) return false;
 
             if (record.ReturnedDate != null)
-                throw new InvalidOperationException("Borrow record is already returned.");
+                throw new InvalidOperationException("تم إرجاع هذا السجل مسبقاً.");
 
             record.ReturnedDate = DateTime.UtcNow;
             await _context.SaveChangesAsync(ct);

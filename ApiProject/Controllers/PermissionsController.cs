@@ -1,4 +1,4 @@
-﻿using Data.Services;
+using Data.Services;
 using Domain.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -37,11 +37,12 @@ namespace ApiProject.Controllers
                 return StatusCode(500, new
                 {
                     success = false,
-                    message = "Unexpected error while fetching all permissions",
+                    message = "حدث خطأ غير متوقع أثناء جلب جميع الصلاحيات",
                     details = ex.Message
                 });
             }
         }
+
         [HttpGet("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetPermissionById(int id)
@@ -50,7 +51,7 @@ namespace ApiProject.Controllers
             {
                 var perm = await _permissionService.GetPermissionByIdAsync(id);
                 if (perm == null)
-                    return NotFound(new { success = false, message = $"Permission with ID {id} not found" });
+                    return NotFound(new { success = false, message = $"الصلاحية بالمعرف {id} غير موجودة" });
 
                 return Ok(new { success = true, data = new { perm.Id, perm.Name } });
             }
@@ -105,15 +106,16 @@ namespace ApiProject.Controllers
             {
                 var deleted = await _permissionService.DeletePermissionAsync(id);
                 if (!deleted)
-                    return NotFound(new { success = false, message = $"Permission with ID {id} not found" });
+                    return NotFound(new { success = false, message = $"الصلاحية بالمعرف {id} غير موجودة" });
 
-                return Ok(new { success = true, message = "Permission deleted successfully" });
+                return Ok(new { success = true, message = "تم حذف الصلاحية بنجاح" });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
+
         // =========================
         // GET /permissions/user/{userId}
         // =========================
@@ -139,7 +141,7 @@ namespace ApiProject.Controllers
                 return StatusCode(500, new
                 {
                     success = false,
-                    message = $"Unexpected error while fetching permissions for user {userId}",
+                    message = $"حدث خطأ غير متوقع أثناء جلب الصلاحيات للمستخدم {userId}",
                     details = ex.Message
                 });
             }
@@ -155,7 +157,7 @@ namespace ApiProject.Controllers
             try
             {
                 var message = await _permissionService.AddPermissionToUserAsync(userId, permissionId);
-                if (message.Contains("not found"))
+                if (message.Contains("غير موجود"))
                     return BadRequest(new { success = false, message });
 
                 return Ok(new { success = true, message });
@@ -165,7 +167,7 @@ namespace ApiProject.Controllers
                 return StatusCode(500, new
                 {
                     success = false,
-                    message = $"Unexpected error while adding permission {permissionId} to user {userId}",
+                    message = $"حدث خطأ غير متوقع أثناء إضافة الصلاحية {permissionId} للمستخدم {userId}",
                     details = ex.Message
                 });
             }
@@ -181,7 +183,7 @@ namespace ApiProject.Controllers
             try
             {
                 var message = await _permissionService.RemovePermissionFromUserAsync(userId, permissionId);
-                if (message.Contains("not found"))
+                if (message.Contains("غير موجود"))
                     return BadRequest(new { success = false, message });
 
                 return Ok(new { success = true, message });
@@ -191,7 +193,7 @@ namespace ApiProject.Controllers
                 return StatusCode(500, new
                 {
                     success = false,
-                    message = $"Unexpected error while removing permission {permissionId} from user {userId}",
+                    message = $"حدث خطأ غير متوقع أثناء إزالة الصلاحية {permissionId} من المستخدم {userId}",
                     details = ex.Message
                 });
             }

@@ -1,33 +1,33 @@
-﻿using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Domain.DTOs
 {
-
     public class BorrowRecordCreateDto
     {
-        [Required(ErrorMessage = "MemberId is required.")]
+        [Required(ErrorMessage = "معرّف العضو مطلوب")]
         public int MemberId { get; set; }
 
-        [Required(ErrorMessage = "BookId is required.")]
+        [Required(ErrorMessage = "معرّف الكتاب مطلوب")]
         public int BookId { get; set; }
 
-        [Required(ErrorMessage = "DurationDays is required.")]
-        [Range(1, 365, ErrorMessage = "Duration must be between 1 and 365 days.")]
-        public int DurationDays { get; set; } // مدة الإعارة بالأيام
+        [Required(ErrorMessage = "مدة الإعارة مطلوبة")]
+        [Range(1, 365, ErrorMessage = "المدة يجب أن تكون بين 1 و 365 يومًا")]
+        public int DurationDays { get; set; }
     }
 
     public class BorrowRecordUpdateDto
     {
-        [Required(ErrorMessage = "MemberId is required.")]
+        [Required(ErrorMessage = "معرّف العضو مطلوب")]
         public int MemberId { get; set; }
 
-        [Required(ErrorMessage = "BookId is required.")]
+        [Required(ErrorMessage = "معرّف الكتاب مطلوب")]
         public int BookId { get; set; }
 
-        [Required]
-        public int DurationDays { get; set; } // نستخدم DurationDays بدل إدخال تواريخ يدوياً
+        [Required(ErrorMessage = "مدة الإعارة مطلوبة")]
+        [Range(1, 365, ErrorMessage = "المدة يجب أن تكون بين 1 و 365 يومًا")]
+        public int DurationDays { get; set; }
     }
+
     public class BorrowRecordExportRow
     {
         public int Id { get; set; }
@@ -38,10 +38,10 @@ namespace Domain.DTOs
         public DateTime BorrowedDate { get; set; }
         public DateTime DueDate { get; set; }
         public DateTime? ReturnedDate { get; set; }
-
         public string Status { get; set; } = "";
         public int OverdueDays { get; set; }
     }
+
     public class BorrowRecordDto
     {
         public int Id { get; set; }
@@ -49,7 +49,6 @@ namespace Domain.DTOs
         public int BookId { get; set; }
         public DateTime BorrowedDate { get; set; }
         public DateTime DueDate { get; set; }
-        // جديد: يظهر حالة الإرجاع
         public DateTime? ReturnedDate { get; set; }
     }
 }

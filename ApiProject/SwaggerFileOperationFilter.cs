@@ -1,4 +1,4 @@
-﻿using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 
@@ -13,7 +13,7 @@ namespace ApiProject
                          || p.ParameterType.GetProperties().Any(pr => pr.PropertyType == typeof(IFormFile)))
                 .ToList();
 
-            if (!fileParams.Any()) return;
+            if (fileParams.Count == 0) return;
 
             operation.RequestBody = new OpenApiRequestBody
             {
@@ -21,19 +21,26 @@ namespace ApiProject
                 {
                     ["multipart/form-data"] = new OpenApiMediaType
                     {
-                        Schema = new OpenApiSchema
+                       Schema = new OpenApiSchema
                         {
                             Type = "object",
-                            Properties = fileParams
-                                .SelectMany(p =>
-                                    p.ParameterType == typeof(IFormFile)
-                                    ? new[] { new { Name = p.Name, Type = "string" } }
+                            Properties =
+                            fileParams
+                            .SelectMany(p =>
+                                p.ParameterType == typeof(IFormFile)
+                                    // اسم البراميتر قد يكون nullable، فنوفر بديل آمن
+                                    ? [p.Name ?? "file"]
                                     : p.ParameterType.GetProperties()
                                         .Where(pr => pr.PropertyType == typeof(IFormFile))
-                                        .Select(pr => new { Name = pr.Name, Type = "string" })
-                                )
-                                .ToDictionary(x => x.Name, x => new OpenApiSchema { Type = x.Type, Format = "binary" })
+                                        .Select(pr => pr.Name) // PropertyInfo.Name غير nullable
+                            )
+                            .Distinct() // لو تكرر نفس الحقل من أكثر من مسار
+                            .ToDictionary(
+                                name => name,
+                                name => new OpenApiSchema { Type = "string", Format = "binary" }
+                            )
                         }
+
                     }
                 }
             };

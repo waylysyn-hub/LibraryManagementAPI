@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -47,11 +47,11 @@ namespace Data.Services
         new Claim("role_name", roleName),
 
         // لازم لعمل [Authorize(Roles="...")]
-        new Claim(ClaimTypes.Role, roleName),
+        new(ClaimTypes.Role, roleName),
 
         // ميتاداتا للتتبع والـ blacklist
-        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")),
-        new Claim(JwtRegisteredClaimNames.Iat,
+        new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")),
+        new(JwtRegisteredClaimNames.Iat,
                   new DateTimeOffset(nowUtc).ToUnixTimeSeconds().ToString(),
                   ClaimValueTypes.Integer64)
     };

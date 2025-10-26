@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Domain.DTOs
 {
@@ -10,15 +10,15 @@ namespace Domain.DTOs
 
     public class PermissionCreateDto
     {
-        [Required]
-        [StringLength(100)]
+        [Required(ErrorMessage = "اسم الصلاحية مطلوب")]
+        [StringLength(100, ErrorMessage = "اسم الصلاحية يجب أن لا يتجاوز 100 محرف")]
         public string Name { get; set; } = null!;
     }
 
     public class PermissionUpdateDto
     {
-        [Required]
-        [StringLength(100)]
+        [Required(ErrorMessage = "اسم الصلاحية مطلوب")]
+        [StringLength(100, ErrorMessage = "اسم الصلاحية يجب أن لا يتجاوز 100 محرف")]
         public string Name { get; set; } = null!;
     }
 }

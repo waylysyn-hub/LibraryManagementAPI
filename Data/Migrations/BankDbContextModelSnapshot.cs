@@ -284,11 +284,6 @@ namespace Data.Migrations
                         new
                         {
                             RoleId = 1,
-                            PermissionId = 1
-                        },
-                        new
-                        {
-                            RoleId = 1,
                             PermissionId = 2
                         },
                         new

@@ -1,4 +1,4 @@
-﻿using Data.Services;
+using Data.Services;
 using Domain.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +19,6 @@ namespace ApiProject.Controllers
             _logger = logger;
         }
 
-
         [Authorize(Policy = "borrow.read")]
         [HttpGet]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
@@ -39,7 +38,7 @@ namespace ApiProject.Controllers
 
                 var (items, total) = await _service.GetPagedAsync(memberId, bookId, page, pageSize, ct);
                 if (items.Count == 0)
-                    return NotFound(new { success = false, message = "No borrow records found" });
+                    return NotFound(new { success = false, message = "لا توجد سجلات إعارة" });
 
                 var totalPages = (int)Math.Ceiling(total / (double)pageSize);
 
@@ -59,10 +58,9 @@ namespace ApiProject.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching borrow records");
-                return StatusCode(500, new { success = false, message = "Unexpected error occurred while fetching borrow records", details = ex.Message });
+                return StatusCode(500, new { success = false, message = "حدث خطأ غير متوقع أثناء جلب سجلات الإعارة", details = ex.Message });
             }
         }
-
 
         [Authorize(Policy = "borrow.read")]
         [HttpGet("{id:int}")]
@@ -75,17 +73,16 @@ namespace ApiProject.Controllers
             {
                 var borrowRecord = await _service.GetByIdAsync(id, ct);
                 if (borrowRecord == null)
-                    return NotFound(new { success = false, message = $"Borrow record {id} not found" });
+                    return NotFound(new { success = false, message = $"سجل الإعارة {id} غير موجود" });
 
                 return Ok(new { success = true, data = borrowRecord });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching borrow record {RecordId}", id);
-                return StatusCode(500, new { success = false, message = $"Unexpected error while fetching borrow record {id}", details = ex.Message });
+                return StatusCode(500, new { success = false, message = $"حدث خطأ غير متوقع أثناء جلب سجل الإعارة {id}", details = ex.Message });
             }
         }
-
 
         [Authorize(Policy = "borrow.create")]
         [HttpPost]
@@ -101,7 +98,7 @@ namespace ApiProject.Controllers
                 return BadRequest(new
                 {
                     success = false,
-                    message = "Validation failed",
+                    message = "فشل التحقق من صحة البيانات",
                     errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()
                 });
             }
@@ -112,16 +109,16 @@ namespace ApiProject.Controllers
                 return CreatedAtAction(nameof(GetById), new { id = borrowRecord.Id }, new
                 {
                     success = true,
-                    message = "Borrow record created successfully",
+                    message = "تم إنشاء سجل الإعارة بنجاح",
                     id = borrowRecord.Id
                 });
             }
-            catch (ArgumentException ex) // إدخال غير صالح
+            catch (ArgumentException ex)
             {
                 _logger.LogWarning(ex, "Create validation error");
                 return BadRequest(new { success = false, message = ex.Message });
             }
-            catch (InvalidOperationException ex) // تعارض (لا يوجد نسخ متاحة / لديه استعارة فعّالة ...)
+            catch (InvalidOperationException ex)
             {
                 _logger.LogWarning(ex, "Create conflict");
                 return Conflict(new { success = false, message = ex.Message });
@@ -129,10 +126,9 @@ namespace ApiProject.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating borrow record");
-                return StatusCode(500, new { success = false, message = "Unexpected error", details = ex.Message });
+                return StatusCode(500, new { success = false, message = "خطأ غير متوقع أثناء إنشاء سجل الإعارة", details = ex.Message });
             }
         }
-
 
         [Authorize(Policy = "borrow.update")]
         [HttpPut("{id:int}")]
@@ -149,7 +145,7 @@ namespace ApiProject.Controllers
                 return BadRequest(new
                 {
                     success = false,
-                    message = "Validation failed",
+                    message = "فشل التحقق من صحة البيانات",
                     errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()
                 });
             }
@@ -158,9 +154,9 @@ namespace ApiProject.Controllers
             {
                 var updated = await _service.UpdateAsync(id, dto, ct);
                 if (!updated)
-                    return NotFound(new { success = false, message = $"Borrow record {id} not found" });
+                    return NotFound(new { success = false, message = $"سجل الإعارة {id} غير موجود" });
 
-                return Ok(new { success = true, message = $"Borrow record {id} updated successfully" });
+                return Ok(new { success = true, message = $"تم تحديث سجل الإعارة {id} بنجاح" });
             }
             catch (ArgumentException ex)
             {
@@ -175,13 +171,10 @@ namespace ApiProject.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating borrow record {RecordId}", id);
-                return StatusCode(500, new { success = false, message = $"Unexpected error while updating borrow record {id}", details = ex.Message });
+                return StatusCode(500, new { success = false, message = $"حدث خطأ غير متوقع أثناء تحديث سجل الإعارة {id}", details = ex.Message });
             }
         }
 
-        // ============================
-        // حذف سجل إعارة
-        // ============================
         [Authorize(Policy = "borrow.delete")]
         [HttpDelete("{id:int}")]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
@@ -193,9 +186,9 @@ namespace ApiProject.Controllers
             {
                 var deleted = await _service.DeleteAsync(id, ct);
                 if (!deleted)
-                    return NotFound(new { success = false, message = $"Borrow record {id} not found" });
+                    return NotFound(new { success = false, message = $"سجل الإعارة {id} غير موجود" });
 
-                return Ok(new { success = true, message = $"Borrow record {id} deleted successfully" });
+                return Ok(new { success = true, message = $"تم حذف سجل الإعارة {id} بنجاح" });
             }
             catch (Exception ex)
             {
@@ -203,15 +196,12 @@ namespace ApiProject.Controllers
                 return StatusCode(500, new
                 {
                     success = false,
-                    message = $"Unexpected error while deleting borrow record {id}",
+                    message = $"حدث خطأ غير متوقع أثناء حذف سجل الإعارة {id}",
                     details = ex.Message
                 });
             }
         }
 
-        // ============================
-        // إرجاع كتاب (تعيين ReturnedDate)
-        // ============================
         [Authorize(Policy = "borrow.update")]
         [HttpPost("{id:int}/return")]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
@@ -224,11 +214,11 @@ namespace ApiProject.Controllers
             {
                 var ok = await _service.ReturnAsync(id, ct);
                 if (!ok)
-                    return NotFound(new { success = false, message = $"Borrow record {id} not found" });
+                    return NotFound(new { success = false, message = $"سجل الإعارة {id} غير موجود" });
 
-                return Ok(new { success = true, message = "Book returned successfully." });
+                return Ok(new { success = true, message = "تم إرجاع الكتاب بنجاح." });
             }
-            catch (InvalidOperationException ex) // Already returned
+            catch (InvalidOperationException ex)
             {
                 _logger.LogWarning(ex, "Return conflict for {RecordId}", id);
                 return Conflict(new { success = false, message = ex.Message });
@@ -236,7 +226,7 @@ namespace ApiProject.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error returning borrow record {RecordId}", id);
-                return StatusCode(500, new { success = false, message = "Unexpected error while returning book", details = ex.Message });
+                return StatusCode(500, new { success = false, message = "خطأ غير متوقع أثناء إرجاع الكتاب", details = ex.Message });
             }
         }
 
@@ -256,20 +246,19 @@ namespace ApiProject.Controllers
                 var rows = await _service.GetForExportAsync(memberId, bookId, ct);
                 if (rows.Count == 0) return NoContent();
 
-                // لاحظنا: object? وليس object
                 List<(string Header, Func<ExportRow, object?>)> headers = new()
-        {
-            ("ID",            x => x.Id),
-            ("Member ID",     x => x.MemberId),
-            ("Member Name",   x => x.MemberName ?? ""),
-            ("Book ID",       x => x.BookId),
-            ("Book Title",    x => x.BookTitle ?? ""),
-            ("Borrowed Date", x => x.BorrowedDate),  // نخلي الـ formatter في ExportToExcel عبر dateFormat
-            ("Due Date",      x => x.DueDate),
-            ("Returned Date", x => x.ReturnedDate),
-            ("Status",        x => x.Status),
-            ("Overdue Days",  x => x.OverdueDays)
-        };
+                {
+                    ("المعرّف",        x => x.Id),
+                    ("معرّف العضو",    x => x.MemberId),
+                    ("اسم العضو",      x => x.MemberName ?? ""),
+                    ("معرّف الكتاب",   x => x.BookId),
+                    ("عنوان الكتاب",   x => x.BookTitle ?? ""),
+                    ("تاريخ الإعارة",  x => x.BorrowedDate),
+                    ("تاريخ الاستحقاق",x => x.DueDate),
+                    ("تاريخ الإرجاع",  x => x.ReturnedDate),
+                    ("الحالة",         x => x.Status),
+                    ("أيام التأخير",   x => x.OverdueDays)
+                };
 
                 var dateFormat = "yyyy-MM-dd HH:mm";
                 var stream = ExcelExportService
@@ -285,6 +274,5 @@ namespace ApiProject.Controllers
                 return StatusCode(500, new { success = false, message = "خطأ أثناء إنشاء ملف الإكسل", details = ex.Message });
             }
         }
-
     }
 }

@@ -1,30 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Domain.DTOs
 {
     public class RegisterDto
     {
-        [Required]
+        [Required(ErrorMessage = "اسم المستخدم مطلوب")]
         public string Username { get; set; } = string.Empty;
 
-        [Required]
-        [EmailAddress(ErrorMessage = "Invalid email format")]
+        [Required(ErrorMessage = "البريد الإلكتروني مطلوب")]
+        [EmailAddress(ErrorMessage = "صيغة البريد الإلكتروني غير صحيحة")]
         public string Email { get; set; } = string.Empty;
 
-        [Required]
-        [MinLength(6, ErrorMessage = "Password must be at least 6 characters")]
+        [Required(ErrorMessage = "كلمة المرور مطلوبة")]
+        [MinLength(6, ErrorMessage = "كلمة المرور يجب ألا تقل عن 6 محارف")]
         public string Password { get; set; } = string.Empty;
 
-        [Required]
-        [Compare("Password", ErrorMessage = "Passwords do not match")]
+        [Required(ErrorMessage = "تأكيد كلمة المرور مطلوب")]
+        [Compare("Password", ErrorMessage = "كلمتا المرور غير متطابقتين")]
         public string ConfirmPassword { get; set; } = string.Empty;
 
-        [Required]
-        public string RoleId { get; set; } = "Student"; // default role
+        [Required(ErrorMessage = "الدور مطلوب")]
+        public string RoleId { get; set; } = "Student"; // أبقيتها كما هي إن كانت مستخدمة لديكم
     }
 }

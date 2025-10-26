@@ -1,4 +1,4 @@
-﻿using Data;
+using Data;
 using Domain.DTOs;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -43,10 +43,10 @@ namespace Data.Services
             if (!string.IsNullOrWhiteSpace(qp.Category))
                 query = query.Where(b => EF.Functions.Like(b.Category, $"%{qp.Category!.Trim()}%"));
 
-            // فلترة ISBN (قابلة للترجمة: REPLACE + LOWER + COALESCE)
+            // فلترة ISBN (REPLACE + LOWER)
             if (!string.IsNullOrWhiteSpace(qp.Isbn))
             {
-                var i = NormalizeIsbnInput(qp.Isbn.Trim()); // خارج الاستعلام
+                var i = NormalizeIsbnInput(qp.Isbn.Trim());
                 if (qp.IsbnStartsWith)
                 {
                     query = query.Where(b =>
@@ -92,14 +92,8 @@ namespace Data.Services
                     Category = b.Category,
                     Year = b.Year,
                     CopiesCount = b.CopiesCount,
-
-                    // استعارات نشطة (ReturnedDate == null)
                     ActiveBorrowCount = b.BorrowRecords.Count(br => br.ReturnedDate == null),
-
-                    // النسخ المتاحة = الإجمالي - النشطة
                     AvailableCopies = b.CopiesCount - b.BorrowRecords.Count(br => br.ReturnedDate == null),
-
-                    // متوافق مع الخيار IncludeBorrowCount (لو تحب تحتفظ به)
                     BorrowCount = qp.IncludeBorrowCount
                         ? b.BorrowRecords.Count(br => br.ReturnedDate == null)
                         : (int?)null
@@ -160,33 +154,32 @@ namespace Data.Services
             var category = dto.Category.Trim();
             var isbnRaw = dto.ISBN.Trim();
 
-            // 1) طبّع المُدخل خارج الاستعلام
             var isbnNorm = NormalizeIsbnInput(isbnRaw);
 
-            // 2) تحقّق الطول بعد التطبيع (10 أو 13 رقم، و X مسموحة فقط أخيراً في ISBN-10)
+            // تحقق صحة ISBN بعد التطبيع
             if (!(isbnNorm.Length == 10 || isbnNorm.Length == 13) ||
                 !isbnNorm.Take(isbnNorm.Length - 1).All(char.IsDigit) ||
                 !(char.IsDigit(isbnNorm.Last()) || (isbnNorm.Length == 10 && (isbnNorm.Last() == 'x' || isbnNorm.Last() == 'X'))))
             {
-                throw new InvalidOperationException("ISBN length must be 10 or 13 digits (X allowed only as last char in ISBN-10) after removing spaces/hyphens.");
+                throw new InvalidOperationException("يجب أن يكون طول ISBN 10 أو 13 رقمًا (والحرف X مسموح فقط كآخر محرف في ISBN-10) بعد إزالة الفراغات والشرطات.");
             }
 
-            // 3) منع التكرار باستخدام عمليات قابلة للترجمة
+            // منع تكرار ISBN
             var existsIsbn = await _context.Books.AsNoTracking()
                 .AnyAsync(b =>
                     ((b.ISBN ?? "").Replace("-", "").Replace(" ", "").ToLower()) == isbnNorm);
 
             if (existsIsbn)
-                throw new InvalidOperationException($"ISBN '{isbnRaw}' موجود مسبقًا.");
+                throw new InvalidOperationException($"الرقم الدولي '{isbnRaw}' موجود مسبقًا.");
 
-            // 4) تكرار (العنوان+المؤلف+السنة) اختياري
+            // منع تكرار (العنوان+المؤلف+السنة)
             var existsTitleAuthor = await _context.Books.AsNoTracking()
                 .AnyAsync(b => b.Title == title && b.Author == author && b.Year == dto.Year);
             if (existsTitleAuthor)
                 throw new InvalidOperationException($"كتاب بعنوان '{title}' للمؤلف '{author}' (سنة {dto.Year}) موجود مسبقًا.");
 
             if (dto.CopiesCount < 0)
-                throw new InvalidOperationException("CopiesCount لا يمكن أن يكون سالبًا.");
+                throw new InvalidOperationException("لا يمكن أن يكون عدد النسخ سالبًا.");
 
             var book = new Book
             {
@@ -195,7 +188,7 @@ namespace Data.Services
                 Category = category,
                 Year = dto.Year,
                 CopiesCount = dto.CopiesCount,
-                ISBN = isbnRaw // نخزن الخام؛ الفهرس الفريد مفلتر على غير NULL
+                ISBN = isbnRaw
             };
 
             _context.Books.Add(book);
@@ -214,31 +207,28 @@ namespace Data.Services
             var isbnRaw = dto.ISBN.Trim();
             var isbnNorm = NormalizeIsbnInput(isbnRaw);
 
-            // تحقّق صحة ISBN بعد التطبيع
             if (!(isbnNorm.Length == 10 || isbnNorm.Length == 13) ||
                 !isbnNorm.Take(isbnNorm.Length - 1).All(char.IsDigit) ||
                 !(char.IsDigit(isbnNorm.Last()) || (isbnNorm.Length == 10 && (isbnNorm.Last() == 'x' || isbnNorm.Last() == 'X'))))
             {
-                throw new InvalidOperationException("ISBN length must be 10 or 13 digits (X allowed only as last char in ISBN-10) after removing spaces/hyphens.");
+                throw new InvalidOperationException("يجب أن يكون طول ISBN 10 أو 13 رقمًا (والحرف X مسموح فقط كآخر محرف في ISBN-10) بعد إزالة الفراغات والشرطات.");
             }
 
-            // منع تكرار ISBN لكتاب آخر
             var isbnTaken = await _context.Books.AsNoTracking()
                 .AnyAsync(b =>
                     b.Id != id &&
                     ((b.ISBN ?? "").Replace("-", "").Replace(" ", "").ToLower()) == isbnNorm);
 
             if (isbnTaken)
-                throw new InvalidOperationException($"لا يمكن التحديث: ISBN '{isbnRaw}' مستخدم في كتاب آخر.");
+                throw new InvalidOperationException($"لا يمكن التحديث: الرقم الدولي '{isbnRaw}' مستخدم في كتاب آخر.");
 
-            // منع نسخة مكررة بعنوان/مؤلف/سنة
             var duplicate = await _context.Books.AsNoTracking()
                 .AnyAsync(b => b.Id != id && b.Title == title && b.Author == author && b.Year == dto.Year);
             if (duplicate)
                 throw new InvalidOperationException($"لا يمكن التحديث: كتاب بعنوان '{title}' للمؤلف '{author}' (سنة {dto.Year}) موجود مسبقًا.");
 
             if (dto.CopiesCount < 0)
-                throw new InvalidOperationException("CopiesCount لا يمكن أن يكون سالبًا.");
+                throw new InvalidOperationException("لا يمكن أن يكون عدد النسخ سالبًا.");
 
             book.Title = title;
             book.Author = author;
@@ -254,7 +244,6 @@ namespace Data.Services
         private static string NormalizeIsbnInput(string? isbn)
         {
             if (string.IsNullOrWhiteSpace(isbn)) return string.Empty;
-            // إزالة الفراغات والشرطات وتحويل لأحرف صغيرة
             var norm = new string(isbn.Where(ch => ch != ' ' && ch != '-').ToArray()).ToLowerInvariant();
             return norm;
         }

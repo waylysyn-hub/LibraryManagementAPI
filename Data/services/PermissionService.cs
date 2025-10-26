@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Data.Services
@@ -19,37 +19,34 @@ namespace Data.Services
         }
 
         // ===== الصلاحيات الفعلية للمستخدم (Role + User - Denied) =====
-      public async Task<List<Permission>> GetUserPermissionsAsync(int userId, CancellationToken ct = default)
-{
-    var user = await _context.Users
-        .AsSplitQuery()
-        .Include(u => u.Permissions)
-        .Include(u => u.Role).ThenInclude(r => r.RolePermissions).ThenInclude(rp => rp.Permission)
-        .Include(u => u.DeniedPermissions).ThenInclude(dp => dp.Permission)
-        .FirstOrDefaultAsync(u => u.Id == userId, ct);
+        public async Task<List<Permission>> GetUserPermissionsAsync(int userId, CancellationToken ct = default)
+        {
+            var user = await _context.Users
+                .AsSplitQuery()
+                .Include(u => u.Permissions)
+                .Include(u => u.Role).ThenInclude(r => r.RolePermissions).ThenInclude(rp => rp.Permission)
+                .Include(u => u.DeniedPermissions).ThenInclude(dp => dp.Permission)
+                .FirstOrDefaultAsync(u => u.Id == userId, ct);
 
-    if (user == null)
-        throw new KeyNotFoundException($"User with ID {userId} not found");
+            if (user == null)
+                throw new KeyNotFoundException($"المستخدم الذي بالمعرف {userId} غير موجود");
 
-    var rolePerms   = user.Role?.RolePermissions.Select(rp => rp.Permission) ?? Enumerable.Empty<Permission>();
-    var userPerms   = user.Permissions ?? new List<Permission>();
-    var deniedPerms = user.DeniedPermissions?.Select(dp => dp.Permission) ?? Enumerable.Empty<Permission>();
+            var rolePerms = user.Role?.RolePermissions.Select(rp => rp.Permission) ?? Enumerable.Empty<Permission>();
+            var userPerms = user.Permissions ?? new List<Permission>();
+            var deniedPerms = user.DeniedPermissions?.Select(dp => dp.Permission) ?? Enumerable.Empty<Permission>();
 
-    return rolePerms
-        .Union(userPerms, new PermissionIdComparer())
-        .Where(p => !deniedPerms.Any(dp => dp.Id == p.Id))
-        .Distinct(new PermissionIdComparer())
-        .ToList();
-}
+            return rolePerms
+                .Union(userPerms, new PermissionIdComparer())
+                .Where(p => !deniedPerms.Any(dp => dp.Id == p.Id))
+                .Distinct(new PermissionIdComparer())
+                .ToList();
+        }
 
-private sealed class PermissionIdComparer : IEqualityComparer<Permission>
-{
-    public bool Equals(Permission? x, Permission? y) => x?.Id == y?.Id;
-    public int GetHashCode(Permission obj) => obj.Id.GetHashCode();
-}
-
-        public async Task<List<Permission>> GetPermissionsByUserIdAsync(int userId) =>
-            await GetUserPermissionsAsync(userId);
+        private sealed class PermissionIdComparer : IEqualityComparer<Permission>
+        {
+            public bool Equals(Permission? x, Permission? y) => x?.Id == y?.Id;
+            public int GetHashCode(Permission obj) => obj.Id.GetHashCode();
+        }
 
         public async Task<List<Permission>> GetPermissionsByRoleIdAsync(int roleId)
         {
@@ -70,15 +67,15 @@ private sealed class PermissionIdComparer : IEqualityComparer<Permission>
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
-                throw new KeyNotFoundException($"User with ID {userId} not found");
+                throw new KeyNotFoundException($"المستخدم الذي بالمعرف {userId} غير موجود");
 
             var perm = await _context.Permissions.FindAsync(permissionId);
             if (perm == null)
-                throw new KeyNotFoundException($"Permission with ID {permissionId} not found");
+                throw new KeyNotFoundException($"الصلاحية التي بالمعرف {permissionId} غير موجودة");
 
             // إذا عنده الصلاحية أصلًا
             if (user.Permissions.Any(p => p.Id == permissionId))
-                return $"User '{user.Username}' already has permission '{perm.Name}'";
+                return $"المستخدم '{user.Username}' لديه بالفعل الصلاحية '{perm.Name}'";
 
             // إزالة من Denied إذا موجود
             var denied = user.DeniedPermissions.FirstOrDefault(dp => dp.PermissionId == permissionId);
@@ -92,8 +89,9 @@ private sealed class PermissionIdComparer : IEqualityComparer<Permission>
             }
 
             await _context.SaveChangesAsync();
-            return $"Permission '{perm.Name}' assigned to user '{user.Username}' successfully";
+            return $"تم إضافة الصلاحية '{perm.Name}' للمستخدم '{user.Username}' بنجاح";
         }
+
         public async Task<Permission?> GetPermissionByIdAsync(int id)
         {
             return await _context.Permissions.FindAsync(id);
@@ -103,11 +101,11 @@ private sealed class PermissionIdComparer : IEqualityComparer<Permission>
         public async Task<Permission> CreatePermissionAsync(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
-                throw new InvalidOperationException("Permission name is required");
+                throw new InvalidOperationException("اسم الصلاحية مطلوب");
 
             // منع التكرار
             if (await _context.Permissions.AnyAsync(p => p.Name == name))
-                throw new InvalidOperationException($"Permission '{name}' already exists");
+                throw new InvalidOperationException($"الصلاحية '{name}' موجودة بالفعل");
 
             var permission = new Permission { Name = name };
             _context.Permissions.Add(permission);
@@ -120,10 +118,10 @@ private sealed class PermissionIdComparer : IEqualityComparer<Permission>
         {
             var permission = await _context.Permissions.FindAsync(id);
             if (permission == null)
-                throw new KeyNotFoundException($"Permission with ID {id} not found");
+                throw new KeyNotFoundException($"الصلاحية التي بالمعرف {id} غير موجودة");
 
             if (await _context.Permissions.AnyAsync(p => p.Name == name && p.Id != id))
-                throw new InvalidOperationException($"Permission '{name}' already exists");
+                throw new InvalidOperationException($"الصلاحية '{name}' موجودة بالفعل");
 
             permission.Name = name;
             await _context.SaveChangesAsync();
@@ -152,11 +150,11 @@ private sealed class PermissionIdComparer : IEqualityComparer<Permission>
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
-                throw new KeyNotFoundException($"User with ID {userId} not found");
+                throw new KeyNotFoundException($"المستخدم الذي بالمعرف {userId} غير موجود");
 
             var perm = await _context.Permissions.FindAsync(permissionId);
             if (perm == null)
-                throw new KeyNotFoundException($"Permission with ID {permissionId} not found");
+                throw new KeyNotFoundException($"الصلاحية التي بالمعرف {permissionId} غير موجودة");
 
             bool updated = false;
 
@@ -183,10 +181,10 @@ private sealed class PermissionIdComparer : IEqualityComparer<Permission>
             if (updated)
             {
                 await _context.SaveChangesAsync();
-                return $"Permission '{perm.Name}' removed/denied for user '{user.Username}' successfully";
+                return $"تم إزالة/رفض الصلاحية '{perm.Name}' للمستخدم '{user.Username}' بنجاح";
             }
 
-            return $"User '{user.Username}' does not have permission '{perm.Name}'";
+            return $"المستخدم '{user.Username}' لا يمتلك الصلاحية '{perm.Name}'";
         }
     }
 }

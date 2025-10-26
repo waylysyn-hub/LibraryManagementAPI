@@ -1,4 +1,4 @@
-﻿using Data.Services;
+using Data.Services;
 using Domain.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -53,7 +53,7 @@ namespace ApiProject.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching books");
-                return StatusCode(500, new { success = false, message = "Unexpected error", details = ex.Message });
+                return StatusCode(500, new { success = false, message = "حدث خطأ غير متوقع", details = ex.Message });
             }
         }
 
@@ -71,14 +71,14 @@ namespace ApiProject.Controllers
             {
                 var book = await _service.GetByIdAsync(id);
                 if (book == null)
-                    return NotFound(new { success = false, message = $"Book {id} not found" });
+                    return NotFound(new { success = false, message = $"الكتاب رقم {id} غير موجود" });
 
                 return Ok(new { success = true, data = book });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching book {BookId}", id);
-                return StatusCode(500, new { success = false, message = "Unexpected error", details = ex.Message });
+                return StatusCode(500, new { success = false, message = "حدث خطأ غير متوقع", details = ex.Message });
             }
         }
 
@@ -98,7 +98,7 @@ namespace ApiProject.Controllers
                 return BadRequest(new
                 {
                     success = false,
-                    message = "Validation failed",
+                    message = "فشل التحقق من صحة البيانات",
                     errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
                 });
 
@@ -106,7 +106,7 @@ namespace ApiProject.Controllers
             {
                 var book = await _service.AddAsync(dto);
                 return CreatedAtAction(nameof(GetById), new { id = book.Id },
-                    new { success = true, message = "Book created", id = book.Id });
+                    new { success = true, message = "تم إنشاء الكتاب بنجاح", id = book.Id });
             }
             catch (ArgumentException ex) // إدخال غير صالح (مثلاً سنة/ISBN)
             {
@@ -121,7 +121,7 @@ namespace ApiProject.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating book");
-                return StatusCode(500, new { success = false, message = "Unexpected error", details = ex.Message });
+                return StatusCode(500, new { success = false, message = "حدث خطأ غير متوقع", details = ex.Message });
             }
         }
 
@@ -142,7 +142,7 @@ namespace ApiProject.Controllers
                 return BadRequest(new
                 {
                     success = false,
-                    message = "Validation failed",
+                    message = "فشل التحقق من صحة البيانات",
                     errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
                 });
 
@@ -150,9 +150,9 @@ namespace ApiProject.Controllers
             {
                 var updated = await _service.UpdateAsync(id, dto);
                 if (!updated)
-                    return NotFound(new { success = false, message = $"Book {id} not found" });
+                    return NotFound(new { success = false, message = $"الكتاب رقم {id} غير موجود" });
 
-                return Ok(new { success = true, message = $"Book {id} updated successfully" });
+                return Ok(new { success = true, message = $"تم تحديث الكتاب {id} بنجاح" });
             }
             catch (ArgumentException ex) // إدخال غير صالح
             {
@@ -167,7 +167,7 @@ namespace ApiProject.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating book {BookId}", id);
-                return StatusCode(500, new { success = false, message = "Unexpected error", details = ex.Message });
+                return StatusCode(500, new { success = false, message = "حدث خطأ غير متوقع", details = ex.Message });
             }
         }
 
@@ -186,9 +186,9 @@ namespace ApiProject.Controllers
             {
                 var deleted = await _service.DeleteAsync(id);
                 if (!deleted)
-                    return NotFound(new { success = false, message = $"Book {id} not found" });
+                    return NotFound(new { success = false, message = $"الكتاب رقم {id} غير موجود" });
 
-                return Ok(new { success = true, message = $"Book {id} deleted successfully" });
+                return Ok(new { success = true, message = $"تم حذف الكتاب {id} بنجاح" });
             }
             catch (InvalidOperationException ex) // عليه سجلات استعارة
             {
@@ -198,7 +198,7 @@ namespace ApiProject.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting book {BookId}", id);
-                return StatusCode(500, new { success = false, message = "Unexpected error", details = ex.Message });
+                return StatusCode(500, new { success = false, message = "حدث خطأ غير متوقع", details = ex.Message });
             }
         }
 
@@ -220,14 +220,14 @@ namespace ApiProject.Controllers
 
                 var headers = new List<(string Header, Func<BookDto, object?>)>
                 {
-                    ("ID",             x => (object?) x.Id),
-                    ("Title",          x => (object?) x.Title),
-                    ("Author",         x => (object?) x.Author),
-                    ("Category",       x => (object?) x.Category),
-                    ("Year",           x => (object?) x.Year),            // لو كانت DateTime وتريد سنة فقط: (object?) (x.Year as DateTime?)?.ToString("yyyy")
-                    ("Copies",         x => (object?) x.CopiesCount),
-                    ("Active Borrows", x => (object?) x.ActiveBorrowCount),
-                    ("Available",      x => (object?) x.AvailableCopies),
+                    ("المعرّف",        x => (object?) x.Id),
+                    ("العنوان",        x => (object?) x.Title),
+                    ("المؤلف",         x => (object?) x.Author),
+                    ("التصنيف",        x => (object?) x.Category),
+                    ("السنة",          x => (object?) x.Year),
+                    ("عدد النسخ",      x => (object?) x.CopiesCount),
+                    ("إعارات نشطة",    x => (object?) x.ActiveBorrowCount),
+                    ("المتاح",         x => (object?) x.AvailableCopies),
                     ("ISBN",           x => (object?) x.ISBN),
                 };
 

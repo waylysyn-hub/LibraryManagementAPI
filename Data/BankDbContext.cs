@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 
@@ -150,13 +150,12 @@ namespace Data
             );
 
             modelBuilder.Entity<RolePermission>().HasData(
-                new RolePermission { RoleId = 1, PermissionId = 1 }, // Admin - book.read
-                new RolePermission { RoleId = 1, PermissionId = 2 }, // Admin - member.add
-                new RolePermission { RoleId = 1, PermissionId = 3 }, // Admin - member.update
-                new RolePermission { RoleId = 1, PermissionId = 4 }, // Admin - member.delete
-                new RolePermission { RoleId = 1, PermissionId = 5 }, // Admin - book.create
-                new RolePermission { RoleId = 1, PermissionId = 6 }, // Admin - book.update
-                new RolePermission { RoleId = 1, PermissionId = 7 }, // Admin - book.delete
+                new RolePermission { RoleId = 1, PermissionId = 2 }, 
+                new RolePermission { RoleId = 1, PermissionId = 3 },
+                new RolePermission { RoleId = 1, PermissionId = 4 }, 
+                new RolePermission { RoleId = 1, PermissionId = 5 },
+                new RolePermission { RoleId = 1, PermissionId = 6 }, 
+                new RolePermission { RoleId = 1, PermissionId = 7 }, 
                 new RolePermission { RoleId = 1, PermissionId = 8 },
                 new RolePermission { RoleId = 1, PermissionId = 9 },
                 new RolePermission { RoleId = 1, PermissionId = 10 },
@@ -168,7 +167,7 @@ namespace Data
                 new RolePermission { RoleId = 2, PermissionId = 3 }, // Employee - member.update
                 new RolePermission { RoleId = 2, PermissionId = 5 }, // Employee - book.create
                 new RolePermission { RoleId = 2, PermissionId = 6 }, // Employee - book.update
-                 new RolePermission { RoleId = 2, PermissionId = 8 },
+                new RolePermission { RoleId = 2, PermissionId = 8 },
 
                 new RolePermission { RoleId = 3, PermissionId = 1 }  // Member - book.read
             );

@@ -1,4 +1,4 @@
-﻿using Data.Services;
+using Data.Services;
 using Domain.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,7 +32,7 @@ namespace ApiProject.Controllers
         }
 
         /// <summary>
-        /// Login with email & password. Returns JWT and effective permissions.
+        /// تسجيل الدخول بإيميل وكلمة مرور. يُرجع JWT مع الأذونات الفعالة.
         /// </summary>
         [HttpPost("login")]
         [AllowAnonymous]
@@ -43,10 +43,10 @@ namespace ApiProject.Controllers
         public async Task<IActionResult> Login([FromBody] LoginDto dto, CancellationToken ct)
         {
             if (dto is null)
-                return BadRequest(new { success = false, message = "Request body is missing." });
+                return BadRequest(new { success = false, message = "هيكل الطلب مفقود." });
 
             if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
-                return BadRequest(new { success = false, message = "Email and password are required." });
+                return BadRequest(new { success = false, message = "البريد الإلكتروني وكلمة المرور مطلوبان." });
 
             try
             {
@@ -54,18 +54,18 @@ namespace ApiProject.Controllers
 
                 if (result is null)
                 {
-                    _logger.LogError("LoginAsync returned null (unexpected).");
-                    return StatusCode(500, new { success = false, message = "Internal server error while processing login." });
+                    _logger.LogError("LoginAsync أعادت null (غير متوقع).");
+                    return StatusCode(500, new { success = false, message = "حدث خطأ داخلي أثناء معالجة تسجيل الدخول." });
                 }
 
                 if (string.IsNullOrEmpty(result.Token))
-                    return Unauthorized(new { success = false, message = "Invalid email or password." });
+                    return Unauthorized(new { success = false, message = "بيانات الدخول غير صحيحة." });
 
                 var message = string.IsNullOrEmpty(result.RoleName)
-                    ? "Login successful but user has no role assigned."
+                    ? "تم تسجيل الدخول، لكن لا يوجد دور مخصّص للمستخدم."
                     : (result.Permissions.Count == 0
-                        ? $"Login successful. You are logged in as '{result.RoleName}', but you have no permissions assigned yet."
-                        : $"Login successful. You are logged in as '{result.RoleName}'.");
+                        ? $"تم تسجيل الدخول كـ '{result.RoleName}'، لكن لا توجد أذونات مخصّصة بعد."
+                        : $"تم تسجيل الدخول كـ '{result.RoleName}'.");
 
                 return Ok(new
                 {
@@ -81,18 +81,18 @@ namespace ApiProject.Controllers
             }
             catch (OperationCanceledException)
             {
-                _logger.LogWarning("Login cancelled by client.");
-                return StatusCode(499, new { success = false, message = "Client closed request." });
+                _logger.LogWarning("تم إلغاء عملية تسجيل الدخول من العميل.");
+                return StatusCode(499, new { success = false, message = "تم إنهاء الطلب من جهة العميل." });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error during login.");
-                return StatusCode(500, new { success = false, message = $"Unexpected error during login: {ex.Message}" });
+                _logger.LogError(ex, "خطأ غير متوقع أثناء تسجيل الدخول.");
+                return StatusCode(500, new { success = false, message = $"خطأ غير متوقع أثناء تسجيل الدخول: {ex.Message}" });
             }
         }
 
         /// <summary>
-        /// Logout by blacklisting the current JWT (token will not be accepted until it expires).
+        /// تسجيل الخروج بوضع الـ JWT الحالي في القائمة السوداء حتى انتهاء صلاحيته.
         /// </summary>
         [HttpPost("logout")]
         [Authorize]
@@ -107,13 +107,13 @@ namespace ApiProject.Controllers
             {
                 var authHeader = Request.Headers.Authorization.ToString();
                 if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer ", StringComparison.Ordinal))
-                    return BadRequest(new { success = false, message = "Authorization header with Bearer token is required." });
+                    return BadRequest(new { success = false, message = "يلزم ترويسة Authorization مع رمز Bearer." });
 
                 var token = authHeader.Substring("Bearer ".Length).Trim();
                 if (string.IsNullOrWhiteSpace(token))
-                    return BadRequest(new { success = false, message = "Token not found." });
+                    return BadRequest(new { success = false, message = "الرمز مفقود." });
 
-                // Validate token signature without lifetime check (we only need claims and ValidTo)
+                // التحقق من التوقيع بدون التحقق من مدة الحياة (نحتاج الادعاءات ووقت الانتهاء فقط)
                 JwtSecurityToken validatedToken;
                 try
                 {
@@ -131,36 +131,35 @@ namespace ApiProject.Controllers
                         out var tmp);
 
                     validatedToken = tmp as JwtSecurityToken
-                        ?? throw new SecurityTokenException("Invalid token format.");
+                        ?? throw new SecurityTokenException("صيغة الرمز غير صحيحة.");
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Invalid token or signature on logout.");
-                    return BadRequest(new { success = false, message = "Invalid token or signature." });
+                    _logger.LogWarning(ex, "رمز غير صالح/توقيع خاطئ أثناء تسجيل الخروج.");
+                    return BadRequest(new { success = false, message = "الرمز غير صالح أو التوقيع غير صحيح." });
                 }
 
-                // 👇 استدعاءات توافق تواقيع BlacklistService الحالية
                 if (await _blacklistService.IsTokenRevokedAsync(token))
-                    return NotFound(new { success = false, message = "Token has already been revoked." });
+                    return NotFound(new { success = false, message = "تم إبطال هذا الرمز مسبقًا." });
 
                 await _blacklistService.AddToBlacklistAsync(token, validatedToken.ValidTo);
 
                 return Ok(new
                 {
                     success = true,
-                    message = "Logout successful. Token is now invalidated.",
+                    message = "تم تسجيل الخروج. أصبح الرمز لاغيًا.",
                     revokedUntil = validatedToken.ValidTo
                 });
             }
             catch (OperationCanceledException)
             {
-                _logger.LogWarning("Logout cancelled by client.");
-                return StatusCode(499, new { success = false, message = "Client closed request." });
+                _logger.LogWarning("تم إلغاء عملية تسجيل الخروج من العميل.");
+                return StatusCode(499, new { success = false, message = "تم إنهاء الطلب من جهة العميل." });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error during logout.");
-                return StatusCode(500, new { success = false, message = $"Unexpected error during logout: {ex.Message}" });
+                _logger.LogError(ex, "خطأ غير متوقع أثناء تسجيل الخروج.");
+                return StatusCode(500, new { success = false, message = $"خطأ غير متوقع أثناء تسجيل الخروج: {ex.Message}" });
             }
         }
     }

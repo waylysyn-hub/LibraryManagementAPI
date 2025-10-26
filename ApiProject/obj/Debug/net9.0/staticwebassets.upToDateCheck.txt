@@ -1,3 +1,7 @@
+wwwroot\fonts\Amiri-Bold.ttf
+wwwroot\fonts\Amiri-Regular.ttf
+wwwroot\fonts\NotoNaskhArabic-Bold.ttf
+wwwroot\fonts\NotoNaskhArabic-Regular.ttf
 wwwroot\images\11106554-27b5-460c-ab69-9e4dc3db1f10.jpg
 wwwroot\images\1c20fa22-dadd-4cdb-bf3f-6083dd46d10e.jpg
 wwwroot\images\50933105-8457-418e-a684-74c3b2cec045.jpg

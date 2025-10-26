@@ -1,4 +1,4 @@
-﻿using Data.Services;
+using Data.Services;
 using Domain.DTOs;
 using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -33,16 +33,14 @@ namespace ApiProject.Controllers
             _logger = logger;
         }
 
-        // ===========================
-        // Get All Users
-        // ===========================
+
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll(CancellationToken ct)
         {
             var users = await _userService.GetAllAsync();
             if (users.Count == 0)
-                return Ok(new { success = true, message = "No users found", data = Array.Empty<object>() });
+                return Ok(new { success = true, message = "لا توجد مستخدمين", data = Array.Empty<object>() });
 
             return Ok(new
             {
@@ -53,25 +51,23 @@ namespace ApiProject.Controllers
                     u.Id,
                     u.Username,
                     u.Email,
+                    u.Phone,
                     u.RoleId,
                     u.CreatedAt
                 })
             });
         }
 
-        // ===========================
-        // Get User by Id
-        // ===========================
         [HttpGet("{id:int}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetById(int id, CancellationToken ct)
         {
             if (id <= 0)
-                return BadRequest(new { success = false, message = "Invalid user id. Id must be greater than 0." });
+                return BadRequest(new { success = false, message = "معرف المستخدم غير صالح. يجب أن يكون أكبر من 0." });
 
             var user = await _userService.GetByIdAsync(id);
             if (user == null)
-                return NotFound(new { success = false, message = $"User with ID {id} not found." });
+                return NotFound(new { success = false, message = $"المستخدم بالمعرف {id} غير موجود." });
 
             var permissions = await _permissionService.GetUserPermissionsAsync(id);
 
@@ -83,12 +79,15 @@ namespace ApiProject.Controllers
                     user.Id,
                     user.Username,
                     user.Email,
+                    user.Phone,
                     user.RoleId,
                     user.CreatedAt,
                     Permissions = permissions.Select(p => new { p.Id, p.Name })
                 }
             });
         }
+
+
         [HttpPost("public-register")]
         [AllowAnonymous]
         public async Task<IActionResult> PublicRegister([FromBody] UserRegisterDto dto, CancellationToken ct)
@@ -98,14 +97,14 @@ namespace ApiProject.Controllers
                 return BadRequest(new
                 {
                     success = false,
-                    message = "Invalid input data. Please check the fields.",
+                    message = "البيانات المدخلة غير صالحة. يرجى التحقق من الحقول.",
                     errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
                 });
             }
 
             if (dto.Password != dto.ConfirmPassword)
             {
-                return BadRequest(new { success = false, message = "Password and Confirm Password do not match." });
+                return BadRequest(new { success = false, message = "كلمة المرور وكلمة المرور المؤكدة غير متطابقتين." });
             }
 
             var phone = string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim();
@@ -118,7 +117,7 @@ namespace ApiProject.Controllers
                 var existingMemberByEmail = await _userService.GetMemberByEmailAsync(dto.Email);
                 if (existingMemberByEmail != null)
                 {
-                    return BadRequest(new { success = false, message = "Email is already in use. Please choose a different one." });
+                    return BadRequest(new { success = false, message = "البريد الإلكتروني مستخدم بالفعل. يرجى اختيار بريد آخر." });
                 }
 
                 // التحقق من وجود رقم الهاتف في جدول الأعضاء فقط
@@ -136,14 +135,14 @@ namespace ApiProject.Controllers
                 return StatusCode(201, new
                 {
                     success = true,
-                    message = "User registered successfully.",
+                    message = "تم تسجيل المستخدم بنجاح.",
                     data = new
                     {
                         user.Id,
                         user.Username,
                         user.Email,
-                        RoleId = user.RoleId,
-                        RoleName = role?.Name ?? "Member",
+                        RoleId = 3,
+                        RoleName =  "Member",
                         Permissions = rolePerms.Select(p => new { p.Id, p.Name })
                     }
                 });
@@ -165,7 +164,7 @@ namespace ApiProject.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "PublicRegister error");
-                return StatusCode(500, new { success = false, message = "Unexpected server error." });
+                return StatusCode(500, new { success = false, message = "خطأ غير متوقع في الخادم." });
             }
         }
 
@@ -183,13 +182,13 @@ namespace ApiProject.Controllers
                 return BadRequest(new
                 {
                     success = false,
-                    message = "Invalid input data.",
+                    message = "البيانات المدخلة غير صالحة.",
                     errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
                 });
             }
 
             if (dto.Password != dto.ConfirmPassword)
-                return BadRequest(new { success = false, message = "Password and Confirm Password do not match." });
+                return BadRequest(new { success = false, message = "كلمة المرور وكلمة المرور المؤكدة غير متطابقتين." });
 
             // ✅ تحقّق صيغة الهاتف (اختياريًا إذا مُرسل)
             var phone = string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim();
@@ -210,7 +209,7 @@ namespace ApiProject.Controllers
                 return CreatedAtAction(nameof(GetById), new { id = user.Id }, new
                 {
                     success = true,
-                    message = "User registered successfully.",
+                    message = "تم تسجيل المستخدم بنجاح.",
                     data = new
                     {
                         user.Id,
@@ -236,7 +235,7 @@ namespace ApiProject.Controllers
                 return Conflict(new
                 {
                     success = false,
-                    message = "Email, Username or Phone already exists.",
+                    message = "البريد الإلكتروني، اسم المستخدم أو رقم الهاتف موجود مسبقاً.",
                     detail = ex.InnerException.Message
                 });
             }
@@ -247,7 +246,7 @@ namespace ApiProject.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error while admin-register");
-                return StatusCode(500, new { success = false, message = "Unexpected server error." });
+                return StatusCode(500, new { success = false, message = "خطأ غير متوقع في الخادم." });
             }
         }
 
@@ -259,49 +258,45 @@ namespace ApiProject.Controllers
         public async Task<IActionResult> UpdatePassword(int id, [FromBody] UpdatePasswordDto dto, CancellationToken ct)
         {
             if (!ModelState.IsValid)
-            {
-                return BadRequest(new
-                {
-                    success = false,
-                    message = "Invalid input data.",
-                    errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
-                });
-            }
+                return ValidationProblem(ModelState); // 👈 يعيد errors مع أسماء الحقول
 
             var user = await _userService.GetByIdAsync(id);
             if (user == null)
-                return NotFound(new { success = false, message = $"User with ID {id} not found." });
+                return NotFound(new { success = false, message = $"المستخدم بالمعرف {id} غير موجود." });
 
             var currentUserEmail = User.Identity?.Name;
             if (currentUserEmail != user.Email && !User.IsInRole("Admin"))
-                return Forbid("You can only change your own password.");
+                return Forbid("يمكنك تغيير كلمة مرورك فقط.");
 
-            if (!_userService.VerifyPassword(dto.CurrentPassword, user.PasswordHash))
-                return Unauthorized(new { success = false, message = "Current password is incorrect." });
+      if (!_userService.VerifyPassword(dto.CurrentPassword, user.PasswordHash))
+    return BadRequest(new {
+        success = false,
+        message = "كلمة المرور الحالية غير صحيحة.",
+        field = "CurrentPassword" // يفيد الواجهة تلون الحقل
+    });
 
             var updated = await _userService.UpdateUserAsync(user, dto.NewPassword);
             if (!updated)
-                return BadRequest(new { success = false, message = "Password update failed." });
+                return BadRequest(new { success = false, message = "فشل تحديث كلمة المرور." });
 
-            return Ok(new { success = true, message = "Password updated successfully." });
+            return Ok(new { success = true, message = "تم تحديث كلمة المرور بنجاح." });
         }
 
         // ===========================
         // Update User Info
         // ===========================
-
         [HttpPut("{id:int}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int id, [FromBody] UserUpdateDto dto, CancellationToken ct)
         {
             if (id <= 0)
-                return BadRequest(new { success = false, message = "Invalid user id. Id must be greater than 0." });
+                return BadRequest(new { success = false, message = "معرف المستخدم غير صالح. يجب أن يكون أكبر من 0." });
 
             if (!ModelState.IsValid)
                 return BadRequest(new
                 {
                     success = false,
-                    message = "Invalid input data. Please check the fields.",
+                    message = "البيانات المدخلة غير صالحة. يرجى التحقق من الحقول.",
                     errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
                 });
 
@@ -317,52 +312,18 @@ namespace ApiProject.Controllers
 
                 var updated = await _userService.UpdateUserAsync(user);
                 if (!updated)
-                    return NotFound(new { success = false, message = $"User with ID {id} not found." });
+                    return NotFound(new { success = false, message = $"المستخدم بالمعرف {id} غير موجود." });
 
-                return Ok(new { success = true, message = "User updated successfully." });
+                return Ok(new { success = true, message = "تم تحديث المستخدم بنجاح." });
             }
             catch (InvalidOperationException ex)
             {
-                // تجي من الخدمة: Email/Username/Phone in use أو regex الهاتف
                 return BadRequest(new { success = false, message = ex.Message });
             }
             catch (DbUpdateException ex) when (ex.InnerException is SqlException sql && (sql.Number == 2627 || sql.Number == 2601))
             {
-                return Conflict(new { success = false, message = "Email, Username or Phone already exists.", detail = ex.InnerException.Message });
+                return Conflict(new { success = false, message = "البريد الإلكتروني، اسم المستخدم أو رقم الهاتف موجود مسبقاً.", detail = ex.InnerException.Message });
             }
-        }
-
-        // ===========================
-        // Update User Role
-        // ===========================
-        [HttpPut("{id:int}/role")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateRole(int id, [FromBody] int newRoleId, CancellationToken ct)
-        {
-            if (id <= 0)
-                return BadRequest(new { success = false, message = "Invalid user id. Id must be greater than 0." });
-
-            if (newRoleId is < 1 or > 3)
-                return BadRequest(new { success = false, message = "RoleId must be 1 (Admin), 2 (Employee), or 3 (Member)." });
-
-            var user = await _userService.GetByIdAsync(id);
-            if (user == null)
-                return NotFound(new { success = false, message = $"User with ID {id} not found." });
-
-            user.RoleId = newRoleId;
-            await _userService.UpdateUserAsync(user);
-
-            var role = await _userService.GetRoleByIdAsync(newRoleId);
-            var rolePermissions = await _permissionService.GetPermissionsByRoleIdAsync(newRoleId);
-
-            return Ok(new
-            {
-                success = true,
-                message = $"User role updated to {newRoleId} successfully.",
-                RoleId = newRoleId,
-                RoleName = role?.Name ?? "Unknown",
-                Permissions = rolePermissions.Select(p => new { p.Id, p.Name })
-            });
         }
 
         // ===========================
@@ -373,13 +334,13 @@ namespace ApiProject.Controllers
         public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
             if (id <= 0)
-                return BadRequest(new { success = false, message = "Invalid user id. Id must be greater than 0." });
+                return BadRequest(new { success = false, message = "معرف المستخدم غير صالح. يجب أن يكون أكبر من 0." });
 
             var deleted = await _userService.DeleteUserAsync(id);
             if (!deleted)
-                return NotFound(new { success = false, message = $"User with ID {id} not found." });
+                return NotFound(new { success = false, message = $"المستخدم بالمعرف {id} غير موجود." });
 
-            return Ok(new { success = true, message = "User deleted successfully." });
+            return Ok(new { success = true, message = "تم حذف المستخدم بنجاح." });
         }
     }
 }

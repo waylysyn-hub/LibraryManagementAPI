@@ -1,4 +1,4 @@
-﻿using Data.Services;
+using Data.Services;
 using Domain.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -69,13 +69,10 @@ namespace ApiProject.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching members");
-                return StatusCode(500, new { success = false, message = "Unexpected error", details = ex.Message });
+                return StatusCode(500, new { success = false, message = "خطأ غير متوقع", details = ex.Message });
             }
         }
 
-        // =======================
-        // GET /api/members/{id}
-        // =======================
         [Authorize(Policy = "member.read")]
         [HttpGet("{id:int}")]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
@@ -87,14 +84,14 @@ namespace ApiProject.Controllers
             {
                 var member = await _service.GetByIdAsync(id, ct);
                 if (member == null)
-                    return NotFound(new { success = false, message = $"Member {id} not found" });
+                    return NotFound(new { success = false, message = $"العضو {id} غير موجود" });
 
                 return Ok(new { success = true, data = member });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching member {MemberId}", id);
-                return StatusCode(500, new { success = false, message = "Unexpected error", details = ex.Message });
+                return StatusCode(500, new { success = false, message = "خطأ غير متوقع", details = ex.Message });
             }
         }
 
@@ -109,20 +106,20 @@ namespace ApiProject.Controllers
         public async Task<IActionResult> GetMe(CancellationToken ct)
         {
             var uid = GetUserId();
-            if (uid is null) return Unauthorized(new { success = false, message = "Invalid token" });
+            if (uid is null) return Unauthorized(new { success = false, message = "توكن غير صالح" });
 
             try
             {
                 var member = await _service.GetByUserIdAsync(uid.Value, ct);
                 if (member == null)
-                    return NotFound(new { success = false, message = $"Member for user {uid} not found" });
+                    return NotFound(new { success = false, message = $"العضو الذي يحمل معرف المستخدم {uid} غير موجود" });
 
                 return Ok(new { success = true, data = member });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching me");
-                return StatusCode(500, new { success = false, message = "Unexpected error", details = ex.Message });
+                return StatusCode(500, new { success = false, message = "خطأ غير متوقع", details = ex.Message });
             }
         }
 
@@ -139,21 +136,21 @@ namespace ApiProject.Controllers
         public async Task<IActionResult> UpdateMe([FromBody] MemberSelfUpdateDto dto, CancellationToken ct)
         {
             var uid = GetUserId();
-            if (uid is null) return Unauthorized(new { success = false, message = "Invalid token" });
+            if (uid is null) return Unauthorized(new { success = false, message = "توكن غير صالح" });
 
             if (!ModelState.IsValid)
                 return BadRequest(new
                 {
                     success = false,
-                    message = "Invalid input data.",
+                    message = "البيانات المدخلة غير صالحة.",
                     errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
                 });
 
             try
             {
                 var ok = await _service.UpdateSelfAsync(uid.Value, dto, ct);
-                if (!ok) return NotFound(new { success = false, message = "Member profile not found" });
-                return Ok(new { success = true, message = "Profile updated successfully" });
+                if (!ok) return NotFound(new { success = false, message = "العضو غير موجود" });
+                return Ok(new { success = true, message = "تم تحديث الملف الشخصي بنجاح" });
             }
             catch (DuplicateNameException ex)
             {
@@ -162,10 +159,13 @@ namespace ApiProject.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating my profile");
-                return StatusCode(500, new { success = false, message = "Unexpected error", details = ex.Message });
+                return StatusCode(500, new { success = false, message = "خطأ غير متوقع", details = ex.Message });
             }
         }
 
+        // =======================
+        // PUT /api/members/{id}
+        // =======================
         [HttpPut("{id:int}")]
         [Authorize(Policy = "member.update")]
         [Consumes("application/json")]
@@ -181,19 +181,18 @@ namespace ApiProject.Controllers
                 return BadRequest(new
                 {
                     success = false,
-                    message = "Invalid input data.",
+                    message = "البيانات المدخلة غير صالحة.",
                     errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
                 });
             }
 
             try
             {
-                // هنا يتم تحديث الهاتف و البيانات
                 var updated = await _service.AdminUpdateAsync(id, dto, ct);
                 if (!updated)
-                    return NotFound(new { success = false, message = $"Member {id} not found" });
+                    return NotFound(new { success = false, message = $"العضو {id} غير موجود" });
 
-                return Ok(new { success = true, message = $"Member {id} updated successfully" });
+                return Ok(new { success = true, message = $"تم تحديث العضو {id} بنجاح" });
             }
             catch (ArgumentException ex) // إذا كان هناك خطأ في التحقق من البيانات (مثل الهاتف أو البريد الإلكتروني)
             {
@@ -206,11 +205,11 @@ namespace ApiProject.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating member {MemberId}", id);
-                return StatusCode(500, new { success = false, message = "Unexpected error", details = ex.Message });
+                return StatusCode(500, new { success = false, message = "خطأ غير متوقع", details = ex.Message });
             }
         }
 
-
+ 
         [Authorize(Policy = "member.delete")]
         [HttpDelete("{id:int}")]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
@@ -223,22 +222,20 @@ namespace ApiProject.Controllers
             {
                 var deleted = await _service.DeleteAsync(id, ct);
                 if (!deleted)
-                    return NotFound(new { success = false, message = $"Member {id} not found" });
+                    return NotFound(new { success = false, message = $"العضو {id} غير موجود" });
 
-                return Ok(new { success = true, message = $"Member {id} deleted successfully" });
+                return Ok(new { success = true, message = $"تم حذف العضو {id} بنجاح" });
             }
             catch (InvalidOperationException ex)
             {
-                // إرجاع الخطأ مع الرسالة في الجسم
                 return BadRequest(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting member {MemberId}", id);
-                return StatusCode(500, new { success = false, message = "Unexpected error", details = ex.Message });
+                return StatusCode(500, new { success = false, message = "خطأ غير متوقع", details = ex.Message });
             }
         }
-
 
 
         [Authorize(Policy = "member.read")]
@@ -255,14 +252,15 @@ namespace ApiProject.Controllers
                 if (data.Count == 0) return NoContent();
 
                 List<(string Header, Func<MemberDto, object?>)> headers =
-                [
+                new()
+                {
                     ("ID",          x => x.Id),
                     ("UserId",      x => x.UserId),
                     ("Name",        x => x.Name),
                     ("Email",       x => x.Email),
                     ("Phone",       x => x.Phone ?? ""),
                     ("Registered",  x => x.RegisteredAt)
-                ];
+                };
 
                 var dateFormat = "yyyy-MM-dd HH:mm";
                 var stream = ExcelExportService.ExportToExcel<MemberDto>(data, headers, "Members", dateFormat);

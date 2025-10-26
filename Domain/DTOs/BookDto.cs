@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
@@ -8,18 +8,25 @@ namespace Domain.DTOs
     public class BookDto
     {
         public int Id { get; set; }
+
         public required string Title { get; set; }
         public required string Author { get; set; }
 
         [Required, MaxLength(32)]
-        [RegularExpression(@"^[\d\s\-xX]+$", ErrorMessage = "ISBN must contain digits, spaces or hyphens only.")]
-        public string ISBN { get; set; } = default!; public required string Category { get; set; }
+        [RegularExpression(@"^[\d\s\-xX]+$", ErrorMessage = "يجب أن يحتوي ISBN على أرقام أو فراغات أو شرطات فقط.")]
+        public string ISBN { get; set; } = default!;
+
+        public required string Category { get; set; }
+
         public int Year { get; set; }
         public int CopiesCount { get; set; }
-        // جديد: نعرض عدد الاستعارات النشطة والمتاح
-        public int ActiveBorrowCount { get; set; }    // استعارات غير مُعادة (ReturnedDate == null)
+
+        // عرض عدد الاستعارات النشطة والمتاح
+        public int ActiveBorrowCount { get; set; }    // ReturnedDate == null
         public int AvailableCopies { get; set; }
-        public int? BorrowCount { get; set; } // اختياري للعرض
+
+        // للعرض الاختياري
+        public int? BorrowCount { get; set; }
     }
 
     public enum BookSortBy
@@ -32,7 +39,6 @@ namespace Domain.DTOs
         Year,
         CopiesCount
     }
-
 
     public class BookQueryParams
     {
@@ -71,31 +77,27 @@ namespace Domain.DTOs
         public bool IncludeBorrowCount { get; set; } = false;
     }
 
-
-
-public class BookCreateDto
+    public class BookCreateDto
     {
-        [Required, MaxLength(200)]
+        [Required(ErrorMessage = "العنوان مطلوب"), MaxLength(200)]
         public string Title { get; set; } = default!;
 
-        [Required, MaxLength(150)]
+        [Required(ErrorMessage = "المؤلف مطلوب"), MaxLength(150)]
         public string Author { get; set; } = default!;
 
-        [Required, MaxLength(100)]
+        [Required(ErrorMessage = "التصنيف مطلوب"), MaxLength(100)]
         public string Category { get; set; } = default!;
 
-        [NotInFutureYear(ErrorMessage = "Year must be between 1500 and current year.")]
+        [NotInFutureYear(ErrorMessage = "السنة يجب أن تكون بين 1500 والسنة الحالية.")]
         public int Year { get; set; }
 
-        [Range(0, 1000, ErrorMessage = "CopiesCount must be between 0 and 1000.")]
+        [Range(0, 1000, ErrorMessage = "عدد النسخ يجب أن يكون بين 0 و 1000.")]
         public int CopiesCount { get; set; }
 
-        // نقبل إدخال متنوّع، التحقق النهائي بعد التطبيع بالخدمة
-        [Required, MaxLength(32)]
-        [RegularExpression(@"^[\d\s\-xX]+$", ErrorMessage = "ISBN must contain digits, spaces or hyphens only.")]
+        [Required(ErrorMessage = "ISBN مطلوب"), MaxLength(32)]
+        [RegularExpression(@"^[\d\s\-xX]+$", ErrorMessage = "يجب أن يحتوي ISBN على أرقام أو فراغات أو شرطات فقط.")]
         public string ISBN { get; set; } = default!;
     }
 
     public class BookUpdateDto : BookCreateDto { }
-
 }

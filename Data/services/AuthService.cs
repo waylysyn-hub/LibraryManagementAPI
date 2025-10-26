@@ -1,4 +1,4 @@
-﻿using Domain.DTOs;
+using Domain.DTOs;
 using Domain.Entities;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +20,6 @@ namespace Data.Services
             _jwtService = jwtService;
         }
 
-
         private static bool VerifyPassword(string password, string hash)
         {
             if (string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(hash))
@@ -31,29 +30,29 @@ namespace Data.Services
             return computed == hash;
         }
 
-
         public async Task<User> RegisterMemberAsync(UserRegisterDto dto, CancellationToken ct = default)
         {
             // تطبيع المدخلات
-            var email = dto.Email?.Trim().ToLowerInvariant() ?? throw new InvalidOperationException("Email is required.");
-            var username = dto.Username?.Trim() ?? throw new InvalidOperationException("Username is required.");
-            var name = dto.Name?.Trim() ?? throw new InvalidOperationException("Name is required.");
+            var email = dto.Email?.Trim().ToLowerInvariant() ?? throw new InvalidOperationException("البريد الإلكتروني مطلوب.");
+            var username = dto.Username?.Trim() ?? throw new InvalidOperationException("اسم المستخدم مطلوب.");
+            var name = dto.Name?.Trim() ?? throw new InvalidOperationException("الاسم مطلوب.");
             if (string.IsNullOrWhiteSpace(dto.Password) || dto.Password.Length < 6)
-                throw new InvalidOperationException("Password must be at least 6 characters.");
-            var phone = string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim(); // التأكد من أن الهاتف موجود
+                throw new InvalidOperationException("كلمة المرور يجب ألا تقل عن 6 محارف.");
+
+            var phone = string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim();
             if (!string.IsNullOrEmpty(phone) && !Regex.IsMatch(phone, @"^(?:09\d{9}|\+963\d{9})$"))
                 throw new InvalidOperationException("رقم الهاتف يجب أن يبدأ بـ 09 أو +963 ثم 9 أرقام.");
 
             if (await _context.Members.AsNoTracking().AnyAsync(m => m.Email.ToLower() == email, ct))
-                throw new DuplicateNameException($"Email '{dto.Email}' is already in use.");
+                throw new DuplicateNameException($"البريد '{dto.Email}' مستخدم مسبقًا.");
 
             if (!string.IsNullOrEmpty(phone) && await _context.Members.AsNoTracking().AnyAsync(m => m.Phone == phone, ct))
-                throw new DuplicateNameException($"Phone number '{phone}' is already in use.");
+                throw new DuplicateNameException($"رقم الهاتف '{phone}' مستخدم مسبقًا.");
 
             await using var tx = await _context.Database.BeginTransactionAsync(ct);
             try
             {
-                // 1) إنشاء User بدور Member (RoleId=3)
+                // 1) إنشاء User بدور عضو (RoleId=3)
                 var passHash = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(dto.Password)));
 
                 var user = new User
@@ -62,35 +61,32 @@ namespace Data.Services
                     Email = email,
                     PasswordHash = passHash,
                     RoleId = 3, // Member
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    Phone = phone
                 };
 
-                // 2) إضافة الـ User إلى قاعدة البيانات
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync(ct);
 
                 // 3) إنشاء Member مربوط على UserId
                 var member = new Member
                 {
-                    UserId = user.Id,          // ربط العضو بالمستخدم
-                    Name = dto.Name.Trim(),
+                    UserId = user.Id,
+                    Name = name,
                     Email = email,
-                    Phone = phone  // إضافة الهاتف هنا إذا كان موجودًا
+                    Phone = phone
                 };
 
                 _context.Members.Add(member);
                 await _context.SaveChangesAsync(ct);
 
-                // 4) إتمام المعاملات
                 await tx.CommitAsync(ct);
-
                 return user;
             }
             catch (DbUpdateException ex) when (ex.InnerException is SqlException sql && (sql.Number == 2627 || sql.Number == 2601))
             {
-                // Unique index violation (Email/Username/Member.UserId/Member.Email)
                 await tx.RollbackAsync(ct);
-                throw new DuplicateNameException("Email or Username already exists.", ex);
+                throw new DuplicateNameException("البريد أو اسم المستخدم موجود مسبقًا.", ex);
             }
             catch
             {
@@ -125,7 +121,7 @@ namespace Data.Services
                 if (!VerifyPassword(password, user.PasswordHash))
                     return new LoginResultDto { Token = null!, RoleName = null!, Permissions = new List<string>() };
 
-                var roleName = user.Role?.Name ?? "No role assigned";
+                var roleName = user.Role?.Name ?? "بدون دور";
 
                 var rolePermissions = user.Role?.RolePermissions.Select(rp => rp.Permission).ToList()
                                       ?? new List<Permission>();
@@ -151,7 +147,7 @@ namespace Data.Services
             }
             catch
             {
-                // Controller will handle a null result as 500
+                // سيُعامَل null كخطأ داخلي من الكنترولر
                 return null;
             }
         }
