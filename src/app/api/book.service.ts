@@ -6,7 +6,8 @@ import { Book, BookQuery, PagedResult } from './types';
 @Injectable({ providedIn: 'root' })
 export class BookService {
   private http = inject(HttpClient);
-  private base = 'https://localhost:7091/api/Books';
+  // ✅ مسار نسبي — الـapiBaseInterceptor سيضيف الدومين من environment.apiBase
+  private base = '/api/Books';
 
   list(q: BookQuery): Observable<PagedResult<Book>> {
     let params = new HttpParams();
@@ -54,9 +55,12 @@ export class BookService {
       if (v === undefined || v === null || v === '') return;
       params = params.set(k, String(v));
     });
-    return this.http.get(`${this.base}/export`, { params, responseType: 'blob' }).pipe(
-      catchError(this.handleError)
-    );
+
+    // 👇 أفضل طريقة لأن Angular تطلب cast بسيط مع blob
+    return this.http.get<Blob>(`${this.base}/export`, {
+      params,
+      responseType: 'blob' as 'json'
+    }).pipe(catchError(this.handleError));
   }
 
   // ---------- Helpers ----------
@@ -88,7 +92,7 @@ export class BookService {
           sortBy: meta.sortBy ?? 'Id',
           sortDir: meta.sortDir ?? 'asc'
         }
-      };
+      } as any;
     }
 
     // 2) بيانات كمصفوفة فقط (بدون meta)
@@ -113,7 +117,7 @@ export class BookService {
           sortBy: 'Id',
           sortDir: 'asc'
         }
-      };
+      } as any;
     }
 
     // 3) fallback لأشكال مخصّصة { items/Rows, total/Total, page/Page, pageSize/PageSize }
@@ -136,10 +140,15 @@ export class BookService {
         sortBy: 'Id',
         sortDir: 'asc'
       }
-    };
+    } as any;
   }
+  lookupBooks(q: string, limit = 20) {
+  const params = new HttpParams().set('q', q).set('limit', limit);
+  return this.http.get<{ id:number; label:string; sub?:string }[]>(
+    `${this.base}/api/lookup/books`, { params }
+  );
+}
 
-  // مرّر الخطأ كما هو ليستطيع الـ component قراءة ModelState/ProblemDetails
   private handleError(error: any) {
     return throwError(() => error);
   }

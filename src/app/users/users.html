@@ -19,7 +19,7 @@
             [disabled]="!canCreate"
             data-ico="add"
           >
-             إنشاء مستخدم جديد
+            إنشاء مستخدم جديد
           </button>
 
           <div class="under">
@@ -45,12 +45,7 @@
         <div class="right-tools">
           <div class="filters">
             <div class="filters-top">
-              <button
-                class="btn ghost clear"
-                type="button"
-                (click)="clearFilters()"
-                
-              >
+              <button class="btn ghost clear" type="button" (click)="clearFilters()">
                 مسح الفلاتر
               </button>
             </div>
@@ -90,7 +85,7 @@
                   id="f-phone"
                   #phoneInp
                   type="search"
-                  placeholder="09######### أو +963#########"
+                  placeholder="09######### أو ‎+963########"
                   dir="ltr"
                   inputmode="tel"
                   autocomplete="off"
@@ -112,7 +107,7 @@
     <div class="cards" *ngIf="!loading() && !error()">
       <article class="card" *ngFor="let u of filtered(); trackBy: trackById">
         <header class="card-header">
-          <div class="avatar">{{ u.username || 'U' | slice : 0 : 1 | uppercase }}</div>
+          <div class="avatar">{{ (u.username || 'U').slice(0, 1) }}</div>
           <div class="meta">
             <div class="role">
               <span
@@ -161,47 +156,46 @@
             ><span class="v" dir="ltr">{{ u.phone || 'غير محدد' }}</span>
           </div>
           <div class="row">
-            <span class="k">أُنشِئ في:</span>
-            <span class="v">{{ u.createdAt | date : 'yyyy/MM/dd HH:mm' }}</span>
+            <span class="k" dir='rtl'>أُنشِئ في:</span>
+            <span class="v" dir='ltr'>{{ u.createdAt | date : 'yyyy/MM/dd HH:mm' }}</span>
           </div>
         </div>
 
-   <footer
-  class="actions card-actions"
-  (mousedown)="$event.stopPropagation()"
-  (touchstart)="$event.stopPropagation()"
->
-  <button
-    class="btn tiny"
-    type="button"
-    (click)="openEdit(u)"
-    [disabled]="!canUpdate"
-    data-ico="edit"
-  >
-    تعديل
-  </button>
+        <footer
+          class="actions card-actions"
+          (mousedown)="$event.stopPropagation()"
+          (touchstart)="$event.stopPropagation()"
+        >
+          <button
+            class="btn tiny"
+            type="button"
+            (click)="openEdit(u)"
+            [disabled]="!canUpdate"
+            data-ico="edit"
+          >
+            تعديل
+          </button>
 
-  <button
-    class="btn tiny"
-    type="button"
-    (click)="openPwd(u)"
-    [disabled]="!canUpdate"
-    data-ico="key"
-  >
-    تعديل كلمة المرور
-  </button>
+          <button
+            class="btn tiny"
+            type="button"
+            (click)="openPwd(u)"
+            [disabled]="!canUpdate"
+            data-ico="key"
+          >
+            تعديل كلمة المرور
+          </button>
 
-  <button
-    class="btn tiny danger"
-    type="button"
-    (click)="remove(u)"
-    [disabled]="!canDelete"
-    data-ico="trash"
-  >
-    حذف
-  </button>
-</footer>
-
+          <button
+            class="btn tiny danger"
+            type="button"
+            (click)="remove(u)"
+            [disabled]="!canDelete"
+            data-ico="trash"
+          >
+            حذف
+          </button>
+        </footer>
       </article>
 
       <div
@@ -214,36 +208,35 @@
     </div>
 
     <!-- Pager -->
-<footer class="pager" *ngIf="total()">
-  <div>
-    الكل: <strong>{{ total() }}</strong>
-  </div>
+    <footer class="pager" *ngIf="total()">
+      <div>
+        الكل: <strong>{{ total() }}</strong>
+      </div>
 
-  <div class="pages">
-    <button
-      class="btn tiny"
-      type="button"
-      (click)="prev()"
-      [disabled]="page() <= 1"
-      data-ico="chev-right"
-    >
-      السابق
-    </button>
+      <div class="pages">
+        <button
+          class="btn tiny"
+          type="button"
+          (click)="prev()"
+          [disabled]="page() <= 1"
+          data-ico="chev-right"
+        >
+          السابق
+        </button>
 
-    <span class="muted">{{ page() }} / {{ totalPages() }}</span>
+        <span class="muted">{{ page() }} / {{ totalPages() }}</span>
 
-    <button
-      class="btn tiny"
-      type="button"
-      (click)="next()"
-      [disabled]="page() >= totalPages()"
-      data-ico="chev-left"
-    >
-      التالي
-    </button>
-  </div>
-</footer>
-
+        <button
+          class="btn tiny"
+          type="button"
+          (click)="next()"
+          [disabled]="page() >= totalPages()"
+          data-ico="chev-left"
+        >
+          التالي
+        </button>
+      </div>
+    </footer>
   </div>
 
   <!-- إنشاء -->
@@ -263,8 +256,25 @@
       <div class="grid">
         <label [class.err]="isInv(createForm, 'username')">
           اسم المستخدم
-          <input formControlName="username" placeholder="مثال: admin" />
-          <small class="error" *ngIf="isInv(createForm, 'username')">الحد الأدنى ٣ أحرف</small>
+          <input
+            formControlName="username"
+            placeholder="مثال: admin"
+            (blur)="createForm.controls.username.markAsTouched()"
+          />
+          <ng-container *ngIf="hasErr(createForm, 'username', 'backend'); else usernameLenErr">
+            <small class="error">{{ getFieldMsg(createForm, 'username') }}</small>
+          </ng-container>
+          <ng-template #usernameLenErr>
+            <small
+              class="error"
+              *ngIf="
+                hasErr(createForm, 'username', 'required') ||
+                hasErr(createForm, 'username', 'minlength')
+              "
+            >
+              الحد الأدنى ٣ أحرف
+            </small>
+          </ng-template>
         </label>
 
         <label [class.err]="isInv(createForm, 'email')">
@@ -328,6 +338,56 @@
       <footer class="actions">
         <button type="button" class="ghost" (click)="closeCreate()" data-ico="x">إلغاء</button>
         <button type="submit" class="primary" [disabled]="creating()" data-ico="save">إنشاء</button>
+      </footer>
+    </form>
+  </dialog>
+  <!-- تأكيد الكود لإنشاء المستخدم -->
+  <dialog #codeDlg class="modal" dir="rtl">
+    <form class="box" [formGroup]="codeForm" (submit)="$event.preventDefault(); submitCreateCode()">
+      <header class="head">
+        <h3 *ngIf="!pendingEditData; else editCodeTitle">تأكيد إنشاء المستخدم عبر البريد</h3>
+        <ng-template #editCodeTitle>
+          <h3>تأكيد تعديل البريد</h3>
+        </ng-template>
+        <button type="button" class="x" (click)="closeCode()">✕</button>
+      </header>
+
+      <div class="error-messages" *ngIf="codeErrors.length" role="alert" aria-live="assertive">
+        <ul>
+          <li *ngFor="let e of codeErrors">{{ e }}</li>
+        </ul>
+      </div>
+
+      <p class="muted" style="margin: 0 0 0.5rem">
+        أرسلنا رمز تحقق إلى بريد: <b dir="ltr">{{ pendingEmail }}</b>
+      </p>
+
+      <div class="grid">
+        <label [class.err]="isInv(codeForm, 'code')">
+          رمز التحقق (٦ خانات)
+          <input
+            formControlName="code"
+            inputmode="numeric"
+            maxlength="6"
+            placeholder="______"
+            dir="ltr"
+          />
+        </label>
+      </div>
+
+      <footer class="actions">
+        <button
+          type="button"
+          class="ghost"
+          (click)="resendCode()"
+          [disabled]="codeLoading()"
+          data-ico="refresh"
+        >
+          إعادة إرسال
+        </button>
+        <button type="submit" class="primary" [disabled]="codeLoading()" data-ico="check">
+          {{ pendingEditData ? 'تأكيد وحفظ التعديل' : 'تأكيد وإنشاء' }}
+        </button>
       </footer>
     </form>
   </dialog>

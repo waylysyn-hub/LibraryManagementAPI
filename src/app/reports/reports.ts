@@ -8,6 +8,9 @@ import {
 } from '../api/types';
 import { ToastService } from '../ui/toasts/toast.service';
 import { NgIf } from '@angular/common';
+
+
+
 function toISODate(d: any): string | undefined {
   if (!d) return undefined;
   try { const dt = new Date(d); if (isNaN(+dt)) return undefined; return dt.toISOString().slice(0,10); }
@@ -67,7 +70,13 @@ export class ReportsComponent implements OnInit {
     fromDate: [''],
     toDate: ['']
   });
+  trendGranularity = signal<'day' | 'week' | 'month'>('day');
 
+changeGran(g: 'day' | 'week' | 'month') {
+  if (this.trendGranularity() === g) return;
+  this.trendGranularity.set(g);
+  this.loadTrend(this.from30ISO, this.todayISO, g);
+}
   ngOnInit(): void {
     // تحميل القوائم
     this.loadMemberOptions();

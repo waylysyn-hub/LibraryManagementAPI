@@ -735,3 +735,94 @@ body.sidebar-collapsed{
 .books-hero + .filters{
   margin-top: .5rem;
 }
+/* 1) أوقف الفراغ الناتج عن الهيرو */
+.books-hero{
+  /* إذا بدك تُظهرها: خفّف الارتفاع بدل 100vh */
+  min-height: 40vh;
+  height: auto;           /* بدلاً من height:100vh */
+}
+.books-hero:empty{ display:none; } /* لو ما فيها محتوى ما تطلع */
+
+/* لو حالياً ما بدك هيرو أبداً، استخدم هذا بدل الأعلى */
+/* .books-hero{ display:none !important; } */
+
+/* 2) توحيد إزاحات العناصر المثبّتة */
+:root{
+  --header-h: 72px;
+  --filters-h: 56px; /* تقديري حسب ارتفاع الفلاتر عندك */
+}
+
+/* خليه sticky تحت الهيدر مباشرة بدون مسافات إضافية */
+.filters{
+  position: sticky !important;
+  top: var(--header-h) !important;
+  margin-top: .5rem !important;
+  margin-bottom: .5rem !important;
+  z-index: 100 !important;
+  border-width: 1px !important;
+  padding: 1rem 1.25rem !important;
+}
+
+/* شريط الترتيب يثبت تحت الفلاتر مباشرة */
+.sortbar{
+  position: sticky !important;
+  top: calc(var(--header-h) + var(--filters-h)) !important;
+  margin-top: .25rem !important;
+  margin-bottom: .5rem !important;
+  z-index: 95 !important;
+}
+
+/* 3) منع أي overflow يلغّي sticky ويعمل قفزات/فراغ */
+main, .container, .page, .page-wrap, section[dir="rtl"]{
+  overflow: visible !important;
+}
+
+/* 4) ضبط مسافات القسم حتى ما تتراكم */
+section[aria-labelledby="books-title"]{
+  padding-block: .5rem 1.25rem;
+}
+
+/* 5) تقليل مسافة الشبكة قليلاً (اختياري) */
+.books-container{ gap: 1rem !important; }
+  /* ===== Tighten cards inside the grid ===== */
+
+/* خَلّي الشبكة تتحكم بالمسافات فقط */
+.books-container{
+  gap: 12px !important;      /* كان كبير شوي */
+  padding-inline: 8px !important;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important; /* بدون قنوات فاضية */
+}
+
+/* امنع التباعد المزدوج: احذف Margin الكرت وثبّت عرضه داخل الـgrid */
+.books-container .book-card{
+  margin: 0 !important;      /* كان 1rem */
+  width: auto !important;    /* كسر width:300px */
+}
+
+/* خفّف حشوة الكرت شوي */
+.book-card{
+  padding: 1rem !important;
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(15,23,42,.06);
+}
+
+/* قلل المسافات داخل الكرت */
+.book-card .cover{ margin: 0 auto .5rem !important; }
+.book-card h4{ margin: .25rem 0 .5rem !important; }
+.book-card > p{
+  margin: 0 !important;
+  padding: .6rem .8rem !important;
+}
+
+/* حواف القسم نفسه */
+section[aria-labelledby="books-title"]{
+  padding-block: .5rem 1rem !important;
+  padding-inline: .5rem !important;
+}
+
+/* لو عندك تعريف قديم للـ hero عامل فراغ، عطّله أو خفّفه */
+.books-hero{ height: auto !important; min-height: 0 !important; }
+.book-card p.kv{display:flex;align-items:center;justify-content:space-between;gap:.75rem;direction:rtl;text-align:right}
+.book-card p.kv .k{font-weight:800;color:#111827;white-space:nowrap}
+.book-card p.kv .v{font-weight:800;color:#0f172a;direction:ltr;unicode-bidi:plaintext;text-align:left;margin-inline-start:1rem;max-width:60%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:600px){.book-card p.kv .v{max-width:70%}}

@@ -607,3 +607,72 @@ input:focus{ border-color: rgba(109,124,255,.55); box-shadow: 0 0 0 3px rgba(109
 .reports .filters .f-grid label.date-in input[type="date"]{ display:block; box-sizing:border-box; width:100%; height:34px; margin:0; border:0 !important; background:transparent !important; color:var(--text); padding:0 12px; padding-inline-start:36px; background-clip:padding-box; box-shadow:none !important }
 .reports .filters .f-grid label.date-in:focus-within{ border-color:rgba(109,124,255,.55); box-shadow:0 0 0 3px rgba(109,124,255,.22) }
 .reports .filters .f-grid label.date-in input[type="date"]::-webkit-calendar-picker-indicator{ opacity:.85; filter:invert(1) brightness(.9) }
+/* Segmented control */
+.seg{
+  display:inline-grid;
+  grid-auto-flow:column;
+  gap:0;
+  padding:4px;
+  border-radius:999px;
+  background:rgba(148,163,184,.12);     /* خلفية خفيفة */
+  border:1px solid rgba(148,163,184,.18);
+  align-items:center;
+}
+.seg input{ position:absolute; opacity:0; width:0; height:0; }
+.seg label{
+  cursor:pointer;
+  padding:.38rem .9rem;
+  border-radius:999px;
+  font-size:.85rem;
+  line-height:1;
+  color:#cbd5e1;                       
+  user-select:none;
+  transition:.18s ease;
+  outline:none;
+}
+.seg label:hover{ background:rgba(148,163,184,.10); }
+
+.seg input:checked + label{
+  background:linear-gradient(135deg,var(--primary-color,#4f46e5),var(--secondary-color,#6366f1));
+  color:#fff;
+  box-shadow:0 6px 14px rgba(79,70,229,.26);
+}
+
+/* للـ RTL: خالي من مشاكل لأننا نستخدم grid */
+/* 1) أرقام واضحة ومحاذاة منظمة */
+.reports{
+  font-variant-numeric: tabular-nums; /* أعمدة أرقام مصطفّة */
+}
+
+/* 2) خلّي النِسب والأرقام تُقرأ LTR حتى بواجهة RTL */
+.num, .badge, .pill, .share-txt {
+  direction: ltr;
+  unicode-bidi: plaintext;  /* يمنع قلب 22.4% إلى %4.22 */
+}
+
+/* 3) تحسين عمود "حِصّة": شريط + نسبة بفراغ مريح */
+.table-cats td:nth-child(3), .table-cats th:nth-child(3){ text-align: start; }
+.share{
+  display: flex;
+  align-items: center;
+  gap: 8px;                 /* مسافة بين الشريط والنسبة */
+  min-width: 160px;         /* يمنع الضيق */
+}
+.share-fill{ max-width: 100%; }
+.share-txt{
+  white-space: nowrap;
+  min-width: 56px;          /* مساحة ثابتة لعرض 100.0% بدون لف */
+  font-weight: 800;
+  opacity: .95;
+}
+
+/* 4) أعمدة الأعداد تكون وسط/يمين بنظافة */
+.table-cats td:nth-child(2), .table-cats th:nth-child(2){
+  text-align: center;       /* “عدد” بالوسط */
+}
+
+/* 5) خفّ شوية ثقل الخط داخل الشارات */
+.badge, .pill { font-weight: 700; }
+
+/* (اختياري) ثبّت عرض عمود التاريخ/النص الضيق حتى ما يلفّ */
+.tight{ max-width: 240px; }

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, HostListener, inject, OnInit } from '@angular/core';
 import { RouterOutlet, RouterModule, Router } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
@@ -8,65 +8,73 @@ import { NgIf } from '@angular/common';
   selector: 'app-shell',
   imports: [CommonModule, RouterOutlet, RouterModule],
   template: `
-    <div class="layout" dir="ltr" [class.sidebar-closed]="isSidebarClosed">
-      <!-- الشريط الجانبي -->
-      <aside class="sidebar" [class.closed]="isSidebarClosed" aria-label="الشريط الجانبي">
-        <div class="brand">📚 نظام المكتبة</div>
+  <div class="layout" dir="ltr" [class.sidebar-closed]="isSidebarClosed" [class.is-small]="!isLarge">
+  <!-- الشريط الجانبي -->
+  <aside class="sidebar" [class.closed]="isSidebarClosed" aria-label="الشريط الجانبي">
+    <div class="brand">📚 نظام المكتبة</div>
 
-        <nav>
-          <a *ngIf="canViewBooks" routerLink="/books" routerLinkActive="active">
-            <i class="fas fa-book"></i> الكتب
-          </a>
-          <a *ngIf="canViewBorrowings" routerLink="/borrowings" routerLinkActive="active">
-            <i class="fas fa-exchange-alt"></i> الاستعارات
-          </a>
-          <a *ngIf="canViewMembers" routerLink="/members" routerLinkActive="active">
-            <i class="fas fa-users"></i> الأعضاء
-          </a>
-          <a *ngIf="canViewReports" routerLink="/reports" routerLinkActive="active">
-            <i class="fas fa-chart-line"></i> التقارير
-          </a>
-          <a
-            *ngIf="canCreateUser"
-            routerLink="/users"
-            [queryParams]="{ open: 'create' }"
-            routerLinkActive="active"
-          >
-            <i class="fas fa-user"></i>المستخدمين
-          </a>
+<nav>
+  <a *ngIf="canViewBooks"
+     routerLink="/books"
+     routerLinkActive="active"
+     (click)="onNav()">
+    <i class="fas fa-book"></i> الكتب
+  </a>
 
+  <a *ngIf="canViewBorrowings"
+     routerLink="/borrowings"
+     routerLinkActive="active"
+     (click)="onNav()">
+    <i class="fas fa-exchange-alt"></i> الاستعارات
+  </a>
 
-        </nav>
+  <a *ngIf="canViewMembers"
+     routerLink="/members"
+     routerLinkActive="active"
+     (click)="onNav()">
+    <i class="fas fa-users"></i> الأعضاء
+  </a>
 
-        <!-- أسفل القائمة -->
-        <div class="sidebar-footer">
-          <button class="logout" type="button" (click)="logout()">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>تسجيل الخروج</span>
-          </button>
-          <button class="toggle-sidebar" type="button" (click)="toggleSidebar()">
-            <i class="fas fa-chevron-right"></i>
-            <span>إغلاق القائمة</span>
-          </button>
-        </div>
-      </aside>
+  <a *ngIf="canViewReports"
+     routerLink="/reports"
+     routerLinkActive="active"
+     (click)="onNav()">
+    <i class="fas fa-chart-line"></i> التقارير
+  </a>
 
-      <!-- زر عائم يظهر فقط عند إغلاق الشريط -->
-      <button
-        *ngIf="isSidebarClosed"
-        class="sidebar-fab"
-        type="button"
-        (click)="toggleSidebar()"
-        aria-label="فتح القائمة"
-      >
-        ☰
-      </button>
+  <a *ngIf="canCreateUser"
+     routerLink="/users"
+     [queryParams]="{ open: 'create' }"
+     routerLinkActive="active"
+     (click)="onNav()">
+    <i class="fas fa-user"></i> المستخدمين
+  </a>
 
-      <!-- المحتوى -->
-      <main class="content">
-        <router-outlet></router-outlet>
-      </main>
+  <!-- 👇 الرابط الجديد لحسابي -->
+  <a routerLink="/profile"
+     routerLinkActive="active"
+     (click)="onNav()">
+    <i class="fas fa-id-card"></i> حسابي
+  </a>
+</nav>
+
+    <div class="sidebar-footer">
+      <button class="logout" type="button" (click)="logout()"><i class="fas fa-sign-out-alt"></i><span>تسجيل الخروج</span></button>
+      <button class="toggle-sidebar" type="button" (click)="toggleSidebar()"><i class="fas fa-chevron-right"></i><span>إغلاق القائمة</span></button>
     </div>
+  </aside>
+
+  <!-- خلفية تعتيم في الموبايل -->
+  <div class="scrim" *ngIf="!isLarge && !isSidebarClosed" (click)="toggleSidebar()" aria-hidden="true"></div>
+
+  <!-- زر عائم يظهر فقط عند إغلاق الشريط -->
+  <button *ngIf="isSidebarClosed" class="sidebar-fab" type="button" (click)="toggleSidebar()" aria-label="فتح القائمة">☰</button>
+
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
+
   `,
   styles: [
     `
@@ -252,13 +260,66 @@ import { NgIf } from '@angular/common';
           width: min(86vw, 320px);
         }
       }
+      /* قاعدة: الجهاز الكبير يفسح مساحة للشريط */
+.layout {
+  --sidebar-w: 280px;
+}
+.content {
+  margin-inline-end: var(--sidebar-w);
+}
+
+/* scrim لموبايل */
+.scrim{
+  position: fixed;
+  inset: 0;
+  background: rgba(2,6,23,.55);
+  backdrop-filter: blur(2px);
+  z-index: 50;
+}
+
+/* موبايل/تابلت: الشريط يطفو فوق المحتوى */
+@media (max-width: 900px){
+  .layout.is-small .content{
+    margin-inline-end: 0;            /* لا تترك مساحة للشريط */
+    padding: 18px;
+  }
+  .layout.is-small .sidebar{
+    width: min(86vw, 320px);
+    inset-inline-end: 0;
+    inset-block: env(safe-area-inset-top) env(safe-area-inset-bottom);
+    border-radius: 12px 0 0 12px;
+    box-shadow: -12px 0 32px rgba(2,6,23,.28);
+  }
+  .layout.is-small .sidebar.closed{
+    transform: translateX(100%);
+  }
+  .sidebar-fab{
+    inset-inline-end: 16px;
+    inset-block-end: calc(16px + env(safe-area-inset-bottom));
+  }
+  /* اجعل قائمة الروابط أكثر تماسكًا في الموبايل */
+  .sidebar nav a{ padding: 12px; }
+  .sidebar .brand{ font-size: 20px; padding: 10px }
+}
+
+/* شاشات أصغر جدًا */
+@media (max-width: 480px){
+  .layout.is-small .sidebar{ width: min(92vw, 300px); }
+  .content{ padding: 16px; }
+}
+
+/* احترام تقلّيل الحركة */
+@media (prefers-reduced-motion: reduce){
+  .sidebar, .content, .sidebar-fab { transition: none !important; }
+}
+
     `,
   ],
 })
 export class ShellComponent implements OnInit {
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
-
+  isLarge = true;
   canViewBooks = false;
   canViewBorrowings = false;
   canViewMembers = false;
@@ -282,10 +343,23 @@ export class ShellComponent implements OnInit {
       localStorage.setItem('sidebarCollapsed', this.isSidebarClosed ? '1' : '0');
     }
   }
+    @HostListener('window:resize')
+  onResize() {
+    const wasLarge = this.isLarge;
+    this.isLarge = window.innerWidth >= 900;
+    // انتقال بين الوضعين: افتح الشريط على الكبير، أغلقه على الصغير
+    if (this.isLarge && !wasLarge) this.isSidebarClosed = false;
+    if (!this.isLarge && wasLarge) this.isSidebarClosed = true;
+  }
+
+  onNav() {
+    // في الموبايل أغلق الشريط بعد التنقل
+    if (!this.isLarge) this.isSidebarClosed = true;
+  }
 
  ngOnInit() {
   if (!isPlatformBrowser(this.platformId)) return;
-
+     if (!this.isLarge) this.isSidebarClosed = true;
   const savedState = localStorage.getItem('sidebarCollapsed');
   if (savedState !== null) this.isSidebarClosed = savedState === '1';
 
@@ -301,7 +375,7 @@ export class ShellComponent implements OnInit {
     this.canViewBooks = has('book.read');
     this.canViewBorrowings = has('borrow.read');
     this.canViewMembers = has('member.read');
-    this.canViewReports = role === 'admin' || role === 'employee' ;
+    this.canViewReports = role === 'admin' || role === 'employee' && has('ViewReports') ;
     this.canCreateUser = has('user.crud') && role==='admin';
   } catch (e) {
     console.error('Error parsing permissions or role:', e);

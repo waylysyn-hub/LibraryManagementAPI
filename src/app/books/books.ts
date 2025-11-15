@@ -205,10 +205,6 @@ export class BooksComponent implements OnInit {
   }
 
 
-  // الباقي كما هو (prev/next/sort/…)
-
-
-
   reset() {
     this.filters.reset({
       Q: '', Title: '', Author: '', Category: '', Isbn: '', IsbnStartsWith: false,

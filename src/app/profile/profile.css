@@ -1,0 +1,259 @@
+/* ===================== Profile Page (حسابي) ===================== */
+.profile-page{
+  min-height:100%;
+  padding:32px min(4vw,28px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+  color:#0f172a;
+  background:
+    radial-gradient(1200px 720px at 82% 0%, rgba(79,70,229,.22), transparent 60%),
+    radial-gradient(1000px 680px at 0% 100%, rgba(56,189,248,.20), transparent 60%),
+    radial-gradient(900px 520px at 100% 100%, rgba(236,72,153,.18), transparent 65%),
+    linear-gradient(135deg,#e5e7eb,#f9fafb);
+}
+
+/* طبقة لمعان خفيفة فوق الخلفية */
+.profile-page::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(800px 260px at 50% 0%, rgba(255,255,255,.9), transparent 70%);
+  opacity:.75;
+  pointer-events:none;
+}
+
+/* الكرت الأساسي */
+.profile-card{
+  position:relative;
+  width:100%;
+  max-width:640px;
+  margin:0 auto;
+  padding:26px 26px 24px;
+  border-radius:26px;
+  border:1px solid rgba(148,163,184,.45);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.92), rgba(248,250,252,.96));
+  box-shadow:
+    0 26px 60px rgba(15,23,42,.30),
+    0 0 0 1px rgba(148,163,184,.25);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  overflow:hidden;
+}
+
+/* غلو داخلي في الكرت */
+.profile-card::before{
+  content:"";
+  position:absolute;
+  inset:-40%;
+  background:
+    radial-gradient(60% 60% at 0% 0%, rgba(129,140,248,.14), transparent 65%),
+    radial-gradient(65% 65% at 100% 100%, rgba(56,189,248,.10), transparent 60%);
+  opacity:.85;
+  pointer-events:none;
+  z-index:0;
+}
+
+/* لمعة خفيفة أعلى الكرت */
+.profile-card::after{
+  content:"";
+  position:absolute;
+  inset-inline:14px;
+  top:10px;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.9),transparent);
+  opacity:.75;
+  pointer-events:none;
+  z-index:1;
+}
+
+/* محتوى الكرت فوق الطبقات */
+.profile-card > *{
+  position:relative;
+  z-index:2;
+}
+
+/* عنوان ووصف */
+.profile-card h2{
+  margin:0 0 4px;
+  font-size:1.4rem;
+  font-weight:900;
+  text-align:right;
+  background:linear-gradient(90deg,#020617,#1f2937);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.profile-card .subtitle{
+  margin:0 0 18px;
+  color:#6b7280;
+  font-size:.9rem;
+  text-align:right;
+}
+
+/* خط فاصل خفيف تحت الهيدر */
+.profile-card .subtitle::after{
+  content:"";
+  display:block;
+  height:1px;
+  margin:12px -4px 0;
+  background:linear-gradient(90deg,transparent,#e5e7eb,transparent);
+}
+
+/* حالة التحميل */
+.loading{
+  padding:.6rem .8rem;
+  border-radius:12px;
+  background:#eef2ff;
+  border:1px solid #c7d2fe;
+  color:#3730a3;
+  font-weight:800;
+  font-size:.9rem;
+}
+
+/* التنبيهات */
+.alert{
+  padding:.75rem .9rem;
+  border-radius:12px;
+  font-size:.9rem;
+  font-weight:800;
+  margin-bottom:.75rem;
+}
+.alert.success{
+  background:#ecfdf3;
+  color:#166534;
+  border:1px solid #bbf7d0;
+}
+.alert.error{
+  background:#fef2f2;
+  color:#991b1b;
+  border:1px solid #fecaca;
+}
+
+/* الحقول */
+.field{
+  margin-bottom:16px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.field label{
+  font-weight:900;
+  color:#374151;
+  font-size:.9rem;
+}
+
+.input-wrap{
+  position:relative;
+}
+
+.input-wrap input{
+  width:100%;
+  height:44px;
+  border-radius:14px;
+  border:1px solid #d4d4dd;
+  padding:0 14px;
+  background:linear-gradient(180deg,#f9fafb,#f3f4ff);
+  outline:none;
+  font-weight:600;
+  color:#111827;
+  transition:.15s border-color ease,.15s box-shadow ease,.15s background-color ease, .15s transform ease;
+  box-shadow:0 2px 0 rgba(15,23,42,.04) inset;
+}
+
+.input-wrap input::placeholder{
+  color:#9ca3af;
+  font-weight:400;
+}
+
+.input-wrap input:focus{
+  border-color:#6366f1;
+  box-shadow:0 0 0 3px rgba(129,140,248,.35);
+  background:linear-gradient(180deg,#ffffff,#eef2ff);
+  transform:translateY(-1px);
+}
+
+/* حالة الحقل غير صالح */
+.field.invalid .input-wrap input{
+  border-color:#ef4444 !important;
+  box-shadow:0 0 0 3px rgba(239,68,68,.22) !important;
+}
+
+.error{
+  color:#b91c1c;
+  font-size:.8rem;
+  font-weight:800;
+}
+
+/* زر الحفظ */
+.profile-card .primary{
+  margin-top:10px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.45rem;
+  min-width:190px;
+  border:0;
+  border-radius:999px;
+  padding:.8rem 1.6rem;
+  font-weight:900;
+  font-size:.92rem;
+  background:linear-gradient(135deg,#6366f1,#4f46e5);
+  color:#fff;
+  box-shadow:
+    0 16px 38px rgba(79,70,229,.55),
+    0 0 0 1px rgba(129,140,248,.7);
+  cursor:pointer;
+  transition:.18s transform ease,.18s filter ease,.18s box-shadow ease;
+  float:left;
+}
+
+.profile-card .primary:disabled{
+  opacity:.7;
+  cursor:not-allowed;
+  box-shadow:none;
+}
+
+.profile-card .primary:not(:disabled):hover{
+  filter:brightness(1.05);
+  box-shadow:
+    0 22px 48px rgba(79,70,229,.6),
+    0 0 0 1px rgba(129,140,248,.9);
+  transform:translateY(-1px);
+}
+
+.profile-card .primary:not(:disabled):active{
+  transform:translateY(1px) scale(.99);
+}
+
+/* سبينر صغير داخل الزر */
+.spinner{
+  width:16px;
+  height:16px;
+  border-radius:999px;
+  border:2px solid rgba(255,255,255,.5);
+  border-top-color:#fff;
+  animation:spin .7s linear infinite;
+}
+
+@keyframes spin{
+  to{ transform:rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width:640px){
+  .profile-card{
+    padding:20px 16px 18px;
+    border-radius:22px;
+  }
+  .profile-card .primary{
+    width:100%;
+    float:none;
+  }
+}

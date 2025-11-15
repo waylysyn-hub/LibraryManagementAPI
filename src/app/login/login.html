@@ -1,85 +1,272 @@
-<div class="auth-layout" dir="rtl">
-  <!-- غلاف الخلفية مع التأثيرات -->
-  <aside class="auth-cover" aria-hidden="true">
-    <div class="cover-overlay">
-      <h2>أهلاً بك 👋</h2>
-      <p>اقرأ • استعر • اكتشف</p>
-    </div>
-  </aside>
+<div class="login-page" dir="rtl">
+  <div class="login-card" role="form" aria-labelledby="login-title">
+    <h1 id="login-title" class="login-title">Login</h1>
+    <p class="login-subtitle">مرحبا بك في نظام إدارة المكتبة</p>
 
-  <!-- لوحة تسجيل الدخول -->
-  <div class="auth-panel" role="form" aria-labelledby="login-title">
-    <div class="brand">
-      <div class="logo" aria-hidden="true">📚</div>
-      <h1 id="login-title">تسجيل الدخول</h1>
-      <p class="subtitle">مرحباً بك في نظام إدارة المكتبة</p>
-    </div>
+    <!-- ============== فورم إنشاء حساب جديد ============== -->
+    <form
+      *ngIf="showRegister"
+      [formGroup]="registerForm"
+      (ngSubmit)="onRegister()"
+      novalidate
+      style="margin-top: 12px"
+    >
+      <h2 class="login-title" style="margin-top: 4px; font-size: 22px">إنشاء حساب جديد</h2>
 
-    <!-- نموذج تسجيل الدخول -->
-    <form [formGroup]="form" (ngSubmit)="onLogin()" novalidate>
-      
-      <!-- حقل البريد الإلكتروني -->
-      <div class="field" [class.invalid]="form.controls.email.invalid && form.controls.email.touched">
-        <label for="email">البريد الإلكتروني</label>
+      <!-- أخطاء الباك للتسجيل -->
+      <div class="alert error" *ngIf="registerErrors.length" role="alert">
+        <div class="error-box" *ngFor="let e of registerErrors">{{ e }}</div>
+      </div>
+
+      <!-- اسم المستخدم -->
+      <div
+        class="field"
+        [class.invalid]="registerForm.controls.username.invalid && registerForm.controls.username.touched"
+      >
         <div class="input-wrap">
-          <input id="email" type="email" placeholder="name@example.com"
-                 formControlName="email" autocomplete="username" inputmode="email" />
+          <input
+            type="text"
+            formControlName="username"
+            placeholder="مثال: ahmad"
+          />
+        </div>
+        <small
+          class="error"
+          *ngIf="registerForm.controls.username.touched && registerForm.controls.username.errors as er"
+        >
+          <ng-container *ngIf="er['required']">اسم المستخدم مطلوب.</ng-container>
+          <ng-container *ngIf="er['minlength']">3 أحرف على الأقل.</ng-container>
+        </small>
+      </div>
+
+      <!-- الاسم -->
+      <div class="field">
+        <div class="input-wrap">
+          <input
+            type="text"
+            formControlName="name"
+            placeholder="مثال: أحمد سعيد"
+          />
+        </div>
+      </div>
+
+      <!-- البريد الإلكتروني -->
+      <div
+        class="field"
+        [class.invalid]="registerForm.controls.email.invalid && registerForm.controls.email.touched"
+      >
+        <div class="input-wrap">
           <span class="icon" aria-hidden="true">@</span>
+          <input
+            type="email"
+            formControlName="email"
+            placeholder="البريد الإلكتروني"
+            autocomplete="email"
+            inputmode="email"
+          />
         </div>
-        <small class="error" *ngIf="form.controls.email.touched && form.controls.email.errors">
-          <ng-container *ngIf="form.controls.email.errors['required']">البريد الإلكتروني مطلوب.</ng-container>
-          <ng-container *ngIf="form.controls.email.errors['email']">صيغة البريد غير صحيحة.</ng-container>
+        <small
+          class="error"
+          *ngIf="registerForm.controls.email.touched && registerForm.controls.email.errors as er"
+        >
+          <ng-container *ngIf="er['required']">البريد الإلكتروني مطلوب.</ng-container>
+          <ng-container *ngIf="er['email']">صيغة البريد غير صحيحة.</ng-container>
         </small>
       </div>
 
-      <!-- حقل كلمة المرور -->
-      <div class="field" [class.invalid]="form.controls.password.invalid && form.controls.password.touched">
-        <label for="password">كلمة المرور</label>
+      <!-- الهاتف -->
+      <div
+        class="field"
+        [class.invalid]="registerForm.controls.phone.touched && registerForm.controls.phone.errors"
+      >
         <div class="input-wrap">
-          <input id="password" [type]="showPassword() ? 'text' : 'password'"
-                 placeholder="••••••••" formControlName="password" autocomplete="current-password" />
-          <button type="button" class="icon-btn"
-                  (click)="togglePassword()" [attr.aria-pressed]="showPassword()"
-                  [title]="showPassword() ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'">
-            <span class="icon" aria-hidden="true">{{ showPassword() ? '🙈' : '👁️' }}</span>
-          </button>
+          <input
+            dir="rtl"
+            type="text"
+            formControlName="phone"
+            placeholder="09xxxxxxxx أو +963xxxxxxxxx"
+          />
         </div>
-        <small class="error" *ngIf="form.controls.password.touched && form.controls.password.errors">
-          <ng-container *ngIf="form.controls.password.errors['required']">كلمة المرور مطلوبة.</ng-container>
-          <ng-container *ngIf="form.controls.password.errors['minlength']">يجب ألا تقل عن 6 أحرف.</ng-container>
+        <small
+          class="error"
+          *ngIf="registerForm.controls.phone.touched && registerForm.controls.phone.errors?.['backend']"
+        >
+          {{ registerForm.controls.phone.errors?.['backend'] }}
         </small>
       </div>
 
-      <!-- تذكّرني -->
-      <label class="remember">
-        <input type="checkbox" formControlName="rememberMe" />
-        تذكّرني
-      </label>
-
-      <!-- عرض رسائل الأخطاء من الباك -->
-      <div class="alert error" *ngIf="apiErrors().length" role="alert">
-          <div *ngIf="apiError()" class="error-box">{{ apiError() }}</div>
+      <!-- كلمة المرور -->
+      <div
+        class="field"
+        [class.invalid]="registerForm.controls.password.invalid && registerForm.controls.password.touched"
+      >
+        <div class="input-wrap">
+          <input
+            type="password"
+            formControlName="password"
+            placeholder="كلمة المرور"
+            autocomplete="new-password"
+          />
+        </div>
+        <small
+          class="error"
+          *ngIf="registerForm.controls.password.touched && registerForm.controls.password.errors as er"
+        >
+          <ng-container *ngIf="er['required']">كلمة المرور مطلوبة.</ng-container>
+          <ng-container *ngIf="er['minlength']">يجب ألا تقل عن 6 أحرف.</ng-container>
+        </small>
       </div>
 
-      <!-- زر تسجيل الدخول -->
-      <button class="primary login-btn"
-              type="submit"
-              [disabled]="form.invalid || isSubmitting()">
-        <span *ngIf="!isSubmitting(); else loadingTpl">🔐 تسجيل الدخول</span>
+      <!-- تأكيد كلمة المرور -->
+      <div
+        class="field"
+        [class.invalid]="registerForm.controls.confirmPassword.invalid && registerForm.controls.confirmPassword.touched"
+      >
+        <div class="input-wrap">
+          <input
+            type="password"
+            formControlName="confirmPassword"
+            placeholder="تأكيد كلمة المرور"
+            autocomplete="new-password"
+          />
+        </div>
+        <small
+          class="error"
+          *ngIf="registerForm.controls.confirmPassword.touched && registerForm.controls.confirmPassword.errors as er"
+        >
+          <ng-container *ngIf="er['required']">هذا الحقل مطلوب.</ng-container>
+          <ng-container *ngIf="er['minlength']">يجب ألا تقل عن 6 أحرف.</ng-container>
+          <ng-container *ngIf="er['mismatch']">كلمتا المرور غير متطابقتين.</ng-container>
+        </small>
+      </div>
+
+      <!-- زر إنشاء الحساب -->
+      <button
+        class="primary login-btn"
+        type="submit"
+        [disabled]="registerForm.invalid || isRegistering"
+      >
+        <ng-container *ngIf="!isRegistering; else regLoading">
+          إنشاء الحساب والدخول
+        </ng-container>
       </button>
 
-      <!-- سبينر التحميل -->
+      <ng-template #regLoading>
+        <span class="spinner" aria-hidden="true"></span>
+        جاري إنشاء الحساب...
+      </ng-template>
+
+      <!-- سطر العودة لتسجيل الدخول -->
+      <p class="register-line">
+        لديك حساب؟
+        <a href="" (click)="$event.preventDefault(); cancelRegister()">تسجيل الدخول</a>
+      </p>
+    </form>
+
+    <!-- ============== فورم تسجيل الدخول ============== -->
+    <form
+      *ngIf="!showRegister"
+      [formGroup]="form"
+      (ngSubmit)="onLogin()"
+      novalidate
+    >
+      <!-- البريد الإلكتروني -->
+      <div
+        class="field"
+        [class.invalid]="form.controls.email.invalid && form.controls.email.touched"
+      >
+        <div class="input-wrap">
+          <span class="icon" aria-hidden="true">@</span>
+          <input
+            id="email"
+            type="email"
+            placeholder="Username"
+            formControlName="email"
+            autocomplete="username"
+            inputmode="email"
+          />
+        </div>
+        <small class="error" *ngIf="form.controls.email.touched && form.controls.email.errors">
+          <ng-container *ngIf="form.controls.email.errors['required']">
+            البريد الإلكتروني مطلوب.
+          </ng-container>
+          <ng-container *ngIf="form.controls.email.errors['email']">
+            صيغة البريد غير صحيحة.
+          </ng-container>
+        </small>
+      </div>
+
+      <!-- كلمة المرور -->
+      <div
+        class="field"
+        [class.invalid]="form.controls.password.invalid && form.controls.password.touched"
+      >
+        <div class="input-wrap has-btn">
+          <input
+            id="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            placeholder="Password"
+            formControlName="password"
+            autocomplete="current-password"
+          />
+          <button
+            type="button"
+            class="icon-btn"
+            (click)="togglePassword()"
+            [attr.aria-pressed]="showPassword()"
+            [title]="showPassword() ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'"
+          >
+            <span aria-hidden="true">{{ showPassword() ? '🙈' : '👁️' }}</span>
+          </button>
+        </div>
+        <small
+          class="error"
+          *ngIf="form.controls.password.touched && form.controls.password.errors"
+        >
+          <ng-container *ngIf="form.controls.password.errors['required']">
+            كلمة المرور مطلوبة.
+          </ng-container>
+          <ng-container *ngIf="form.controls.password.errors['minlength']">
+            يجب ألا تقل عن 6 أحرف.
+          </ng-container>
+        </small>
+      </div>
+
+      <!-- تذكّرني + نسيت كلمة المرور -->
+      <div class="row-between">
+        <label class="remember">
+          <input type="checkbox" formControlName="rememberMe" />
+          تذكّرني
+        </label>
+        <a class="link-small" routerLink="/forgot-password">نسيت كلمة المرور؟</a>
+      </div>
+
+      <!-- أخطاء الباك -->
+      <div class="alert error" *ngIf="apiErrors().length" role="alert">
+        <div *ngIf="apiError()" class="error-box">{{ apiError() }}</div>
+      </div>
+
+      <!-- زر الدخول -->
+      <button
+        class="primary login-btn"
+        type="submit"
+        [disabled]="form.invalid || isSubmitting()"
+      >
+        <ng-container *ngIf="!isSubmitting(); else loadingTpl">
+          تسجيل الدخول
+        </ng-container>
+      </button>
+
       <ng-template #loadingTpl>
         <span class="spinner" aria-hidden="true"></span>
         جاري المعالجة...
       </ng-template>
 
-      <!-- روابط أسفل النموذج -->
-      <div class="footer-links">
-        <a routerLink="/forgot-password">نسيت كلمة المرور؟</a>
-      </div>
+      <!-- رابط الذهاب للتسجيل -->
+      <p class="register-line">
+        لا تملك حساب؟
+        <a href="" (click)="$event.preventDefault(); openRegister()">إنشاء حساب</a>
+      </p>
     </form>
-
-    <footer class="legal">© {{ year }} نظام المكتبة — كل الحقوق محفوظة.</footer>
   </div>
 </div>

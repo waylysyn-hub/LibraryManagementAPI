@@ -211,7 +211,6 @@ section[aria-labelledby="br-title"] .borrow-card:focus-within{
 section[aria-labelledby="br-title"] .borrow-card::before{
   content:""; position:absolute; inset:0; border-radius:inherit; padding:2px;
   background:linear-gradient(180deg,#eef2ff,#e5e7eb) border-box;
-  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none;
 }
 
@@ -357,7 +356,7 @@ section[aria-labelledby="br-title"] .head .actions .primary:active{
 
 /* زر تصدير Excel بلون teal */
 section[aria-labelledby="br-title"] .head .actions .secondary[aria-label*="تصدير"]{
-  background:linear-gradient(180deg,#14b8a6,#0ea5a8) !important; color:#fff !important; border:0 !important;
+  background:linear-gradient(180deg,#14b8a6,#453cc2) !important; color:#fff !important; border:0 !important;
   box-shadow:0 8px 20px rgba(14,165,168,.25) !important;
 }
 section[aria-labelledby="br-title"] .head .actions .secondary[aria-label*="تصدير"]:hover{ filter:brightness(1.03) }
@@ -414,4 +413,137 @@ section[aria-labelledby="br-title"] .fab:hover{ transform:translateY(-2px); filt
 @media (max-width: 360px){
   section[aria-labelledby="br-title"] .borrow-card{ padding:12px; border-radius:18px }
   section[aria-labelledby="br-title"] .modal .box{ padding:14px }
+}
+/* تأكيد ترتيب الطبقات داخل الكرت */
+section[aria-labelledby="br-title"] .borrow-card{
+  position: relative;
+  z-index: 0; /* أساس الطبقات */
+}
+section[aria-labelledby="br-title"] .borrow-card::before{
+  z-index: 0; /* تحت كل شيء */
+}
+section[aria-labelledby="br-title"] .borrow-card > *{
+  position: relative;
+  z-index: 1; /* ارفع كل محتوى الكرت فوق طبقة الإطار */
+}
+
+/* رتّب الشريط الجانبي الملون */
+section[aria-labelledby="br-title"] .borrow-card .accent{
+  z-index: 1; /* تحت النصوص لكن فوق الخلفية */
+}
+
+/* (اختياري) لو متصفحك يحمّل الـ ::before فوق المحتوى رغم ذلك،
+   استخدم بديل بدون mask-composite */
+section[aria-labelledby="br-title"] .borrow-card::before{
+  content:"";
+  position:absolute; inset:0; border-radius:inherit;
+  padding:2px;
+  background:linear-gradient(180deg,#eef2ff,#e5e7eb);
+  -webkit-mask: 
+    linear-gradient(#000 0 0) content-box, 
+    linear-gradient(#000 0 0); 
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events:none;
+  z-index:0;
+}
+
+/* عرض أضيق للكرت مع بقاء الأزرار بسطر واحد */
+section[aria-labelledby="br-title"] .cards{
+  /* كان 340/380 – نخليه أضيق لكن يكفي 3 أزرار */
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+}
+
+/* أزرار الـCTA مضغوطة ولا تلتف */
+section[aria-labelledby="br-title"] .borrow-card .cta{
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+
+section[aria-labelledby="br-title"] .borrow-card .cta button{
+  white-space: nowrap;
+  padding: .5rem .8rem;      /* تصغير عرض/ارتفاع الزر */
+  font-size: .92rem;
+  flex: 0 1 auto;            /* اسمح للزر يتقلّص قليلاً بدل ما يسبب لفّ */
+}
+
+section[aria-labelledby="br-title"] .btn-ico .ico{
+  width: 16px; height: 16px; /* أيقونة أصغر شوي */
+}
+
+/* تأكد ما في حد أدنى كبير لزر الإرجاع */
+section[aria-labelledby="br-title"] .borrow-card .cta .primary{
+  min-width: 0;
+}
+
+/* على الشاشات الصغيرة جداً اسمح باللف أو سكرول أفقي */
+@media (max-width: 480px){
+  section[aria-labelledby="br-title"] .borrow-card .cta{
+    flex-wrap: wrap;         /* أو overflow-x:auto; حسب ما تفضّل */
+  }
+}
+/* يسار في RTL */
+section[aria-labelledby="br-title"] .borrow-card .cta{
+  justify-content: flex-end;  /* الطرف = اليسار في RTL */
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+/* موبايل صغير: اسمح باللف أو وسّطه إن حابب */
+@media (max-width: 480px){
+  section[aria-labelledby="br-title"] .borrow-card .cta{
+    flex-wrap: wrap;          /* أو استخدم: justify-content:center; لو بدك وسط */
+  }
+}
+/* بدّل إعداد cta */
+section[aria-labelledby="br-title"] .borrow-card .cta{
+  display: flex;
+  justify-content: flex-start;   /* رجّعها لبداية السطر (يمين في RTL) */
+  gap: 8px;
+  padding-inline: 0;              /* ما في حواف داخلية */
+}
+
+/* عنصر وهمي يملأ الفراغ من اليمين ويدفع الأزرار لليسار */
+section[aria-labelledby="br-title"] .borrow-card .cta::before{
+  content: "";
+  flex: 1;
+}
+/* ==== Borrow cards: key/value alignment ==== */
+section[aria-labelledby="br-title"] .borrow-card .body { direction: rtl; }
+
+section[aria-labelledby="br-title"] .borrow-card .row{
+  display:grid;
+  grid-template-columns: auto 1fr;  /* المفتاح عرض تلقائي، القيمة تتمدّد */
+  align-items:center;
+  column-gap:12px;
+  text-align:right;                 /* المفتاح يمين */
+}
+
+/* المفتاح (يمين) */
+section[aria-labelledby="br-title"] .borrow-card .row > span{
+  font-weight:800;
+  color:#475569;
+  white-space:nowrap;
+}
+
+/* القيمة (يسار) */
+section[aria-labelledby="br-title"] .borrow-card .row > b{
+  justify-self: end;      /* في RTL = اليسار بصريًا */
+  text-align:left;        /* تأكيد محاذاة اليسار */
+  direction:ltr;          /* أرقام/تواريخ/إنجليزي تظهر مرتبة */
+  unicode-bidi: plaintext;
+  font-weight:900;
+  color:var(--text);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* بس في الشاشات الصغيرة اسمح لسطر القيمة يوسع شوي */
+@media (max-width: 640px){
+  section[aria-labelledby="br-title"] .borrow-card .row > b{
+    white-space: normal;  /* اسمح باللف */
+    word-break: break-word;
+  }
 }

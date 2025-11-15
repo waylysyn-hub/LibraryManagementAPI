@@ -5,75 +5,116 @@
       <button type="button" class="x" (click)="close()" aria-label="إغلاق">✕</button>
     </header>
 
-    <!-- أخطاء الباك -->
-    <div *ngIf="backendErrors().length" class="error-messages" role="alert">
-      <ul><li *ngFor="let error of backendErrors()">{{ error }}</li></ul>
-    </div>
+    <!-- جسم يتمرّر -->
+    <div class="scroll">
+      <!-- أخطاء الباك -->
+      <div *ngIf="backendErrors().length" class="error-messages" role="alert" aria-live="assertive">
+        <ul>
+          <li *ngFor="let error of backendErrors()">{{ error }}</li>
+        </ul>
+      </div>
 
-    <div class="grid">
-      <!-- العنوان (مطلوب) -->
-      <label>العنوان
-        <input type="text"
-               [class.err]="form.controls.title.invalid && form.controls.title.touched"
-               placeholder="مثال: Refactoring"
-               formControlName="title">
-        <div *ngIf="form.controls.title.invalid && form.controls.title.touched" class="error-message">
-          <span *ngIf="form.controls.title.errors?.['required']">العنوان مطلوب</span>
-          <span *ngIf="form.controls.title.errors?.['maxlength']">العنوان طويل جدًا</span>
-        </div>
-      </label>
+      <div class="grid">
+        <!-- العنوان (مطلوب) -->
+        <label
+          >العنوان
+          <input
+            type="text"
+            [class.err]="form.controls.title.invalid && form.controls.title.touched"
+            placeholder="مثال: Refactoring"
+            formControlName="title"
+          />
+          <div
+            *ngIf="form.controls.title.invalid && form.controls.title.touched"
+            class="error-message"
+          >
+            <span *ngIf="form.controls.title.errors?.['required']">العنوان مطلوب</span>
+            <span *ngIf="form.controls.title.errors?.['maxlength']">العنوان طويل جدًا</span>
+          </div>
+        </label>
 
-      <!-- المؤلف (مطلوب) -->
-      <label>المؤلف
-        <input type="text"
-               [class.err]="form.controls.author.invalid && form.controls.author.touched"
-               placeholder="مثال: Martin Fowler"
-               formControlName="author">
-        <div *ngIf="form.controls.author.invalid && form.controls.author.touched" class="error-message">
-          <span *ngIf="form.controls.author.errors?.['required']">المؤلف مطلوب</span>
-          <span *ngIf="form.controls.author.errors?.['maxlength']">المؤلف طويل جدًا</span>
-        </div>
-      </label>
+        <!-- المؤلف (مطلوب) -->
+        <label
+          >المؤلف
+          <input
+            type="text"
+            [class.err]="form.controls.author.invalid && form.controls.author.touched"
+            placeholder="مثال: Martin Fowler"
+            formControlName="author"
+          />
+          <div
+            *ngIf="form.controls.author.invalid && form.controls.author.touched"
+            class="error-message"
+          >
+            <span *ngIf="form.controls.author.errors?.['required']">المؤلف مطلوب</span>
+            <span *ngIf="form.controls.author.errors?.['maxlength']">المؤلف طويل جدًا</span>
+          </div>
+        </label>
 
-      <!-- التصنيف (اختياري) -->
-      <label>التصنيف
-        <input type="text" placeholder="مثال: Software Engineering" formControlName="category">
-      </label>
+        <!-- التصنيف (اختياري) -->
+        <label
+          >التصنيف
+          <input type="text" placeholder="مثال: Software Engineering" formControlName="category" />
+        </label>
 
-      <!-- السنة (اختيارية مع حدود منطقية) -->
-      <label>السنة
-        <input type="number" placeholder="مثال: 2025" formControlName="year">
-        <div *ngIf="form.controls.year.invalid && form.controls.year.touched" class="error-message">
-          <span *ngIf="form.controls.year.errors?.['min']">السنة يجب أن تكون أكبر من 1500</span>
-          <span *ngIf="form.controls.year.errors?.['max']">السنة يجب أن تكون أقل من أو تساوي {{ currentYear }}</span>
-        </div>
-      </label>
+        <!-- السنة -->
+        <label
+          >السنة
+          <input type="number" placeholder="مثال: 2025" formControlName="year" />
+          <div
+            *ngIf="form.controls.year.invalid && form.controls.year.touched"
+            class="error-message"
+          >
+            <span *ngIf="form.controls.year.errors?.['min']">السنة يجب أن تكون أكبر من 1500</span>
+            <span *ngIf="form.controls.year.errors?.['max']"
+              >السنة يجب أن تكون ≤ {{ currentYear }}</span
+            >
+          </div>
+        </label>
 
-      <!-- عدد النسخ (مطلوب) -->
-      <label>عدد النسخ
-        <input type="number"
-               [class.err]="form.controls.copiesCount.invalid && form.controls.copiesCount.touched"
-               placeholder="مثال: 3"
-               formControlName="copiesCount">
-        <div *ngIf="form.controls.copiesCount.invalid && form.controls.copiesCount.touched" class="error-message">
-          <span *ngIf="form.controls.copiesCount.errors?.['required']">عدد النسخ مطلوب</span>
-          <span *ngIf="form.controls.copiesCount.errors?.['min']">عدد النسخ يجب أن يكون أكبر من 0</span>
-          <span *ngIf="form.controls.copiesCount.errors?.['max']">عدد النسخ يجب أن يكون أقل من 1000</span>
-        </div>
-      </label>
+        <!-- عدد النسخ -->
+        <label
+          >عدد النسخ
+          <input
+            type="number"
+            [class.err]="form.controls.copiesCount.invalid && form.controls.copiesCount.touched"
+            placeholder="مثال: 3"
+            formControlName="copiesCount"
+          />
+          <div
+            *ngIf="form.controls.copiesCount.invalid && form.controls.copiesCount.touched"
+            class="error-message"
+          >
+            <span *ngIf="form.controls.copiesCount.errors?.['required']">عدد النسخ مطلوب</span>
+            <span *ngIf="form.controls.copiesCount.errors?.['min']">عدد النسخ يجب أن يكون > 0</span>
+            <span *ngIf="form.controls.copiesCount.errors?.['max']"
+              >عدد النسخ يجب أن يكون أقل من 1000</span
+            >
+          </div>
+        </label>
 
-      <!-- ISBN (اختياري بنمط مرن) -->
-      <label>ISBN
-        <input type="text" placeholder="مثال: 978-0134757599" formControlName="isbn">
-        <div *ngIf="form.controls.isbn.invalid && form.controls.isbn.touched" class="error-message">
-          <span>الـ ISBN غير صالح</span>
-        </div>
-      </label>
+        <!-- ISBN -->
+        <label
+          >ISBN
+          <input
+            type="text"
+            placeholder="مثال: 978-0134757599"
+            formControlName="isbn"
+            class="ltr"
+          />
+          <div
+            *ngIf="form.controls.isbn.invalid && form.controls.isbn.touched"
+            class="error-message"
+          >
+            <span>الـ ISBN غير صالح</span>
+          </div>
+        </label>
+      </div>
     </div>
 
     <footer class="actions">
       <button type="button" class="ghost" (click)="close(); cancel.emit()">إلغاء</button>
-      <button type="submit" class="primary">حفظ</button>
+      <button type="submit" class="primary" [disabled]="form.invalid">حفظ</button>
     </footer>
   </form>
 </dialog>

@@ -153,12 +153,24 @@
       </div>
 
       <h4 class="text-gradient">{{ b.title }}</h4>
-      <p>المؤلف: {{ b.author }}</p>
-      <p>السنة: {{ b.year || '—' }}</p>
-      <p>التصنيف: {{ b.category || '—' }}</p>
-      <p>عدد النسخ الكامل: {{ b.copiesCount }}</p>
-      <p>عدد النسخ المتاحة: {{ b.availableCopies }}</p>
-      <p *ngIf="b.isbn">ISBN: {{ b.isbn }}</p>
+      <p class="kv">
+        <span class="k">المؤلف:</span><span class="v">{{ b.author || '—' }}</span>
+      </p>
+      <p class="kv">
+        <span class="k">السنة:</span><span class="v">{{ b.year || '—' }}</span>
+      </p>
+      <p class="kv">
+        <span class="k">التصنيف:</span><span class="v">{{ b.category || '—' }}</span>
+      </p>
+      <p class="kv">
+        <span class="k">عدد النسخ الكامل:</span><span class="v">{{ b.copiesCount }}</span>
+      </p>
+      <p class="kv">
+        <span class="k">عدد النسخ المتاحة:</span><span class="v">{{ b.availableCopies }}</span>
+      </p>
+      <p class="kv" *ngIf="b.isbn">
+        <span class="k">ISBN:</span><span class="v">{{ b.isbn }}</span>
+      </p>
 
       <div class="actions" *ngIf="canUpdate || canDelete">
         <button

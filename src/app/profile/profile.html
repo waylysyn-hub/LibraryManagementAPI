@@ -1,0 +1,67 @@
+<section class="profile-page" dir="rtl">
+  <div class="profile-card">
+    <h2>حسابي</h2>
+    <p class="subtitle">يمكنك تعديل بياناتك الشخصية هنا.</p>
+
+    <div *ngIf="loading()" class="loading">جارِ تحميل البيانات...</div>
+
+    <div *ngIf="!loading()">
+      <!-- رسائل النجاح -->
+      <div class="alert success" *ngIf="successMsg">
+        {{ successMsg }}
+      </div>
+
+      <!-- رسائل الخطأ -->
+      <div class="alert error" *ngIf="errors.length">
+        <div *ngFor="let e of errors">{{ e }}</div>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="field">
+          <label>الاسم</label>
+          <div class="input-wrap">
+            <input type="text" dir="ltr" formControlName="name" placeholder="مثال: أحمد سعيد" />
+          </div>
+        </div>
+
+        <div
+          class="field"
+          [class.invalid]="form.controls.email.touched && form.controls.email.invalid"
+        >
+          <label>البريد الإلكتروني</label>
+          <div class="input-wrap">
+            <input dir="ltr" type="email" formControlName="email" placeholder="name@example.com" />
+          </div>
+          <small class="error" *ngIf="form.controls.email.touched && form.controls.email.errors as er">
+            <ng-container *ngIf="er['required']">البريد الإلكتروني مطلوب.</ng-container>
+            <ng-container *ngIf="er['email']">صيغة البريد غير صحيحة.</ng-container>
+            <ng-container *ngIf="er['backend']">{{ er['backend'] }}</ng-container>
+          </small>
+        </div>
+
+        <div class="field">
+          <label>الهاتف</label>
+          <div class="input-wrap">
+            <input
+              dir="ltr"
+              type="text"
+              formControlName="phone"
+              placeholder="09xxxxxxxx أو +963xxxxxxxxx"
+            />
+          </div>
+        </div>
+
+        <button class="primary" type="submit" [disabled]="form.invalid || saving()">
+          <ng-container *ngIf="!saving(); else saveLoading">
+            حفظ التعديلات
+          </ng-container>
+        </button>
+
+        <ng-template #saveLoading>
+          <span class="spinner" aria-hidden="true"></span>
+          جاري الحفظ...
+        </ng-template>
+      </form>
+    </div>
+  </div>
+</section>

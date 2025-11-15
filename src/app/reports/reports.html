@@ -209,12 +209,29 @@
     <div class="panel">
       <header class="panel-head">
         <h4>اتجاهات الاستعارة / الإرجاع (آخر 30 يوم)</h4>
-        <div class="actions">
-          <button class="btn mini" (click)="loadTrend(from30ISO, todayISO, 'day')">يومي</button>
-          <button class="btn mini" (click)="loadTrend(from30ISO, todayISO, 'week')">أسبوعي</button>
-          <button class="btn mini" (click)="loadTrend(from30ISO, todayISO, 'month')">شهري</button>
-        </div>
+
+        <!-- Segmented control -->
+        <fieldset class="seg" role="radiogroup" aria-label="فاصل الزمن">
+          <input
+            type="radio" id="gran-day" name="gran"
+            [checked]="trendGranularity() === 'day'"
+            (change)="changeGran('day')" />
+          <label for="gran-day">يومي</label>
+
+          <input
+            type="radio" id="gran-week" name="gran"
+            [checked]="trendGranularity() === 'week'"
+            (change)="changeGran('week')" />
+          <label for="gran-week">أسبوعي</label>
+
+          <input
+            type="radio" id="gran-month" name="gran"
+            [checked]="trendGranularity() === 'month'"
+            (change)="changeGran('month')" />
+          <label for="gran-month">شهري</label>
+        </fieldset>
       </header>
+
       <div class="trend-wrap" [class.loading]="loadingTrend()">
         <div class="legend">
           <span class="dot borrow"></span> استعارة <span class="dot ret"></span> إرجاع
@@ -253,7 +270,8 @@
         <button class="btn mini" (click)="loadCategories(10)">تحديث</button>
       </header>
       <div class="table-wrap" [class.loading]="loadingCats()">
-        <table>
+        <!-- أضفنا class="table-cats" هنا فقط -->
+        <table class="table-cats">
           <thead>
             <tr>
               <th>التصنيف</th>

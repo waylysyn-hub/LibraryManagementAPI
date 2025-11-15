@@ -1,6 +1,7 @@
+// src/app/api/reports.service.ts
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, throwError, map, catchError } from 'rxjs';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
+import { Observable, throwError, map, catchError, of } from 'rxjs';
 import {
   DashboardStats,
   MostBorrowedRow,
@@ -13,17 +14,21 @@ import {
   CategoryStat,
   Cohorts,
 } from './types';
+
 export interface Option {
   id: number;
   label: string;
 }
+
 @Injectable({ providedIn: 'root' })
 export class ReportsService {
-  [x: string]: any;
   private http = inject(HttpClient);
-  private base = 'https://localhost:7091/api/Reports';
-  private membersBase = 'https://localhost:7091/api/Members';
-  private booksBase = 'https://localhost:7091/api/Books';
+
+  // ✅ مسارات نسبية — apiBaseInterceptor سيضيف الدومين من environment.apiBase
+  private base = '/api/Reports';
+  private membersBase = '/api/Members';
+  private booksBase = '/api/Books';
+
   private handleError(error: any) {
     return throwError(() => error);
   }
@@ -34,23 +39,23 @@ export class ReportsService {
     return [];
   }
 
+  // ---- لوحات وملخصات
   dashboardStats(): Observable<DashboardStats> {
-    return this.http
-      .get<DashboardStats>(`${this.base}/dashboard-stats`)
+    return this.http.get<DashboardStats>(`${this.base}/dashboard-stats`)
       .pipe(catchError(this.handleError));
   }
 
   mostBorrowed(limit = 10): Observable<MostBorrowedRow[]> {
     const params = new HttpParams().set('limit', String(limit));
     return this.http.get<any>(`${this.base}/most-borrowed-books`, { params }).pipe(
-      map((res) => this.unwrapArray<MostBorrowedRow>(res)),
+      map(res => this.unwrapArray<MostBorrowedRow>(res)),
       catchError(this.handleError)
     );
   }
 
   overdueBooks(): Observable<OverdueRow[]> {
     return this.http.get<any>(`${this.base}/overdue-books`).pipe(
-      map((res) => this.unwrapArray<OverdueRow>(res)),
+      map(res => this.unwrapArray<OverdueRow>(res)),
       catchError(this.handleError)
     );
   }
@@ -58,76 +63,66 @@ export class ReportsService {
   activeMembers(limit = 10): Observable<ActiveMemberRow[]> {
     const params = new HttpParams().set('limit', String(limit));
     return this.http.get<any>(`${this.base}/active-members`, { params }).pipe(
-      map((res) => this.unwrapArray<ActiveMemberRow>(res)),
+      map(res => this.unwrapArray<ActiveMemberRow>(res)),
       catchError(this.handleError)
     );
   }
 
+  // ---- سجلات الاستعارة
   borrowRecords(q: BorrowRecordsQuery): Observable<BorrowRecordExportRow[]> {
     let params = new HttpParams();
     Object.entries(q).forEach(([k, v]) => {
       if (v !== undefined && v !== null && v !== '') params = params.set(k, String(v));
     });
     return this.http.get<any>(`${this.base}/borrow-records`, { params }).pipe(
-      map((res) => this.unwrapArray<BorrowRecordExportRow>(res)),
+      map(res => this.unwrapArray<BorrowRecordExportRow>(res)),
       catchError(this.handleError)
     );
   }
+
+  // ---- خيارات البحث (كتب/أعضاء)
   searchBooks(term: string): Observable<Option[]> {
-    let params = new HttpParams().set('Q', term).set('Page', '1').set('PageSize', '8');
+    const params = new HttpParams().set('Q', term).set('Page', '1').set('PageSize', '8');
     return this.http.get<any>(this.booksBase, { params }).pipe(
-      map((res) => {
-        const rows = this.unwrapArray<any>(res);
-        // توقع الحقول: id, title
-        return rows.map((b: any) => ({ id: b.id, label: b.title } as Option));
-      }),
-      catchError(() => [])
+      map(res => this.unwrapArray<any>(res).map((b: any) => ({ id: b.id, label: b.title } as Option))),
+      catchError(() => of([]))
     );
   }
-  // === خيارات جاهزة للأعضاء والكتب ===
+
   listMemberOptions(pageSize = 200): Observable<Option[]> {
-    let params = new HttpParams().set('Page', '1').set('PageSize', String(pageSize));
-    // نتوقع أن /api/Members يرجّع {data:[], meta...} أو مصفوفة مباشرة
+    const params = new HttpParams().set('Page', '1').set('PageSize', String(pageSize));
     return this.http.get<any>(this.membersBase, { params }).pipe(
-      map((res) => {
-        const rows = this.unwrapArray<any>(res);
-        return rows.map((m: any) => ({ id: m.id, label: m.name } as Option));
-      }),
-      catchError(() => [])
+      map(res => this.unwrapArray<any>(res).map((m: any) => ({ id: m.id, label: m.name } as Option))),
+      catchError(() => of([]))
     );
   }
 
   listBookOptions(pageSize = 200): Observable<Option[]> {
-    let params = new HttpParams().set('Page', '1').set('PageSize', String(pageSize));
+    const params = new HttpParams().set('Page', '1').set('PageSize', String(pageSize));
     return this.http.get<any>(this.booksBase, { params }).pipe(
-      map((res) => {
-        const rows = this.unwrapArray<any>(res);
-        return rows.map((b: any) => ({ id: b.id, label: b.title } as Option));
-      }),
-      catchError(() => [])
+      map(res => this.unwrapArray<any>(res).map((b: any) => ({ id: b.id, label: b.title } as Option))),
+      catchError(() => of([]))
     );
   }
 
   searchMembers(term: string): Observable<Option[]> {
-    let params = new HttpParams().set('Q', term).set('Page', '1').set('PageSize', '8');
+    const params = new HttpParams().set('Q', term).set('Page', '1').set('PageSize', '8');
     return this.http.get<any>(this.membersBase, { params }).pipe(
-      map((res) => {
-        const rows = this.unwrapArray<any>(res);
-        // توقع الحقول: id, name
-        return rows.map((m: any) => ({ id: m.id, label: m.name } as Option));
-      }),
-      catchError(() => []) // ارجع مصفوفة فاضية بصمت
+      map(res => this.unwrapArray<any>(res).map((m: any) => ({ id: m.id, label: m.name } as Option))),
+      catchError(() => of([]))
     );
   }
 
+  // ---- تصدير
   exportBorrowPdf(q: BorrowRecordsQuery): Observable<Blob> {
     let params = new HttpParams();
     Object.entries(q).forEach(([k, v]) => {
       if (v !== undefined && v !== null && v !== '') params = params.set(k, String(v));
     });
-    return this.http
-      .get(`${this.base}/borrow-records/export-pdf`, { params, responseType: 'blob' })
-      .pipe(catchError(this.handleError));
+    return this.http.get<Blob>(`${this.base}/borrow-records/export-pdf`, {
+      params,
+      responseType: 'blob' as 'json'
+    }).pipe(catchError(this.handleError));
   }
 
   exportBorrowXlsx(q: BorrowRecordsQuery): Observable<Blob> {
@@ -135,20 +130,17 @@ export class ReportsService {
     Object.entries(q).forEach(([k, v]) => {
       if (v !== undefined && v !== null && v !== '') params = params.set(k, String(v));
     });
-    return this.http
-      .get(`${this.base}/borrow-records/export-xlsx`, { params, responseType: 'blob' })
-      .pipe(catchError(this.handleError));
+    return this.http.get<Blob>(`${this.base}/borrow-records/export-xlsx`, {
+      params,
+      responseType: 'blob' as 'json'
+    }).pipe(catchError(this.handleError));
   }
 
-  // ===== جديد =====
-  borrowingTrend(
-    fromISO: string,
-    toISO: string,
-    bucket: TrendBucket = 'day'
-  ): Observable<BorrowTrendPoint[]> {
+  // ---- إحصاءات إضافية
+  borrowingTrend(fromISO: string, toISO: string, bucket: TrendBucket = 'day'): Observable<BorrowTrendPoint[]> {
     const params = new HttpParams().set('from', fromISO).set('to', toISO).set('bucket', bucket);
     return this.http.get<any>(`${this.base}/borrowing-trend`, { params }).pipe(
-      map((res) => this.unwrapArray<BorrowTrendPoint>(res)),
+      map(res => this.unwrapArray<BorrowTrendPoint>(res)),
       catchError(this.handleError)
     );
   }
@@ -156,15 +148,14 @@ export class ReportsService {
   categoriesTop(limit = 10): Observable<CategoryStat[]> {
     const params = new HttpParams().set('limit', String(limit));
     return this.http.get<any>(`${this.base}/categories-top`, { params }).pipe(
-      map((res) => this.unwrapArray<CategoryStat>(res)),
+      map(res => this.unwrapArray<CategoryStat>(res)),
       catchError(this.handleError)
     );
   }
 
   memberCohorts(days = 90): Observable<Cohorts> {
     const params = new HttpParams().set('days', String(days));
-    return this.http
-      .get<Cohorts>(`${this.base}/member-cohorts`, { params })
+    return this.http.get<Cohorts>(`${this.base}/member-cohorts`, { params })
       .pipe(catchError(this.handleError));
   }
 }

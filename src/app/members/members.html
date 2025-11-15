@@ -8,123 +8,68 @@
           <button type="button" class="x" (click)="closeCreate()">✕</button>
         </header>
 
-        <div *ngIf="createErrors.length" class="error-messages" role="alert" aria-live="assertive">
-          <ul>
-            <li *ngFor="let e of createErrors">{{ e }}</li>
-          </ul>
-        </div>
+        <!-- الجسم القابل للتمرير -->
+        <div class="scroll">
+          <div *ngIf="createErrors.length" class="error-messages" role="alert" aria-live="assertive">
+            <ul><li *ngFor="let e of createErrors">{{ e }}</li></ul>
+          </div>
 
-        <div class="grid">
-          <label [class.err]="createForm.controls.username.errors"
-            >اسم المستخدم
-            <input
-              type="text"
-              [formControl]="createForm.controls.username"
-              placeholder="مثال: ahmad"
-            />
-            <small
-              class="error"
-              *ngIf="
-                createForm.controls.username.touched && createForm.controls.username.errors as er
-              "
-            >
-              <ng-container *ngIf="er['required']">الحقل مطلوب.</ng-container>
-              <ng-container *ngIf="er['minlength']">3 أحرف على الأقل.</ng-container>
-              <ng-container *ngIf="er['backend']">{{ er['backend'] }}</ng-container>
-            </small>
-          </label>
+          <div class="grid">
+            <label [class.err]="createForm.controls.username.errors">اسم المستخدم
+              <input type="text" [formControl]="createForm.controls.username" placeholder="مثال: ahmad" />
+              <small class="error" *ngIf="createForm.controls.username.touched && createForm.controls.username.errors as er">
+                <ng-container *ngIf="er['required']">الحقل مطلوب.</ng-container>
+                <ng-container *ngIf="er['minlength']">3 أحرف على الأقل.</ng-container>
+                <ng-container *ngIf="er['backend']">{{ er['backend'] }}</ng-container>
+              </small>
+            </label>
 
-          <label
-            >الاسم (اختياري)
-            <input
-              type="text"
-              [formControl]="createForm.controls.name"
-              placeholder="مثال: أحمد سعيد"
-            />
-            <small
-              class="error"
-              *ngIf="createForm.controls.name.touched && createForm.controls.name.errors?.['backend']"
-            >
-              {{ createForm.controls.name.errors?.['backend'] }}
-            </small>
-          </label>
+            <label>الاسم (اختياري)
+              <input type="text" [formControl]="createForm.controls.name" placeholder="مثال: أحمد سعيد" />
+              <small class="error" *ngIf="createForm.controls.name.touched && createForm.controls.name.errors?.['backend']">
+                {{ createForm.controls.name.errors?.['backend'] }}
+              </small>
+            </label>
 
-          <label [class.err]="createForm.controls.email.errors"
-            >الإيميل
-            <input
-              type="email"
-              [formControl]="createForm.controls.email"
-              placeholder="name@example.com"
-            />
-            <small
-              class="error"
-              *ngIf="createForm.controls.email.touched && createForm.controls.email.errors as er"
-            >
-              <ng-container *ngIf="er['required']">الحقل مطلوب.</ng-container>
-              <ng-container *ngIf="er['email']">صيغة غير صحيحة.</ng-container>
-              <ng-container *ngIf="er['backend']">{{ er['backend'] }}</ng-container>
-            </small>
-          </label>
+            <label [class.err]="createForm.controls.email.errors">الإيميل
+              <input dir="ltr" type="email" [formControl]="createForm.controls.email" placeholder="name@example.com" />
+              <small class="error" *ngIf="createForm.controls.email.touched && createForm.controls.email.errors as er">
+                <ng-container *ngIf="er['required']">الحقل مطلوب.</ng-container>
+                <ng-container *ngIf="er['email']">صيغة غير صحيحة.</ng-container>
+                <ng-container *ngIf="er['backend']">{{ er['backend'] }}</ng-container>
+              </small>
+            </label>
 
-          <label
-            >الهاتف (اختياري)
-            <input
-              type="text"
-              [formControl]="createForm.controls.phone"
-              placeholder="09xxxxxxxx أو +963xxxxxxxxx"
-            />
-            <small
-              class="error"
-              *ngIf="createForm.controls.phone.touched && createForm.controls.phone.errors?.['backend']"
-            >
-              {{ createForm.controls.phone.errors?.['backend'] }}
-            </small>
-          </label>
+            <label>الهاتف
+              <input dir="ltr" type="text" [formControl]="createForm.controls.phone" placeholder="09xxxxxxxx أو +963xxxxxxxxx" />
+              <small class="error" *ngIf="createForm.controls.phone.touched && createForm.controls.phone.errors?.['backend']">
+                {{ createForm.controls.phone.errors?.['backend'] }}
+              </small>
+            </label>
 
-          <label [class.err]="createForm.controls.password.errors"
-            >كلمة المرور
-            <input
-              type="password"
-              [formControl]="createForm.controls.password"
-              placeholder="••••••••"
-            />
-            <small
-              class="error"
-              *ngIf="
-                createForm.controls.password.touched && createForm.controls.password.errors as er
-              "
-            >
-              <ng-container *ngIf="er['required']">الحقل مطلوب.</ng-container>
-              <ng-container *ngIf="er['minlength']">6 أحرف على الأقل.</ng-container>
-            </small>
-          </label>
+            <label [class.err]="createForm.controls.password.errors">كلمة المرور
+              <input type="password" [formControl]="createForm.controls.password" placeholder="••••••••" />
+              <small class="error" *ngIf="createForm.controls.password.touched && createForm.controls.password.errors as er">
+                <ng-container *ngIf="er['required']">الحقل مطلوب.</ng-container>
+                <ng-container *ngIf="er['minlength']">6 أحرف على الأقل.</ng-container>
+              </small>
+            </label>
 
-          <label [class.err]="createForm.controls.confirmPassword.errors"
-            >تأكيد كلمة المرور
-            <input
-              type="password"
-              [formControl]="createForm.controls.confirmPassword"
-              placeholder="••••••••"
-            />
-            <small
-              class="error"
-              *ngIf="
-                createForm.controls.confirmPassword.touched &&
-                createForm.controls.confirmPassword.errors as er
-              "
-            >
-              <ng-container *ngIf="er['required']">الحقل مطلوب.</ng-container>
-              <ng-container *ngIf="er['minlength']">6 أحرف على الأقل.</ng-container>
-              <ng-container *ngIf="er['mismatch']">كلمتا المرور غير متطابقتين.</ng-container>
-            </small>
-          </label>
+            <label [class.err]="createForm.controls.confirmPassword.errors">تأكيد كلمة المرور
+              <input type="password" [formControl]="createForm.controls.confirmPassword" placeholder="••••••••" />
+              <small class="error"
+                *ngIf="createForm.controls.confirmPassword.touched && createForm.controls.confirmPassword.errors as er">
+                <ng-container *ngIf="er['required']">الحقل مطلوب.</ng-container>
+                <ng-container *ngIf="er['minlength']">6 أحرف على الأقل.</ng-container>
+                <ng-container *ngIf="er['mismatch']">كلمتا المرور غير متطابقتين.</ng-container>
+              </small>
+            </label>
+          </div>
         </div>
 
         <footer class="actions">
           <button type="button" class="ghost" (click)="closeCreate()" data-ico="x">إلغاء</button>
-          <button type="submit" class="primary" [disabled]="creating()" data-ico="save">
-            إنشاء
-          </button>
+          <button type="submit" class="primary" [disabled]="creating()" data-ico="save">إنشاء</button>
         </footer>
       </form>
     </dialog>
@@ -137,57 +82,38 @@
           <button type="button" class="x" (click)="closeEdit()">✕</button>
         </header>
 
-        <div *ngIf="editErrors.length" class="error-messages" role="alert" aria-live="assertive">
-          <ul>
-            <li *ngFor="let e of editErrors">{{ e }}</li>
-          </ul>
-        </div>
+        <!-- الجسم القابل للتمرير -->
+        <div class="scroll">
+          <div *ngIf="editErrors.length" class="error-messages" role="alert" aria-live="assertive">
+            <ul><li *ngFor="let e of editErrors">{{ e }}</li></ul>
+          </div>
 
-        <div class="grid">
-          <label [class.err]="editForm.controls.name.errors"
-            >الاسم
-            <input type="text" [formControl]="editForm.controls.name" placeholder="الاسم الكامل" />
-            <small
-              class="error"
-              *ngIf="editForm.controls.name.touched && editForm.controls.name.errors as er"
-            >
-              <ng-container *ngIf="er['required']">الاسم مطلوب.</ng-container>
-              <ng-container *ngIf="er['minlength']">يجب ألا يقل عن حرفين.</ng-container>
-              <ng-container *ngIf="er['backend']">{{ er['backend'] }}</ng-container>
-            </small>
-          </label>
+          <div class="grid">
+            <label [class.err]="editForm.controls.name.errors">الاسم
+              <input type="text" [formControl]="editForm.controls.name" placeholder="الاسم الكامل" />
+              <small class="error" *ngIf="editForm.controls.name.touched && editForm.controls.name.errors as er">
+                <ng-container *ngIf="er['required']">الاسم مطلوب.</ng-container>
+                <ng-container *ngIf="er['minlength']">يجب ألا يقل عن حرفين.</ng-container>
+                <ng-container *ngIf="er['backend']">{{ er['backend'] }}</ng-container>
+              </small>
+            </label>
 
-          <label [class.err]="editForm.controls.email.errors"
-            >الإيميل
-            <input
-              type="email"
-              [formControl]="editForm.controls.email"
-              placeholder="name@example.com"
-            />
-            <small
-              class="error"
-              *ngIf="editForm.controls.email.touched && editForm.controls.email.errors as er"
-            >
-              <ng-container *ngIf="er['required']">الإيميل مطلوب.</ng-container>
-              <ng-container *ngIf="er['email']">صيغة الإيميل غير صحيحة.</ng-container>
-              <ng-container *ngIf="er['backend']">{{ er['backend'] }}</ng-container>
-            </small>
-          </label>
+            <label [class.err]="editForm.controls.email.errors">الإيميل
+              <input dir="ltr" type="email" [formControl]="editForm.controls.email" placeholder="name@example.com" />
+              <small class="error" *ngIf="editForm.controls.email.touched && editForm.controls.email.errors as er">
+                <ng-container *ngIf="er['required']">الإيميل مطلوب.</ng-container>
+                <ng-container *ngIf="er['email']">صيغة الإيميل غير صحيحة.</ng-container>
+                <ng-container *ngIf="er['backend']">{{ er['backend'] }}</ng-container>
+              </small>
+            </label>
 
-          <label [class.err]="editForm.controls.phone.errors"
-            >الهاتف
-            <input
-              type="text"
-              [formControl]="editForm.controls.phone"
-              placeholder="09xxxxxxxx أو +963xxxxxxxxx"
-            />
-            <small
-              class="error"
-              *ngIf="editForm.controls.phone.touched && editForm.controls.phone.errors as er"
-            >
-              <ng-container *ngIf="er['backend']">{{ er['backend'] }}</ng-container>
-            </small>
-          </label>
+            <label [class.err]="editForm.controls.phone.errors">الهاتف
+              <input dir="ltr" type="text" [formControl]="editForm.controls.phone" placeholder="09xxxxxxxx أو +963xxxxxxxxx" />
+              <small class="error" *ngIf="editForm.controls.phone.touched && editForm.controls.phone.errors as er">
+                <ng-container *ngIf="er['backend']">{{ er['backend'] }}</ng-container>
+              </small>
+            </label>
+          </div>
         </div>
 
         <footer class="actions">
@@ -197,234 +123,150 @@
       </form>
     </dialog>
 
-    <section class="members-page" dir="rtl" aria-labelledby="m-title">
-      <header class="head">
-        <div class="left">
-          <h2 id="m-title">الأعضاء</h2>
-          <div class="meta">
-            إجمالي: <b>{{ total() }}</b>
-          </div>
-        </div>
+    <!-- رأس الصفحة -->
+    <header class="head">
+      <div class="left">
+        <h2 id="m-title">الأعضاء</h2>
+        <div class="meta">إجمالي: <b>{{ total() }}</b></div>
+      </div>
 
-        <div class="actions">
-          <button
-            class="secondary"
-            type="button"
-            (click)="export()"
-            [disabled]="loading()"
-            data-ico="export"
-          >
-            تصدير Excel
-          </button>
-          <button
-            class="secondary"
-            type="button"
-            (click)="reload()"
-            [disabled]="loading()"
-            data-ico="refresh"
-          >
-            تحديث
-          </button>
-          <!-- زر الإضافة المعدّل -->
-          <button
-            class="add-member-btn"
-            type="button"
-            *ngIf="canCreate"
-            (click)="openCreate()"
-            data-ico="add"
-          >
-            إضافة عضو
-          </button>
-        </div>
-      </header>
-
-      <div *ngIf="loadError() as le" class="page-error" role="alert">
-        {{ le }}
-        <button type="button" class="ghost" (click)="reload()" data-ico="refresh">
-          إعادة المحاولة
+      <div class="actions">
+        <button class="secondary" type="button" (click)="export()" [disabled]="loading()" data-ico="export">
+          تصدير Excel
+        </button>
+        <button class="secondary" type="button" (click)="reload()" [disabled]="loading()" data-ico="refresh">
+          تحديث
+        </button>
+        <button class="add-member-btn" type="button" *ngIf="canCreate" (click)="openCreate()" data-ico="add">
+          إضافة عضو
         </button>
       </div>
+    </header>
 
-      <div class="stats">
-        <div class="card total">
-          <div class="n">{{ statTotal() }}</div>
-          <div class="t">المجموع</div>
-        </div>
-        <div class="card active">
-          <div class="n">{{ statToday() }}</div>
-          <div class="t">مسجّلون اليوم</div>
-        </div>
-      </div>
+    <div *ngIf="loadError() as le" class="page-error" role="alert">
+      {{ le }}
+      <button type="button" class="ghost" (click)="reload()" data-ico="refresh">إعادة المحاولة</button>
+    </div>
 
-      <div class="filters" [formGroup]="filters">
-        <div class="grid">
-          <label
-            >بحث عام <input type="text" formControlName="Q" placeholder="اسم/بريد/هاتف"
-          /></label>
-          <label>الاسم <input type="text" formControlName="Name" placeholder="الاسم" /></label>
-          <label
-            >الإيميل <input type="email" formControlName="Email" placeholder="name@example.com"
-          /></label>
-          <label
-            >الهاتف
-            <input type="text" formControlName="Phone" placeholder="09xxxxxxxx أو +963xxxxxxxxx"
-          /></label>
-          <label>من تاريخ <input type="date" formControlName="RegisteredFrom" /></label>
-          <label>إلى تاريخ <input type="date" formControlName="RegisteredTo" /></label>
-          <label
-            >العرض
-            <select formControlName="View">
-              <option value="cards">شبكة كروت</option>
-              <option value="table">جدول</option>
-            </select>
-          </label>
-        </div>
+    <div class="stats">
+      <div class="card total"><div class="n">{{ statTotal() }}</div><div class="t">المجموع</div></div>
+      <div class="card active"><div class="n">{{ statToday() }}</div><div class="t">مسجّلون اليوم</div></div>
+    </div>
 
-        <div class="sortbar">
-          <span>ترتيب حسب:</span>
-          <button
-            type="button"
-            class="chip"
-            [class.active]="filters.value.SortBy === 'Name'"
-            (click)="toggleSort('Name')"
-          >
-            الاسم <small>{{ sortIcon('Name') }}</small>
-          </button>
-          <button
-            type="button"
-            class="chip"
-            [class.active]="filters.value.SortBy === 'Email'"
-            (click)="toggleSort('Email')"
-          >
-            الإيميل <small>{{ sortIcon('Email') }}</small>
-          </button>
-          <button
-            type="button"
-            class="chip"
-            [class.active]="filters.value.SortBy === 'RegisteredAt'"
-            (click)="toggleSort('RegisteredAt')"
-          >
-            تاريخ التسجيل <small>{{ sortIcon('RegisteredAt') }}</small>
-          </button>
-        </div>
-      </div>
-
-      <div class="toolbar">
-        <div class="paging">
-          <button (click)="prev()" [disabled]="page() <= 1">‹</button>
-          <span>صفحة {{ page() }} من {{ totalPages() }}</span>
-          <button (click)="next()" [disabled]="page() >= totalPages()">›</button>
-        </div>
-        <div class="page-size">
-          <label for="ps">حجم الصفحة:</label>
-          <select id="ps" [value]="pageSize()" (change)="setPageSize($any($event.target).value)">
-            <option *ngFor="let s of [12, 24, 48, 96]" [value]="s">{{ s }}</option>
+    <div class="filters" [formGroup]="filters">
+      <div class="grid">
+        <label>بحث عام <input type="text" formControlName="Q" placeholder="اسم/بريد/هاتف" /></label>
+        <label>الاسم <input type="text" formControlName="Name" placeholder="الاسم" /></label>
+        <label>الإيميل <input type="email" formControlName="Email" placeholder="name@example.com" /></label>
+        <label>الهاتف <input type="text" formControlName="Phone" placeholder="09xxxxxxxx أو +963xxxxxxxxx" /></label>
+        <label>من تاريخ <input type="date" formControlName="RegisteredFrom" /></label>
+        <label>إلى تاريخ <input type="date" formControlName="RegisteredTo" /></label>
+        <label>العرض
+          <select formControlName="View">
+            <option value="cards">شبكة كروت</option>
+            <option value="table">جدول</option>
           </select>
+        </label>
+      </div>
+
+      <div class="sortbar">
+        <span>ترتيب حسب:</span>
+        <button type="button" class="chip" [class.active]="filters.value.SortBy === 'Name'" (click)="toggleSort('Name')">
+          الاسم <small>{{ sortIcon('Name') }}</small>
+        </button>
+        <button type="button" class="chip" [class.active]="filters.value.SortBy === 'Email'" (click)="toggleSort('Email')">
+          الإيميل <small>{{ sortIcon('Email') }}</small>
+        </button>
+        <button type="button" class="chip" [class.active]="filters.value.SortBy === 'RegisteredAt'" (click)="toggleSort('RegisteredAt')">
+          تاريخ التسجيل <small>{{ sortIcon('RegisteredAt') }}</small>
+        </button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="paging">
+        <button (click)="prev()" [disabled]="page() <= 1">‹</button>
+        <span>صفحة {{ page() }} من {{ totalPages() }}</span>
+        <button (click)="next()" [disabled]="page() >= totalPages()">›</button>
+      </div>
+      <div class="page-size">
+        <label for="ps">حجم الصفحة:</label>
+        <select id="ps" [value]="pageSize()" (change)="setPageSize($any($event.target).value)">
+          <option *ngFor="let s of [12,24,48,96]" [value]="s">{{ s }}</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- بطاقات -->
+    <div *ngIf="filters.value.View === 'cards'" class="cards" [class.loading]="loading()">
+      <div *ngIf="!items().length && !loading()" class="empty">لا توجد بيانات</div>
+
+      <div class="member-card" *ngFor="let m of items()">
+        <div class="top">
+          <div class="avatar" aria-hidden="true">{{ (m.name || 'ع').slice(0, 1) }}</div>
+          <button *ngIf="canPerm" type="button" class="perm-btn" (click)="openPerm(m)"
+                  [disabled]="!canPerm || !m.userId"
+                  [title]="!m.userId ? 'لا يمكن إدارة الصلاحيات: غير مرتبط بحساب مستخدم' : 'إدارة صلاحيات المستخدم'"
+                  aria-label="إدارة صلاحيات المستخدم">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3l7 3v6c0 4.418-3.134 8.418-7 9-3.866-.582-7-4.582-7-9V6l7-3zM10.5 12.5l1.5 1.5 3.5-3.5"
+                    fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>تعديل الصلاحيات</span>
+          </button>
+        </div>
+
+        <div class="body">
+          <div class="meta-row"><span>الاسم:</span><b>{{ m.name }}</b></div>
+          <div class="meta-row"><span>البريد:</span><b>{{ m.email }}</b></div>
+          <div class="meta-row"><span>الهاتف:</span><b>{{ m.phone || '—' }}</b></div>
+          <div class="meta-row"><span>التسجيل:</span><b>{{ m.registeredAt | date : 'yyyy/MM/dd' }}</b></div>
+        </div>
+
+        <div class="cta" *ngIf="canUpdate || canDelete">
+          <button *ngIf="canUpdate" class="ghost" (click)="openEdit(m)" data-ico="edit">تعديل</button>
+          <button *ngIf="canDelete" class="danger" (click)="remove(m)" data-ico="trash">حذف</button>
         </div>
       </div>
+    </div>
 
-      <!-- بطاقات -->
-      <div *ngIf="filters.value.View === 'cards'" class="cards" [class.loading]="loading()">
-        <div *ngIf="!items().length && !loading()" class="empty">لا توجد بيانات</div>
-
-        <div class="member-card" *ngFor="let m of items()">
-          <div class="top">
-            <div class="avatar" aria-hidden="true">{{ (m.name || 'ع').slice(0, 1) }}</div>
-            <button
-              *ngIf="canPerm"
-              type="button"
-              class="perm-btn"
-              (click)="openPerm(m)"
-              [disabled]="!canPerm || !m.userId"
-              [title]="
-                !m.userId
-                  ? 'لا يمكن إدارة الصلاحيات: غير مرتبط بحساب مستخدم'
-                  : 'إدارة صلاحيات المستخدم'
-              "
-              aria-label="إدارة صلاحيات المستخدم"
-            >
-              <!-- أيقونة درع -->
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M12 3l7 3v6c0 4.418-3.134 8.418-7 9-3.866-.582-7-4.582-7-9V6l7-3zM10.5 12.5l1.5 1.5 3.5-3.5"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-              <span>تعديل الصلاحيات</span>
-            </button>
-          </div>
-
-          <div class="body">
-            <div class="meta-row">
-              <span>الاسم:</span><b>{{ m.name }}</b>
-            </div>
-            <div class="meta-row">
-              <span>البريد:</span><b>{{ m.email }}</b>
-            </div>
-            <div class="meta-row">
-              <span>الهاتف:</span><b>{{ m.phone || '—' }}</b>
-            </div>
-            <div class="meta-row">
-              <span>التسجيل:</span><b>{{ m.registeredAt | date : 'yyyy/MM/dd' }}</b>
-            </div>
-          </div>
-
-          <div class="cta" *ngIf="canUpdate || canDelete">
-            <button *ngIf="canUpdate" class="ghost" (click)="openEdit(m)" data-ico="edit">
-              تعديل
-            </button>
-            <button *ngIf="canDelete" class="danger" (click)="remove(m)" data-ico="trash">
-              حذف
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- جدول -->
-      <div *ngIf="filters.value.View === 'table'" class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Member&nbsp;ID</th>
-              <th>User&nbsp;ID</th>
-              <th>الاسم</th>
-              <th>الإيميل</th>
-              <th>الهاتف</th>
-              <th>التسجيل</th>
-              <th *ngIf="canUpdate || canDelete">إجراءات</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let m of items(); index as i">
-              <td>#{{ m.id }}</td>
-              <td>{{ m.userId || '—' }}</td>
-              <td>{{ m.name || '—' }}</td>
-              <td>{{ m.email }}</td>
-              <td>{{ m.phone || '—' }}</td>
-              <td>{{ m.registeredAt | date : 'yyyy/MM/dd' }}</td>
-              <td *ngIf="canUpdate || canDelete" class="row-actions">
-                <button *ngIf="canUpdate" (click)="openEdit(m)" class="ghost" data-ico="edit">
-                  تعديل
-                </button>
-                <button *ngIf="canDelete" class="danger" (click)="remove(m)" data-ico="trash">
-                  حذف
-                </button>
-              </td>
-            </tr>
-            <tr *ngIf="!items().length && !loading()">
-              <td colspan="7" class="empty">لا توجد بيانات</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+    <!-- جدول -->
+    <div *ngIf="filters.value.View === 'table'" class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Member&nbsp;ID</th>
+            <th>User&nbsp;ID</th>
+            <th>الاسم</th>
+            <th>الإيميل</th>
+            <th>الهاتف</th>
+            <th>التسجيل</th>
+            <th *ngIf="canUpdate || canDelete">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let m of items(); index as i">
+            <td>#{{ m.id }}</td>
+            <td>{{ m.userId || '—' }}</td>
+            <td>{{ m.name || '—' }}</td>
+            <td>{{ m.email }}</td>
+            <td>{{ m.phone || '—' }}</td>
+            <td>{{ m.registeredAt | date : 'yyyy/MM/dd' }}</td>
+            <td *ngIf="canUpdate || canDelete" class="row-actions">
+              <button *ngIf="canUpdate" (click)="openEdit(m)" class="ghost" data-ico="edit">تعديل</button>
+              <button *ngIf="canDelete" class="danger" (click)="remove(m)" data-ico="trash">حذف</button>
+            </td>
+          </tr>
+          <tr *ngIf="!items().length && !loading()">
+            <td colspan="7" class="empty">لا توجد بيانات</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </section>
 
+<!-- مودال صلاحيات المستخدم -->
 <dialog #permDlg class="modal perm" dir="rtl">
   <form class="box" (submit)="$event.preventDefault()">
     <header class="head dialog">
@@ -432,44 +274,39 @@
       <button type="button" class="x" (click)="closePerm()" aria-label="إغلاق">✕</button>
     </header>
 
-    <div *ngIf="permErrors.length" class="perm-errors" role="alert" aria-live="assertive">
-      <ul>
-        <li *ngFor="let e of permErrors">{{ e }}</li>
-      </ul>
-    </div>
+    <!-- الجسم القابل للتمرير -->
+    <div class="scroll">
+      <div *ngIf="permErrors.length" class="perm-errors error-messages" role="alert" aria-live="assertive">
+        <ul><li *ngFor="let e of permErrors">{{ e }}</li></ul>
+      </div>
 
-    <div *ngIf="permLoading()">جارِ تحميل الصلاحيات...</div>
+      <div *ngIf="permLoading()">جارِ تحميل الصلاحيات...</div>
 
-    <div *ngIf="!permLoading()" class="perm-modal">
-      <div class="perm-bar" aria-live="polite">
-        <div>الصلاحيات المتاحة</div>
-        <div class="perm-metrics">
-          <span class="pill">الكل: {{ allPerms().length || 0 }}</span>
-          <span class="pill">المفعّلة: {{ userPermIds().size || 0 }}</span>
+      <div *ngIf="!permLoading()" class="perm-modal">
+        <div class="perm-bar" aria-live="polite">
+          <div>الصلاحيات المتاحة</div>
+          <div class="perm-metrics">
+            <span class="pill">الكل: {{ allPerms().length || 0 }}</span>
+            <span class="pill">المفعّلة: {{ userPermIds().size || 0 }}</span>
+          </div>
+        </div>
+
+        <div class="perm-grid">
+          <label class="perm-item" *ngFor="let p of allPerms()" [class.active]="userPermIds().has(p.id)">
+            <span class="perm-title">{{ p.name }}</span>
+            <span class="perm-switch" aria-hidden="true"></span>
+            <input class="perm-check" type="checkbox"
+                   [checked]="userPermIds().has(p.id)"
+                   (change)="togglePermission(p.id, $any($event.target).checked)"
+                   [attr.aria-label]="'تبديل الصلاحية: ' + p.name" />
+          </label>
         </div>
       </div>
-
-      <div class="perm-grid">
-        <label
-          class="perm-item"
-          *ngFor="let p of allPerms()"
-          [class.active]="userPermIds().has(p.id)"
-        >
-          <span class="perm-title">{{ p.name }}</span>
-          <span class="perm-switch" aria-hidden="true"></span>
-          <input
-            class="perm-check"
-            type="checkbox"
-            [checked]="userPermIds().has(p.id)"
-            (change)="togglePermission(p.id, $any($event.target).checked)"
-            [attr.aria-label]="'تبديل الصلاحية: ' + p.name"
-          />
-        </label>
-      </div>
-
-      <footer class="actions" style="display: flex; justify-content: flex-end; gap: 8px">
-        <button type="button" class="ghost" (click)="closePerm()">إغلاق</button>
-      </footer>
     </div>
+
+    <!-- فوتر ثابت خارج منطقة التمرير -->
+    <footer class="actions" style="display:flex;justify-content:flex-end;gap:8px">
+      <button type="button" class="ghost" (click)="closePerm()">إغلاق</button>
+    </footer>
   </form>
 </dialog>

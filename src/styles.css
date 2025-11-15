@@ -10,3 +10,6 @@
 
 .box{ outline:2px dashed transparent; }
 @media (max-width:640px){ .box{ outline-color:#3b82f6 !important; } }
+* {
+  font-family: sans-serif;
+}

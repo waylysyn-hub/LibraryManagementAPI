@@ -36,6 +36,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
     </form>
   `
 })
+
 export class MemberFormComponent {
   private fb = inject(FormBuilder);
 
@@ -59,7 +60,7 @@ export class MemberFormComponent {
       });
     }
   }
-
+  
   // تمرير أخطاء الباك من الأب (اختياري)
   @Input() set errors(errs: string[] | null) {
     this.setBackendErrors(errs ?? []);

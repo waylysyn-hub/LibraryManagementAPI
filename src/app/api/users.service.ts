@@ -1,3 +1,4 @@
+// src/app/api/users.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -10,14 +11,14 @@ export interface UserRow {
   email: string;
   roleId: number;
   createdAt: string;
-  phone?: string | null; 
+  phone?: string | null;
 }
 
 export interface ApiListUsers {
   success: boolean;
   count: number;
   data: Array<{
-    id: number; username: string; email: string; roleId: number; createdAt: string;phone?: string | null;
+    id: number; username: string; email: string; roleId: number; createdAt: string; phone?: string | null;
   }>;
 }
 
@@ -26,7 +27,7 @@ export interface ApiUserOne {
   data: {
     id: number; username: string; email: string; roleId: number; createdAt: string;
     permissions?: Array<{ id: number; name: string }>;
-    phone?: string | null; // لو بتضيفها لاحقاً
+    phone?: string | null;
   };
 }
 
@@ -34,14 +35,36 @@ export interface ApiMsg {
   success: boolean;
   message: string;
 }
+export interface RegisterStartReq { email: string; }
+export interface RegisterStartRes {
+  success: boolean;
+  message: string;
+  requestId: string;
+  devCode?: string;
+}
 
+export interface RegisterConfirmReq {
+  requestId: string;
+  code: string;
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  roleId: number;       // 1=Admin, 2=Employee, 3=Member
+  phone?: string | null;
+}
+export interface RegisterConfirmRes {
+  success: boolean;
+  userId?: number;
+  message: string;
+}
 export interface AdminRegisterDto {
   username: string;
   email: string;
   password: string;
   confirmPassword: string;
   phone?: string | null;
-  role: UserRoleForCreate; // Admin | Employee فقط
+  role: UserRoleForCreate; // Admin | Employee
 }
 
 export interface UserUpdateDto {
@@ -50,24 +73,37 @@ export interface UserUpdateDto {
   phone?: string | null;
 }
 
-// users.service.ts
 export interface UpdatePasswordDto {
   currentPassword: string;
   newPassword: string;
-  confirmNewPassword: string; // جديد
+  confirmNewPassword: string;
 }
-
 
 @Injectable({ providedIn: 'root' })
 export class UsersService {
-  private base = 'https://localhost:7091/api/Users';
-
+  // ✅ مسار نسبي — apiBaseInterceptor سيضيف الدومين
+  private base = '/api/Users';
+    registerStart(dto: RegisterStartReq) {
+    return this.http.post<RegisterStartRes>(`${this.base}/register-start`, dto);
+  }
+  registerConfirm(dto: RegisterConfirmReq) {
+    return this.http.post<RegisterConfirmRes>(`${this.base}/register-confirm`, dto);
+  }
   constructor(private http: HttpClient) {}
+adminUpdateStart(id: number, dto: { username: string; email: string; phone: string | null }) {
+  return this.http.post<any>(`${this.base}/${id}/admin-update-start`, dto);
+}
 
+adminUpdateConfirm(
+  id: number,
+  dto: { requestId: string; code: string; username: string; email: string; phone: string | null }
+) {
+  return this.http.post<any>(`${this.base}/${id}/admin-update-confirm`, dto);
+}
   list(): Observable<ApiListUsers> {
     return this.http.get<ApiListUsers>(this.base);
   }
-  
+
   getById(id: number): Observable<ApiUserOne> {
     return this.http.get<ApiUserOne>(`${this.base}/${id}`);
   }

@@ -24,6 +24,23 @@ export class UsersComponent {
   private toast = inject(ToastService);
   private route = inject(ActivatedRoute);
   private permsApi = inject(PermissionsService);
+  // BEGIN: added (تخزين القيم لاستخدامها في التأكيد)
+pendingCreateData: {
+  username: string;
+  email: string;
+  phone: string | null;
+  roleId: number;
+} | null = null;
+
+pendingEditData: {
+  id: number;
+  username: string;
+  email: string;
+  phone: string | null;
+} | null = null;
+// END: added - pending edit state
+
+// END: added
 
   // صلاحيات (بدّلها لاحقاً من localStorage)
   canRead = true;
@@ -49,6 +66,17 @@ export class UsersComponent {
   pageSize = signal(12);
   totalPages = signal(1);
   total = signal(0);
+  @ViewChild('codeDlg') codeDlg!: ElementRef<HTMLDialogElement>;
+codeLoading = signal(false);
+codeErrors: string[] = [];
+pendingRequestId: string | null = null;
+pendingEmail: string | null = null;
+
+// نموذج رمز التحقق فقط
+codeForm = this.fb.nonNullable.group({
+  code: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
+});
+
   @ViewChild('permDlg') permDlg!: ElementRef<HTMLDialogElement>;
   permLoading = signal(false);
   permErrors: string[] = [];
@@ -486,53 +514,298 @@ export class UsersComponent {
     this.createDlg?.nativeElement?.close();
   }
 
-  submitCreate() {
-    if (this.createForm.invalid) {
-      this.createForm.markAllAsTouched();
+submitCreate() {
+  this.createErrors = [];
+  
+  // نضّف أي رسائل backend قديمة من الحقول
+  const clearBackendErr = (name: keyof typeof this.createForm.controls) => {
+    const c = this.createForm.controls[name];
+    const e: any = c.errors || {};
+    if (e?.backend || e?.backendMsg) {
+      delete e.backend; delete e.backendMsg;
+      c.setErrors(Object.keys(e).length ? e : null);
+    }
+  };
+  (['username','email','phone','password','confirmPassword'] as const).forEach(clearBackendErr);
+
+  // 1) تحقّق required/format محلي برسائل مطابقة للباك
+  const f = this.createForm.controls;
+  let hasError = false;
+
+  // اسم المستخدم: مطلوب + >=3 — "اسم المستخدم قصير."
+  if (!f.username.value || f.username.value.trim().length < 3) {
+    f.username.setErrors({ ...(f.username.errors||{}), backend: true, backendMsg: 'اسم المستخدم قصير.' });
+    hasError = true;
+  }
+
+  // الإيميل: مطلوب + صيغة — "صيغة البريد الإلكتروني غير صحيحة."
+  const emailVal = (f.email.value || '').trim();
+  const emailOk = /^\S+@\S+\.\S+$/.test(emailVal);
+  if (!emailVal || !emailOk) {
+    f.email.setErrors({ ...(f.email.errors||{}), backend: true, backendMsg: 'صيغة البريد الإلكتروني غير صحيحة.' });
+    hasError = true;
+  }
+
+  // الهاتف (اختياري): نمط سوري — "رقم الهاتف يجب أن يبدأ بـ 09 أو +963 ثم 9 أرقام."
+  const phoneVal = (f.phone.value || '').trim();
+  if (phoneVal && !/^(?:09\d{9}|\+963\d{9})$/.test(phoneVal)) {
+    f.phone.setErrors({ ...(f.phone.errors||{}), pattern: true, backend: true, backendMsg: 'رقم الهاتف يجب أن يبدأ بـ 09 أو +963 ثم 9 أرقام.' });
+    hasError = true;
+  }
+
+  // كلمة المرور: مطلوب + >=6 — "كلمة المرور يجب ألا تقل عن 6 محارف."
+  const pwd = f.password.value || '';
+  if (!pwd || pwd.length < 6) {
+    f.password.setErrors({ ...(f.password.errors||{}), backend: true, backendMsg: 'كلمة المرور يجب ألا تقل عن 6 محارف.' });
+    hasError = true;
+  }
+
+  // تأكيد كلمة المرور: مطابق — "كلمتا المرور غير متطابقتان."
+  const cpw = f.confirmPassword.value || '';
+  if (!cpw || cpw !== pwd) {
+    f.confirmPassword.setErrors({ ...(f.confirmPassword.errors||{}), mismatch: true, backend: true, backendMsg: 'كلمتا المرور غير متطابقتان.' });
+    hasError = true;
+  }
+
+  // الدور
+  const roleCtrl = (this.createForm.controls as any).role;
+  if (!roleCtrl?.value) {
+    hasError = true; // غالباً select له قيمة افتراضية
+  }
+
+  // 1.أ — فحوصات "موجود مسبقًا" محليًا قبل الاتصال بالسيرفر
+  const norm = (s: string) => s.trim().toLowerCase();
+  const last9 = (p?: string|null) => {
+    if (!p) return '';
+    const d = String(p).replace(/\D+/g, '');
+    return d.length >= 9 ? d.slice(-9) : d;
+  };
+
+  const uname = (f.username.value || '').trim();
+  const phone9 = last9(phoneVal);
+
+  // اسم المستخدم مستخدم بالفعل؟
+  const usernameTaken = this.items().some(u => norm(u.username || '') === norm(uname));
+  if (usernameTaken) {
+    f.username.setErrors({ ...(f.username.errors||{}), backend: true, backendMsg: 'اسم المستخدم مستخدم بالفعل.' });
+    hasError = true;
+  }
+
+  // البريد مستخدم بالفعل؟ (تحسين UX؛ السيرفر سيتحقق أيضًا)
+  if (emailVal) {
+    const emailTaken = this.items().some(u => norm(u.email || '') === norm(emailVal));
+    if (emailTaken) {
+      f.email.setErrors({ ...(f.email.errors||{}), backend: true, backendMsg: 'البريد الإلكتروني مستخدم بالفعل. يرجى اختيار بريد آخر.' });
+      hasError = true;
+    }
+  }
+
+  // رقم الهاتف مستخدم مسبقاً؟
+  if (phone9) {
+    const phoneTaken = this.items().some(u => last9(u.phone || '') === phone9);
+    if (phoneTaken) {
+      f.phone.setErrors({ ...(f.phone.errors||{}), backend: true, backendMsg: 'رقم الهاتف مستخدم مسبقاً.' });
+      hasError = true;
+    }
+  }
+
+  if (hasError) {
+    this.createForm.markAllAsTouched();
+    return; // ❌ لا ننتقل لمودال الكود
+  }
+
+  // 2) خزّن البيانات لخطوة التأكيد
+  const roleId = roleCtrl.value === 'Admin' ? 1 : 2;
+  this.pendingCreateData = {
+    username: uname,
+    email: emailVal,
+    phone: phoneVal || null,
+    roleId,
+  };
+
+  // 3) استدعاء register-start (قد يرجّع "البريد مستخدم" → نعرضه على الحقل)
+  this.creating.set(true);
+  this.api.registerStart({ email: emailVal }).subscribe({
+    next: (res) => {
+      this.creating.set(false);
+      // نجاح: افتح مودال الكود
+      this.pendingRequestId = res.requestId;
+      this.pendingEmail = emailVal;
+      this.codeErrors = [];
+      this.codeForm.reset({ code: '' });
+      this.codeDlg?.nativeElement?.showModal();
+      if (res.devCode) this.toast.info(`DEV CODE: ${res.devCode}`);
+    },
+    error: (e) => {
+      this.creating.set(false);
+      // اربط رسالة الباك بحقل الإيميل إن متوفّر
+      const src = e?.error ?? e;
+      const msg = src?.message || src?.title || src?.detail || 'تعذّر إرسال رمز التحقق';
+      const field = (src?.field || '').toString().toLowerCase();
+
+      // لو رجع الباك "هذا البريد مستخدم بالفعل."
+      if (field === 'email' || /بريد.*مستخدم|email.*exists/i.test(msg)) {
+        const c = this.createForm.controls.email;
+        c.setErrors({ ...(c.errors||{}), backend: true, backendMsg: msg });
+      }
+      this.createErrors = [msg];
+      this.toast.error(msg);
+      // ❌ لا نفتح مودال الكود
+    },
+  });
+}
+
+
+// BEGIN: closeCode cleanup
+closeCode() {
+  this.codeDlg?.nativeElement?.close();
+  this.codeErrors = [];
+  this.codeForm.reset({ code: '' });
+}
+// END: closeCode cleanup
+
+
+// BEGIN: submitCreateCode (unified for create/edit)
+submitCreateCode() {
+  this.codeErrors = [];
+  if (this.codeForm.invalid) {
+    this.codeForm.markAllAsTouched();
+    return;
+  }
+  if (!this.pendingRequestId) {
+    this.codeErrors = ['طلب غير معروف. أعد الإرسال من جديد.'];
+    return;
+  }
+
+  // حالة 1: تأكيد إنشاء
+  if (this.pendingCreateData) {
+    const v = this.createForm.getRawValue();
+    if (!v.password || !v.confirmPassword) {
+      this.codeErrors = ['يرجى إدخال كلمة المرور وتأكيدها.'];
       return;
     }
-    const v = this.createForm.getRawValue();
     if (v.password !== v.confirmPassword) {
       this.createForm.controls.confirmPassword.setErrors({ mismatch: true });
-      return;
-    }
-    const phone = v.phone?.trim();
-    if (phone && !/^(?:09\d{9}|\+963\d{9})$/.test(phone)) {
-      const ctrl = this.createForm.controls.phone;
-      ctrl.setErrors({ ...(ctrl.errors || {}), pattern: true });
-      ctrl.markAsTouched();
+      this.codeErrors = ['كلمتا المرور غير متطابقتين.'];
       return;
     }
 
-    this.creating.set(true);
-    this.api
-      .adminRegister({
-        username: v.username!,
-        email: v.email!,
-        password: v.password!,
-        confirmPassword: v.confirmPassword!,
-        phone: phone || null,
-        role: v.role!,
-      })
-      .subscribe({
-        next: () => {
-          this.creating.set(false);
-          this.toast.success('تم إنشاء المستخدم بنجاح');
-          this.closeCreate();
-          this.reload();
-        },
-        error: (e) => {
-          this.creating.set(false);
-          this.createErrors = this.collectBackendErrors(this.createForm, e);
-          if (!this.hasErr(this.createForm, 'phone', 'backend')) {
-            const m = this.createErrors.find((x) => /هاتف|phone/i.test(x));
-            if (m) this.assignFieldBackendError(this.createForm, 'phone', m);
-          }
-          if (!this.createErrors.length) this.createErrors = ['فشل إنشاء المستخدم'];
-          this.toast.error(this.createErrors[0]);
-        },
-      });
+    const dto = {
+      requestId: this.pendingRequestId,
+      code: this.codeForm.value.code!,
+      username: this.pendingCreateData.username,
+      email: this.pendingCreateData.email,
+      password: v.password!,
+      confirmPassword: v.confirmPassword!,
+      roleId: this.pendingCreateData.roleId,
+      phone: this.pendingCreateData.phone ?? undefined,
+    };
+
+    this.codeLoading.set(true);
+    this.api.registerConfirm(dto).subscribe({
+      next: (res) => {
+        this.codeLoading.set(false);
+        this.toast.success(res.message || 'تم إنشاء المستخدم');
+        this.closeCode();
+        this.closeCreate();
+        this.pendingRequestId = null;
+        this.pendingEmail = null;
+        this.pendingCreateData = null;
+        this.reload();
+      },
+      error: (e) => {
+        this.codeLoading.set(false);
+        const errs = this.collectBackendErrors(this.createForm, e);
+        this.codeErrors = errs.length ? errs : ['فشل تأكيد الرمز/إنشاء الحساب'];
+        this.toast.error(this.codeErrors[0]);
+      },
+    });
+    return;
   }
+
+  // حالة 2: تأكيد تعديل
+  if (this.pendingEditData) {
+    const dto = {
+      requestId: this.pendingRequestId,
+      code: this.codeForm.value.code!,
+      username: this.pendingEditData.username,
+      email: this.pendingEditData.email,
+      phone: this.pendingEditData.phone,
+    };
+    this.codeLoading.set(true);
+    this.api.adminUpdateConfirm(this.pendingEditData.id, dto).subscribe({
+      next: (res) => {
+        this.codeLoading.set(false);
+        this.toast.success(res?.message || 'تم التحديث بعد تأكيد البريد.');
+        this.closeCode();
+        this.closeEdit();
+        this.pendingRequestId = null;
+        this.pendingEmail = null;
+        this.pendingEditData = null;
+        this.reload();
+      },
+      error: (e) => {
+        this.codeLoading.set(false);
+        // نربط أخطاء التعديل على editForm لأن الحقول تتبع التعديل
+        const errs = this.collectBackendErrors(this.editForm, e);
+        this.codeErrors = errs.length ? errs : ['فشل تأكيد الرمز/إتمام التعديل'];
+        this.toast.error(this.codeErrors[0]);
+      },
+    });
+    return;
+  }
+
+  // لا إنشاء ولا تعديل؟ حالة غير متوقعة
+  this.codeErrors = ['لا توجد عملية بانتظار التأكيد.'];
+}
+// END: submitCreateCode (unified for create/edit)
+
+
+
+// BEGIN: resendCode (context-aware)
+resendCode() {
+  // إعادة إرسال لسيناريو الإنشاء
+  if (this.pendingCreateData && this.pendingEmail) {
+    this.creating.set(true);
+    this.api.registerStart({ email: this.pendingEmail }).subscribe({
+      next: (res) => {
+        this.creating.set(false);
+        this.pendingRequestId = res.requestId;
+        if (res.devCode) this.toast.info(`DEV CODE: ${res.devCode}`);
+      },
+      error: (e) => {
+        this.creating.set(false);
+        const errs = this.collectBackendErrors(this.createForm, e);
+        this.toast.error(errs[0] || 'فشل إعادة الإرسال');
+      },
+    });
+    return;
+  }
+
+  // إعادة إرسال لسيناريو التعديل
+  if (this.pendingEditData) {
+    const d = this.pendingEditData;
+    this.saving.set(true);
+    this.api.adminUpdateStart(d.id, {
+      username: d.username,
+      email: d.email,
+      phone: d.phone,
+    }).subscribe({
+      next: (res) => {
+        this.saving.set(false);
+        this.pendingRequestId = res.requestId;
+        if (res.devCode) this.toast.info(`DEV CODE: ${res.devCode}`);
+      },
+      error: (e) => {
+        this.saving.set(false);
+        const errs = this.collectBackendErrors(this.editForm, e);
+        this.toast.error(errs[0] || 'فشل إعادة الإرسال');
+      },
+    });
+  }
+}
+// END: resendCode (context-aware)
+
 
   openEdit(u: UserRow) {
     if (!this.canUpdate) return;
@@ -564,41 +837,63 @@ export class UsersComponent {
     this.editingId = null;
   }
 
-  submitEdit() {
-    if (!this.editingId) return;
-    if (this.editForm.invalid) {
-      this.editForm.markAllAsTouched();
-      return;
-    }
-    const raw = this.editForm.getRawValue();
-    const dto = {
-      username: raw.username!,
-      email: raw.email!,
-      phone: (raw.phone?.trim() || null) as string | null,
-    };
+// BEGIN: submitEdit (admin-update-start flow)
+submitEdit() {
+  if (!this.editingId) return;
+  if (this.editForm.invalid) {
+    this.editForm.markAllAsTouched();
+    return;
+  }
+  const raw = this.editForm.getRawValue();
+  const dto = {
+    username: raw.username!,
+    email: raw.email!,
+    phone: (raw.phone?.trim() || null) as string | null,
+  };
 
-    this.saving.set(true);
-    this.api.update(this.editingId, dto).subscribe({
-      next: () => {
-        this.saving.set(false);
-        this.toast.success('تم تحديث المستخدم');
+  this.saving.set(true);
+  // 1) نبدأ خطوة التحقق/الإرسال
+  this.api.adminUpdateStart(this.editingId, dto).subscribe({
+    next: (res) => {
+      this.saving.set(false);
+
+      // إذا الإيميل لم يتغيّر: تحديث تمّ مباشرة
+      if (!res?.requiresCode) {
+        this.toast.success(res?.message || 'تم التحديث.');
         this.closeEdit();
         this.reload();
-      },
-      error: (e) => {
-        this.saving.set(false);
-        // ✅ إصلاح: خزّن أخطاء التعديل في editErrors وليس createErrors
-        this.editErrors = this.collectBackendErrors(this.editForm, e);
-        // إن وُجدت رسالة تخص الهاتف ولم تُسجَّل على الحقل
-        if (!this.hasErr(this.editForm, 'phone', 'backend')) {
-          const m = this.editErrors.find((x) => /هاتف|phone/i.test(x));
-          if (m) this.assignFieldBackendError(this.editForm, 'phone', m);
-        }
-        if (!this.editErrors.length) this.editErrors = ['فشل التعديل'];
-        this.toast.error(this.editErrors[0]);
-      },
-    });
-  }
+        return;
+      }
+
+      // يحتاج كود: خزّن القيم وافتح مودال الكود
+      this.pendingEditData = {
+        id: this.editingId!,
+        username: dto.username,
+        email: dto.email,
+        phone: dto.phone,
+      };
+      this.pendingRequestId = res.requestId;
+      this.pendingEmail = dto.email;
+      this.codeErrors = [];
+      this.codeForm.reset({ code: '' });
+      this.codeDlg?.nativeElement?.showModal();
+      if (res.devCode) this.toast.info(`DEV CODE: ${res.devCode}`);
+    },
+    error: (e) => {
+      this.saving.set(false);
+      this.editErrors = this.collectBackendErrors(this.editForm, e);
+      // لو في رسالة خاصة بالهاتف وما انعكست على الحقل
+      if (!this.hasErr(this.editForm, 'phone', 'backend')) {
+        const m = this.editErrors.find((x) => /هاتف|phone/i.test(x));
+        if (m) this.assignFieldBackendError(this.editForm, 'phone', m);
+      }
+      if (!this.editErrors.length) this.editErrors = ['فشل التعديل'];
+      this.toast.error(this.editErrors[0]);
+    },
+  });
+}
+// END: submitEdit (admin-update-start flow)
+
 
   openPwd(u: UserRow) {
     if (!this.canUpdate) return;
