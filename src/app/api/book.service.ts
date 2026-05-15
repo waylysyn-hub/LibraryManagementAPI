@@ -6,7 +6,8 @@ import { Book, BookQuery, PagedResult } from './types';
 @Injectable({ providedIn: 'root' })
 export class BookService {
   private http = inject(HttpClient);
-  private base = 'https://localhost:7091/api/Books';
+  // ✅ مسار نسبي — الـapiBaseInterceptor سيضيف الدومين من environment.apiBase
+  private base = '/api/Books';
 
   list(q: BookQuery): Observable<PagedResult<Book>> {
     let params = new HttpParams();
@@ -54,9 +55,12 @@ export class BookService {
       if (v === undefined || v === null || v === '') return;
       params = params.set(k, String(v));
     });
-    return this.http.get(`${this.base}/export`, { params, responseType: 'blob' }).pipe(
-      catchError(this.handleError)
-    );
+
+    // 👇 أفضل طريقة لأن Angular تطلب cast بسيط مع blob
+    return this.http.get<Blob>(`${this.base}/export`, {
+      params,
+      responseType: 'blob' as 'json'
+    }).pipe(catchError(this.handleError));
   }
 
   // ---------- Helpers ----------
@@ -64,57 +68,87 @@ export class BookService {
     return (res?.data ?? res) as T;
   }
 
-private unwrapPaged<T>(res: any, q: BookQuery): PagedResult<T> {
-  const data = res?.data ?? res; // التعامل مع البيانات القادمة من الـ API
-  const page = q.Page ?? 1;
-  const pageSize = q.PageSize ?? data.length;
+  private unwrapPaged<T>(res: any, q: BookQuery): PagedResult<T> {
+    // 1) الشكل القياسي: { data: T[], meta: {...} }
+    if (res?.meta && Array.isArray(res?.data)) {
+      const items = res.data as T[];
+      const meta  = res.meta || {};
+      const page      = Number(meta.page ?? q.Page ?? 1);
+      const pageSize  = Number(meta.pageSize ?? q.PageSize ?? items.length);
+      const total     = Number(meta.total ?? items.length);
+      const totalPages= Number(meta.totalPages ?? Math.ceil(total / Math.max(1, pageSize)));
 
-  // التعامل مع حالة الـ Array
-  if (Array.isArray(data)) {
+      return {
+        success: Boolean(res?.success ?? true),
+        message: res?.message ?? 'تم الجلب بنجاح',
+        items,
+        total,
+        data: items,
+        meta: {
+          page,
+          pageSize,
+          total,
+          totalPages,
+          sortBy: meta.sortBy ?? 'Id',
+          sortDir: meta.sortDir ?? 'asc'
+        }
+      } as any;
+    }
+
+    // 2) بيانات كمصفوفة فقط (بدون meta)
+    const data = res?.data ?? res;
+    if (Array.isArray(data)) {
+      const items = data as T[];
+      const page     = q.Page ?? 1;
+      const pageSize = q.PageSize ?? items.length;
+      const total    = items.length;
+
+      return {
+        success: true,
+        message: 'تم الجلب بنجاح',
+        items,
+        total,
+        data: items,
+        meta: {
+          page,
+          pageSize,
+          total,
+          totalPages: Math.ceil(total / Math.max(1, pageSize)),
+          sortBy: 'Id',
+          sortDir: 'asc'
+        }
+      } as any;
+    }
+
+    // 3) fallback لأشكال مخصّصة { items/Rows, total/Total, page/Page, pageSize/PageSize }
+    const items = (data?.items ?? data?.Rows ?? []) as T[];
+    const total = Number(data?.total ?? data?.Total ?? items.length);
+    const page  = Number(data?.page ?? data?.Page ?? q.Page ?? 1);
+    const pageSize = Number(data?.pageSize ?? data?.PageSize ?? q.PageSize ?? items.length);
+
     return {
       success: true,
-      message: "تم الجلب بنجاح",  // رسالة نجاح، يمكنك تعديلها حسب الحاجة
-      items: data as T[],  // البيانات نفسها
-      total: data.length, // إجمالي العناصر
-      data: data as T[],  // البيانات نفسها
-      meta: {  // تضمين الـ pagination
+      message: 'تم الجلب بنجاح',
+      items,
+      total,
+      data: items,
+      meta: {
         page,
         pageSize,
-        total: data.length,
-        totalPages: Math.ceil(data.length / pageSize),  // حساب إجمالي الصفحات
-        sortBy: 'title',  // ترتيب الافتراضي
-        sortDir: 'asc'   // ترتيب التصفية الافتراضي
+        total,
+        totalPages: Math.ceil(total / Math.max(1, pageSize)),
+        sortBy: 'Id',
+        sortDir: 'asc'
       }
-    };
+    } as any;
   }
-
-  // التعامل مع الحالة التي تكون فيها البيانات غير مصفوفة
-  const items = (data?.items ?? data?.Rows ?? []) as T[];
-  const total = Number(data?.total ?? data?.Total ?? items.length);
-  const pageNumber = Number(data?.page ?? data?.Page ?? q.Page ?? 1);  // تجنب إعادة تعريف المتغير
-  const pageSizeNumber = Number(data?.pageSize ?? data?.PageSize ?? q.PageSize ?? items.length);  // تجنب إعادة تعريف المتغير
-
-  return {
-    success: true,  // رسالة النجاح
-    message: "تم الجلب بنجاح",  // رسالة النجاح
-    items,  // البيانات المسترجعة
-    total,  // إجمالي العناصر
-    data: items,  // البيانات نفسها
-    meta: {  // تضمين الـ pagination
-      page: pageNumber,
-      pageSize: pageSizeNumber,
-      total,
-      totalPages: Math.ceil(total / pageSizeNumber),  // حساب إجمالي الصفحات
-      sortBy: 'title',  // ترتيب الافتراضي
-      sortDir: 'asc'   // ترتيب التصفية الافتراضي
-    }
-  };
+  lookupBooks(q: string, limit = 20) {
+  const params = new HttpParams().set('q', q).set('limit', limit);
+  return this.http.get<{ id:number; label:string; sub?:string }[]>(
+    `${this.base}/api/lookup/books`, { params }
+  );
 }
 
-
-
-
-  // مرّر الخطأ كما هو (لا تحوّله لـ Error) ليقدر الـ component يقرأ ModelState/ProblemDetails
   private handleError(error: any) {
     return throwError(() => error);
   }

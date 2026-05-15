@@ -22,6 +22,17 @@ import { ToastService } from './toast.service';
     .toast.ok{ background:#065f46 }
     .toast.err{ background:#7f1d1d }
     .toast.inf{ background:#1f2937 }
+    .toast-wrap {
+      position: fixed;
+      top: 16px;       /* أعلى الصفحة */
+      right: 16px;     /* أعلى يمين */
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 99999;  /* خليها أعلى من أي بطاقة أو modal */
+    }
+
+
   `]
 })
 export class ToastComponent {

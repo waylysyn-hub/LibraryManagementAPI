@@ -1,76 +1,599 @@
-/* src/app/borrowings/borrow-form.css */
+/* ========= أخطاء التحقق ========= */
 .error-messages{
   background:#FEF2F2; color:#B91C1C; border:1px solid #FECACA;
-  border-radius:10px; padding:.75rem 1rem; margin:.5rem 0 1rem;
-  font-weight:600;
+  border-radius:12px; padding:.75rem 1rem; margin:.25rem 0 1rem;
+  font-weight:700;
 }
-.error-messages ul{margin:.25rem 0 0 1rem}
-label.err input{ border-color:#EF4444 !important; box-shadow:0 0 0 3px rgba(239,68,68,.15) }
-/* ——— تحسين شكل المودال ——— */
-.modal { border:0; padding:0; border-radius:20px; background:#fff; box-shadow:var(--shadow-md); }
-.modal::backdrop{ background:rgba(2,6,23,.55); backdrop-filter: blur(2px) }
-.modal .box{ padding:20px; min-width:560px; max-width:680px; }
+.error-messages ul{ margin:.25rem 0 0 1rem }
+label.err input{
+  border-color:#EF4444 !important;
+  box-shadow:0 0 0 3px rgba(239,68,68,.15)
+}
 
-.modal .head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
-.modal .head h3{ margin:0; font-size:1.15rem; letter-spacing:.2px; }
+/* ========= المودال: تكبير وتوسيط ========= */
+.modal{
+  border:0; padding:0; border-radius:20px; background:#fff; box-shadow:var(--shadow-md);
+}
+.modal[open]{ display:grid; place-items:center; } /* توسيط محتوى الـ<dialog> */
+.modal::backdrop{ background:rgba(2,6,23,.6); backdrop-filter: blur(3px) }
+
+/* صندوق المحتوى */
+.modal .box{
+  width: clamp(740px, 62vw, 900px);
+  max-height: 82vh;
+  overflow: auto;
+  padding: 26px;
+  border:1px solid rgba(15,23,42,.06);
+  border-radius:24px;
+  background:
+    radial-gradient(1200px 600px at 100% -10%, rgba(79,70,229,.06), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(99,102,241,.05), transparent 60%),
+    #fff;
+}
+
+/* رأس المودال */
+.modal .head{
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:14px; padding-bottom:12px;
+  border-bottom:1px dashed rgba(15,23,42,.12);
+}
+.modal .head h3{ margin:0; font-size:1.22rem; letter-spacing:.2px; font-weight:900; color:#0f172a; }
 .modal .x{
-  height:34px; width:34px; display:grid; place-items:center;
-  border-radius:10px; border:1px solid var(--stroke); background:#fff; cursor:pointer;
+  height:36px; width:36px; display:grid; place-items:center;
+  border-radius:12px; border:1px solid rgba(15,23,42,.12); background:#fff; cursor:pointer;
+  transition: transform .12s ease, background .12s ease;
 }
-.modal .x:hover{ background:#f8fafc }
+.modal .x:hover{ background:#f8fafc; transform: rotate(3deg); }
 
+/* شبكة الحقول */
 .modal .grid{
-  display:grid; gap:14px; margin:14px 0 6px;
+  display:grid; gap:18px; margin:18px 0 10px;
   grid-template-columns: repeat(2, minmax(0,1fr));
 }
 .modal .grid .span-2{ grid-column: span 2; }
 
+/* الحقول */
 .field{ display:flex; flex-direction:column; gap:8px; }
-.field .label{ font-weight:800; color:var(--text) }
-.field .label small{ color:var(--muted); font-weight:700; margin-inline-start:6px }
+.field .label{ font-weight:900; color:#0f172a }
+.field .label small{ color:#64748b; font-weight:700; margin-inline-start:6px }
 
-.modal input{
-  height:42px; border:1px solid var(--stroke); border-radius:12px; padding:0 12px;
+/* توحيد شكل input/select */
+.modal input,
+.modal select{
+  height:46px; border:1px solid rgba(15,23,42,.12); border-radius:14px; padding:0 14px;
   background:#fff; outline:none; transition:.15s ease;
   box-shadow: 0 2px 0 rgba(15,23,42,.02) inset;
+  font-weight:600;
 }
-.modal input::placeholder{ color:#9aa4b2 }
-.modal input:focus{ border-color:transparent; box-shadow: var(--ring) }
+.modal input::placeholder{ color:#94a3b8 }
+.modal input:focus,
+.modal select:focus{ border-color:transparent; box-shadow: 0 0 0 4px rgba(79,70,229,.16) }
 
+/* إضافة جانبية */
 .with-addon{ position:relative; }
 .with-addon .addon{
-  position:absolute; inset-inline-end:8px; inset-block:7px auto;
-  height:28px; display:inline-grid; place-items:center;
-  padding:0 10px; border-radius:8px; font-weight:800;
-  background:#f1f5f9; color:#0f172a; border:1px solid var(--stroke);
+  position:absolute; inset-inline-end:8px; inset-block:8px auto;
+  height:30px; display:inline-grid; place-items:center;
+  padding:0 10px; border-radius:10px; font-weight:900;
+  background:#f1f5f9; color:#0f172a; border:1px solid rgba(15,23,42,.1);
 }
-.with-addon input{ padding-inline-end:64px; }
+.with-addon input{ padding-inline-end:70px; }
 
-.hint{ color:var(--muted); font-weight:700; font-size:.86rem }
+/* تلميحات */
+.hint{ color:#64748b; font-weight:700; font-size:.9rem }
 
-.modal .actions{
-  display:flex; gap:10px; justify-content:flex-start; margin-top:8px;
-}
+/* الأزرار داخل المودال */
+.modal .actions{ display:flex; gap:12px; justify-content:flex-start; margin-top:14px; }
 
-/* زر حفظ بارز (موروث من عندك + تعديل خفيف) */
+
 .modal .actions .primary{
-  min-width:112px;
+  min-width:128px; border-radius:12px; padding:.7rem 1rem;
   background: linear-gradient(180deg, #5b56f7, #4f46e5);
-  color:#fff; border:0; font-weight:800; letter-spacing:.2px;
-  box-shadow: 0 10px 24px rgba(79,70,229,.25);
+  color:#fff; border:0; font-weight:900; letter-spacing:.2px;
+  box-shadow: 0 12px 28px rgba(79,70,229,.28);
+  transition: transform .12s ease, filter .12s ease;
 }
-.modal .actions .primary:hover{ filter:brightness(1.03); transform:translateY(-1px) }
+.modal .actions .primary:hover{ filter:brightness(1.04); transform:translateY(-1px) }
+.modal .actions .primary:active{ transform:translateY(0); filter:none }
 
-/* صندوق أخطاء الباك */
-.error-messages{
-  background:#FEF2F2; color:#B91C1C; border:1px solid #FECACA;
-  border-radius:12px; padding:.75rem 1rem; margin:.25rem 0 1rem; font-weight:700;
+
+button.primary,
+button.primary:focus,
+button.primary:active,
+button.primary.attn,
+button.primary.attn:focus,
+button.primary.attn:active{
+  color:#fff !important;
 }
-.error-messages ul{ margin:.25rem 0 0 1rem }
 
-/* استجابة */
+
+.modal .actions .ghost{
+  min-width:108px; border-radius:12px;
+  background:#fff; color:#111; border:1px solid rgba(15,23,42,.16);
+  font-weight:800; padding:.66rem 1rem;
+  box-shadow: 0 10px 22px rgba(15,23,42,.06);
+}
+.modal .actions .ghost:hover{ background:#f8fafc }
+
 @media (max-width: 640px){
-  .modal .box{ min-width: 94vw; max-width: 94vw; }
+  .modal .box{ width: 94vw; max-height: 86vh; }
   .modal .grid{ grid-template-columns: 1fr; }
   .modal .grid .span-2{ grid-column: auto; }
 }
+
+
+.add-borrow-btn{
+  --btn-bg: #4f46e5;
+  --btn-bg-top: #5b56f7;
+  --btn-text: #fff;
+  --btn-ring: 0 0 0 4px rgba(79,70,229,.18);
+
+  display:inline-flex; align-items:center; gap:.5rem;
+  padding:.68rem 1.1rem;
+  border-radius:999px;
+  border:2px solid #1f1f1f20;
+  background: linear-gradient(180deg, var(--btn-bg-top), var(--btn-bg));
+  color: var(--btn-text) !important;
+  font-weight:800; letter-spacing:.2px;
+  box-shadow: 0 12px 26px rgba(79,70,229,.28);
+  transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+  white-space: nowrap;
+}
+.add-borrow-btn svg, .add-borrow-btn i { color:currentColor !important; }
+
+
+.add-borrow-btn:hover,
+.add-borrow-btn:focus,
+.add-borrow-btn:active,
+.add-borrow-btn:focus-visible{
+  color:#fff !important;
+  filter: brightness(1.03);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 32px rgba(79,70,229,.34), var(--btn-ring);
+  outline: none;
+}
+
+
+.add-borrow-btn *,
+.add-borrow-btn:hover *,
+.add-borrow-btn:active *,
+.add-borrow-btn:focus *{
+  color:#fff !important;
+  mix-blend-mode: normal !important;
+}
+
+
+.add-borrow-btn:is(:hover,:active,:focus){
+  background: linear-gradient(180deg, var(--btn-bg-top), var(--btn-bg));
+}
+
+
+.add-borrow-btn.ghost{
+  background:#fff; color:#111 !important; border-color:#1f2937;
+  box-shadow: 0 10px 22px rgba(15,23,42,.08);
+}
+.add-borrow-btn.ghost:hover{ filter:none; transform:none; box-shadow: 0 12px 26px rgba(15,23,42,.12); }
+
+
+@media (prefers-reduced-motion: reduce){
+  .add-borrow-btn, .modal .x, .modal .actions .primary { transition:none }
+}
+
+@media (max-width: 900px){
+  .modal .grid{ grid-template-columns: 1fr; }
+  .modal .box{
+    
+    width: min(92vw, 740px);
+    max-height: 86vh;
+  }
+}
+
+
+@media (max-width: 640px){
+  .modal{ border-radius: 0; }
+  .modal .box{
+    width: 100vw;
+    max-height: calc(100dvh - 16px);
+    padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+    border-radius: 0;
+  }
+  .modal .actions{ flex-wrap: wrap; }
+  .modal .actions .primary,
+  .modal .actions .ghost{ flex: 1 0 160px; }
+}
+
+
+html:has(.modal[open]),
+body:has(.modal[open]){
+  overflow: hidden;
+}
+
+
+.modal .box{
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+
+button:focus-visible,
+.modal .x:focus-visible,
+.modal input:focus,
+.modal select:focus{
+  outline: 0;
+  box-shadow: 0 0 0 4px rgba(79,70,229,.16), 0 2px 0 rgba(15,23,42,.02) inset;
+}
+
+
+.error-messages{ min-height: 44px; }
+
+
+.with-addon .addon{ padding: 0 12px; }
+.modal .x{ touch-action: manipulation; }
+/* ===== Borrow Modal — Responsive, no clipping, tidy RTL/LTR ===== */
+
+/* 0) خلّي الـ<dialog> يطفو فوق الصفحة وما ينقص */
+dialog.modal{
+  position: fixed !important;
+  inset: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  z-index: 9999 !important;
+}
+dialog.modal::backdrop{
+  background: rgba(2,6,23,.55);
+  backdrop-filter: blur(2px);
+}
+
+/* 1) صندوق المودال: تقسيم هيدر/جسم/فوتر + قياسات مرنة */
+dialog.modal .box{
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto 1fr auto;     /* head / scrollable body / footer */
+  width: min(760px, 96dvw);               /* لا 100vw كي لا يقص مع سكروول */
+  max-height: min(88dvh, 720px);
+  overflow: hidden;                       /* الجسم فقط يتمرّر */
+  border-radius: 16px;
+  padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(1200px 600px at 100% -10%, rgba(79,70,229,.06), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(99,102,241,.05), transparent 60%),
+    #fff;
+}
+
+/* 2) رأس وفوتر ثابتين */
+dialog.modal .head{
+  position: sticky; top: 0; z-index: 2;
+  background: #fff;
+  margin: 0 0 12px 0; padding-bottom: 10px;
+  border-bottom: 1px dashed rgba(15,23,42,.12);
+}
+dialog.modal .actions{
+  position: sticky; bottom: 0; z-index: 2;
+  background: #fff;
+  margin-top: 12px; padding-top: 10px;
+  border-top: 1px solid #eef2f7;
+  display: flex; gap: 12px; justify-content: flex-start; flex-wrap: nowrap;
+}
+
+/* 3) الجسم يتمرّر فقط */
+dialog.modal .grid{
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+/* 4) شبكة الحقول: عمودين على الكبير، عمود واحد على الصغير */
+dialog.modal .grid{
+  display: grid; gap: 16px; margin: 12px 0 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+dialog.modal .grid .span-2{ grid-column: span 2; }
+
+/* 5) RTL افتراضي مع ضبط قيم رقمية/إنجليزية LTR */
+dialog.modal .box{ direction: rtl; text-align: right; }
+dialog.modal input[type="number"],
+dialog.modal input[name*="isbn" i],
+dialog.modal input[name*="title" i],
+dialog.modal input[name*="author" i]{
+  direction: ltr;
+  text-align: left;
+}
+
+/* 6) عناصر الحقل */
+dialog.modal .field{ display:flex; flex-direction:column; gap:8px; min-width:0; }
+dialog.modal .label{ font-weight:900; color:#0f172a; }
+dialog.modal input, dialog.modal select{
+  width:100%; min-height:46px; font-size:16px;   /* يمنع zoom في iOS */
+  border:1px solid rgba(15,23,42,.12); border-radius:14px; padding:0 14px;
+  background:#fff; outline:0; transition:.15s;
+  box-shadow: 0 2px 0 rgba(15,23,42,.02) inset;
+}
+dialog.modal input:focus, dialog.modal select:focus{
+  border-color: transparent;
+  box-shadow: 0 0 0 4px rgba(79,70,229,.16);
+}
+
+/* 7) input مع إضافة جانبية (يوم) — يحافظ على المحاذاة في RTL */
+dialog.modal .with-addon{ position: relative; }
+dialog.modal .with-addon .addon{
+  position: absolute;
+  inset-inline-end: 8px; inset-block-start: 8px;
+  height: 30px; display: grid; place-items: center;
+  padding: 0 12px; border-radius: 10px; font-weight: 900;
+  background: #f1f5f9; color:#0f172a; border:1px solid rgba(15,23,42,.1);
+}
+dialog.modal .with-addon input{ padding-inline-end: 72px; }
+
+/* 8) أزرار الفوتر داخل المودال فقط (تكسر أي تعارض خارجي) */
+dialog.modal .actions .primary{
+  background: linear-gradient(180deg,#5b56f7,#4f46e5) !important;
+  color:#fff !important; border:0 !important;
+  min-width:128px; border-radius:12px; padding:.7rem 1rem;
+  font-weight:900; box-shadow: 0 12px 28px rgba(79,70,229,.28);
+}
+dialog.modal .actions .ghost{
+  background:#fff !important; color:#111 !important;
+  border:1px solid rgba(15,23,42,.16) !important;
+  min-width:108px; border-radius:12px; padding:.66rem 1rem;
+}
+
+/* 9) Mobile tweaks */
+@media (max-width: 900px){
+  dialog.modal .grid{ grid-template-columns: 1fr; }
+  dialog.modal .grid .span-2{ grid-column: auto; }
+}
+@media (max-width: 640px){
+  dialog.modal .box{
+    width: calc(100dvw - 16px);     /* هوامش 8px يمين/يسار */
+    max-height: calc(100dvh - 16px);
+    border-radius: 12px;
+  }
+  dialog.modal .actions{ flex-wrap: wrap; }
+  dialog.modal .actions .primary,
+  dialog.modal .actions .ghost{
+    flex: 1 0 160px;
+    min-height: 46px;
+  }
+}
+@media (max-width: 380px){
+  dialog.modal .box{ padding: 14px 10px calc(14px + env(safe-area-inset-bottom)); }
+  dialog.modal .grid{ gap: 10px; }
+}
+
+/* 10) أثناء فتح المودال: قفل تمرير الصفحة وتعطيل أي transform قد يقطع الخلفية */
+html:has(dialog.modal[open]), body:has(dialog.modal[open]){ overflow: hidden; }
+dialog.modal:not([open]){ display:none !important; }
+/* المودال يطفو فوق الصفحة ويُوسّط */
+dialog.modal{
+  position: fixed !important;
+  inset: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  z-index: 9999 !important;
+}
+dialog.modal::backdrop{
+  background: rgba(2,6,23,.55);
+  backdrop-filter: blur(2px);
+}
+
+/* صندوق المودال: رأس ثابت + جسم يتمرّر + فوتر ثابت */
+dialog.modal .box{
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto 1fr auto;   /* head / scrollable body / footer */
+  width: min(760px, 96dvw);
+  max-height: min(88dvh, 720px);
+  overflow: hidden;                     /* الجسم فقط يتمرّر */
+  border-radius: 16px;
+  padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(1200px 600px at 100% -10%, rgba(79,70,229,.06), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(99,102,241,.05), transparent 60%),
+    #fff;
+}
+
+dialog.modal .head{
+  position: sticky; top: 0; z-index: 2;
+  background:#fff; margin:0 0 12px; padding-bottom:10px;
+  border-bottom:1px dashed rgba(15,23,42,.12);
+}
+dialog.modal .actions{
+  position: sticky; bottom: 0; z-index: 2;
+  background:#fff; margin-top:12px; padding-top:10px;
+  border-top:1px solid #eef2f7;
+  display:flex; gap:12px; flex-wrap:nowrap; justify-content:flex-start;
+}
+
+dialog.modal .grid{
+  overflow:auto; overscroll-behavior:contain; scrollbar-gutter:stable;
+  display:grid; gap:16px; margin:12px 0 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+dialog.modal .grid .span-2{ grid-column: span 2; }
+
+@media (max-width: 900px){
+  dialog.modal .grid{ grid-template-columns:1fr; }
+  dialog.modal .grid .span-2{ grid-column:auto; }
+}
+@media (max-width: 640px){
+  dialog.modal .box{
+    width: calc(100dvw - 16px);
+    max-height: calc(100dvh - 16px);
+    border-radius: 12px;
+  }
+  dialog.modal .actions{ flex-wrap:wrap; }
+  dialog.modal .actions .primary,
+  dialog.modal .actions .ghost{ flex:1 0 160px; min-height:46px; }
+}
+
+/* قفل تمرير الصفحة أثناء فتح المودال */
+html:has(dialog.modal[open]), body:has(dialog.modal[open]){ overflow:hidden; }
+/* القاعدة العامة (لو موجودة عندك اتركها) */
+dialog.modal input[type="number"]{
+  direction:ltr; text-align:left;
+}
+
+/* ✅ استثناء مدة الإعارة: يمين/RTL */
+dialog.modal input[formcontrolname="durationDays"]{
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+/* مع الإضافة الجانبية "يوم" */
+dialog.modal .with-addon .addon{ inset-inline-end:8px; inset-block-start:8px; }
+dialog.modal .with-addon input{ padding-inline-end:72px; }
+/* 1) هامش حماية يمنع القص يمين/يسار */
+dialog.modal { padding-inline: 8px !important; }
+
+/* 2) عرض آمن + صف وسط قابل للتمرير */
+dialog.modal .box{
+  width: min(760px, calc(100dvw - 16px)) !important;
+  grid-template-rows: auto minmax(0,1fr) auto !important; /* head | body(scroll) | footer */
+}
+
+/* 3) فعّل السّكرول داخل جسم النموذج فقط */
+dialog.modal .grid{
+  min-height: 0 !important;
+  overflow: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+/* 4) تجنّب تمدّد عناصر الحقول أفقياً في RTL (يمنع ظهور سكرول أفقي وهمي) */
+dialog.modal .field,
+dialog.modal .field > *,
+dialog.modal input,
+dialog.modal select {
+  min-width: 0 !important;
+}
+
+/* 5) احتياط: لا سكرول أفقي على الصندوق نفسه */
+dialog.modal .box { overflow-x: hidden !important; }
+
+/* 6) لو ظهرت بقايا قص على أجهزة بحواف آمنة (notch) */
+@supports (padding: max(0px)) {
+  dialog.modal .box{
+    padding-inline: max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-left));
+  }
+}
+/* ——— منع القص يمين/يسار للمودال ——— */
+dialog.modal { padding-inline: 8px !important; } /* هامش حماية عام */
+
+/* الصندوق: رأس/جسم/فوتر + السماح بالانكماش للوسط */
+dialog.modal .box{
+  width: min(760px, calc(100dvw - 16px)) !important;
+  grid-template-rows: auto minmax(0,1fr) auto !important; /* ← أهم سطر */
+  overflow-x: hidden !important; /* لا سكرول أفقي */
+  min-height: 0 !important;
+}
+
+/* الجسم الذي يتمرّر فقط */
+dialog.modal .grid{
+  min-height: 0 !important;     /* يسمح بالتمرير داخل 1fr */
+  overflow: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+/* كل أبناء .box لازم يسمحوا بالانكماش داخل الـgrid */
+dialog.modal .box > *{ min-height: 0 !important; }
+
+/* ——— منع تمدّد العرض داخل RTL ——— */
+dialog.modal .box,
+dialog.modal .box *{ box-sizing: border-box !important; }
+
+dialog.modal .field,
+dialog.modal .field > *,
+dialog.modal .grid > *,
+dialog.modal input,
+dialog.modal select,
+dialog.modal textarea{
+  min-width: 0 !important;      /* يمنع تجاوز عرض العمود */
+  max-width: 100% !important;
+}
+
+/* مدخلات الأرقام/الإيميل قد تسبب سكرول أفقي في RTL لو كان direction LTR */
+dialog.modal input[type="email"],
+dialog.modal input[type="tel"],
+dialog.modal input[type="number"]{
+  direction:ltr; text-align:left;
+}
+
+/* احتياط لأجهزة الحواف (notch) */
+@supports (padding: max(0px)) {
+  dialog.modal .box{
+    padding-inline: max(16px, env(safe-area-inset-right))
+                    max(16px, env(safe-area-inset-left)) !important;
+  }
+}
+/* === PATCH: Combobox styles === */
+.combo { position: relative; }
+.combo-input{
+  height:46px; width:100%;
+  border:1px solid rgba(15,23,42,.12); border-radius:14px; padding:0 40px 0 14px;
+  background:#fff; outline:0; transition:.15s;
+  box-shadow: 0 2px 0 rgba(15,23,42,.02) inset;
+  font-weight:600;
+}
+.combo-input:focus{ border-color:transparent; box-shadow:0 0 0 4px rgba(79,70,229,.16); }
+
+/* مؤشر تحميل صغير داخل الحقل */
+.spinner{
+  position:absolute; inset-inline-end:10px; inset-block-start:50%; transform:translateY(-50%);
+  width:16px; height:16px; border-radius:50%;
+  border:2px solid #c7d2fe; border-top-color:#4f46e5; animation:spin .8s linear infinite;
+}
+@keyframes spin{ to { transform: translateY(-50%) rotate(360deg); } }
+
+.combo-list{
+  position:absolute; inset-inline:0; top:calc(100% + 6px); z-index:10;
+  max-height:260px; overflow:auto;
+  background:#fff; border:1px solid #e5e7eb; border-radius:12px; box-shadow:0 16px 36px rgba(15,23,42,.12);
+  padding:6px;
+}
+.combo-list > li{
+  list-style:none; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:700;
+}
+.combo-list > li:hover{ background:#f3f4f6; }
+
+.combo-empty{
+  position:absolute; inset-inline:0; top:calc(100% + 6px); z-index:10;
+  padding:10px 12px; border-radius:12px;
+  background:#fff; border:1px dashed #e5e7eb; color:#64748b; font-weight:700;
+}
+
+.combo-selected{
+  display:flex; align-items:center; gap:8px;
+}
+.sel-chip{
+  display:inline-block; padding:.4rem .7rem; border-radius:999px;
+  background:#eef2ff; color:#4f46e5; font-weight:800; border:1px solid #dfe3ff;
+}
+.chip-clear{
+  height:32px; width:32px; display:grid; place-items:center;
+  border-radius:10px; border:1px solid #e5e7eb; background:#fff; cursor:pointer;
+}
+.chip-clear:hover{ background:#f8fafc; }
+
+/* صداقة مع الموبايل */
+@media (max-width:640px){
+  .combo-list{ max-height:50svh; }
+}
+.typeahead{ position:relative; display:flex; align-items:center; gap:6px; }
+.typeahead > input{ width:100%; }
+.typeahead .x{ border:none; background:transparent; cursor:pointer; opacity:.6; }
+.typeahead.err > input{ border-color:#ef4444; box-shadow:0 0 0 3px rgba(239,68,68,.15); }
+
+.typeahead .menu{
+  position:absolute; inset-inline:0; top:100%;
+  background:#fff; color:#111827; border:1px solid #e5e7eb;
+  border-radius:10px; margin-top:6px; max-height:240px; overflow:auto; z-index:20;
+  box-shadow:0 8px 24px rgba(0,0,0,.12);
+}
+.typeahead .menu li{ padding:10px 12px; cursor:pointer; }
+.typeahead .menu li:hover{ background:#f3f4f6; }
+.typeahead .menu li.empty{ color:#6b7280; cursor:default; }

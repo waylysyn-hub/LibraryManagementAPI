@@ -55,8 +55,9 @@ export interface ApiMsg {
 
 @Injectable({ providedIn: 'root' })
 export class MembersService {
-  private base = 'https://localhost:7091/api/Members';
-  private userBase = 'https://localhost:7091/api/Users'; // عدّلها إذا مختلف عندك
+  // ✅ مسارات نسبية — apiBaseInterceptor سيضيف الدومين
+  private base = '/api/Members';
+  private userBase = '/api/Users';
 
   constructor(private http: HttpClient){}
 
@@ -69,6 +70,12 @@ export class MembersService {
       }
     });
     return this.http.get<ApiPaged<MemberDto>>(this.base, { params });
+  }
+  lookupMembers(q: string, limit = 20) {
+    const params = new HttpParams().set('q', q).set('limit', limit);
+    return this.http.get<{ id:number; label:string; sub?:string }[]>(
+      '/api/Lookup/members', { params }
+    );
   }
 
   // تفاصيل
@@ -86,7 +93,7 @@ export class MembersService {
     return this.http.put<ApiMsg>(`${this.base}/${id}`, dto);
   }
 
-  // ✅ alias ليتوافق مع استدعاء الكومبوننت submitEdit()
+  // Alias للتوافق
   update(id: number, dto: { name: string; email: string; phone?: string | null }): Observable<ApiMsg> {
     return this.adminUpdate(id, dto);
   }
@@ -104,10 +111,11 @@ export class MembersService {
         params = params.set(k, String(v));
       }
     });
-    return this.http.get(`${this.base}/export`, {
+    // ملاحظة: cast قياسي مع Blob
+    return this.http.get<Blob>(`${this.base}/export`, {
       params,
       observe: 'response',
-      responseType: 'blob'
+      responseType: 'blob' as 'json'
     });
   }
 

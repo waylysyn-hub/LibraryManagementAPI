@@ -37,6 +37,17 @@
           }
         }
       }
+    },
+    {
+      "type": "npm",
+      "script": "ng",
+      "problemMatcher": [],
+      "label": "npm: ng",
+      "detail": "ng",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     }
   ]
 }

@@ -12,15 +12,17 @@ import { Book } from '../api/types';
 })
 export class BookFormComponent {
   private fb = inject(FormBuilder);
+
   @ViewChild('dlg') dlg!: ElementRef<HTMLDialogElement>;
 
   @Input() title = 'إضافة كتاب';
   @Input() initial: Partial<Book> | null = null;
+
   @Output() cancel = new EventEmitter<void>();
   @Output() save = new EventEmitter<Omit<Book, 'id' | 'borrowCount'> & { id?: number }>();
 
   backendErrors = signal<string[]>([]);
-readonly currentYear = new Date().getFullYear();
+  readonly currentYear = new Date().getFullYear();
 
   form = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.maxLength(200)]],
@@ -28,12 +30,14 @@ readonly currentYear = new Date().getFullYear();
     category: [''],
     year: [null as number | null, [Validators.required, Validators.min(1500), Validators.max(this.currentYear)]],
     copiesCount: [null as number | null, [Validators.required, Validators.min(1), Validators.max(1000)]],
-    isbn: ['', [Validators.pattern(/^(97(8|9))?\d{9}(\d{3})?(-?)\d{1,7}(-?)\d{1,7}(-?)\d{1,7}(\d|X)$/i)]]
+    // Regex مرن لـ ISBN-10/13 مع أو بدون فواصل
+    isbn: ['', [Validators.pattern(/^(97(8|9))?\d{9}(\d|X)$|^(97(8|9))?[-\s]?\d{1,5}[-\s]?\d{1,7}[-\s]?\d{1,7}[-\s]?(\d|X)$/i)]]
   });
 
   open(book?: Book) {
     this.title = book ? 'تعديل كتاب' : 'إضافة كتاب';
     this.backendErrors.set([]);
+
     if (book) {
       this.form.patchValue({
         title: book.title,
@@ -45,20 +49,32 @@ readonly currentYear = new Date().getFullYear();
       });
       this.initial = book;
     } else {
-      this.form.reset({ title: '', author: '', category: '', year: null, copiesCount: null, isbn: '' });
+      this.form.reset({
+        title: '',
+        author: '',
+        category: '',
+        year: null,
+        copiesCount: null,
+        isbn: ''
+      });
       this.initial = null;
     }
+
     this.dlg.nativeElement.showModal();
   }
 
-  close() { this.dlg.nativeElement.close(); }
+  close() {
+    this.dlg.nativeElement.close();
+  }
 
   submit() {
     this.backendErrors.set([]);
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
+
     const v = this.form.getRawValue();
     const payload = {
       ...(this.initial?.id ? { id: this.initial.id } : {}),
@@ -69,6 +85,7 @@ readonly currentYear = new Date().getFullYear();
       copiesCount: v.copiesCount ?? undefined,
       isbn: v.isbn?.trim() || undefined
     };
+
     this.save.emit(payload);
   }
 

@@ -1,40 +1,44 @@
-<app-book-form
-  #bookForm
-  (save)="save($event)"
-  (cancel)="bookForm.close()">
-</app-book-form>
+<app-book-form #bookForm (save)="save($event)" (cancel)="bookForm.close()"> </app-book-form>
 
 <section dir="rtl" aria-labelledby="books-title">
-  <!-- بانر الغلاف -->
-  <div class="books-hero" role="img" aria-label="مكتبتك بين يديك">
-    <div class="hero-overlay">
-      <div>
-        <h2 id="books-title">مكتبتك بين يديك</h2>
-        <p>اكتشف، أضف، عدل، وصدّر الكتب المميزة بسهولة.</p>
-      </div>
-    </div>
-  </div>
-
   <header class="head">
     <h2>الكتب</h2>
-    <div class="meta">إجمالي: <b>{{ total() }}</b> كتاب</div>
+    <div class="meta">
+      إجمالي: <b>{{ total() }}</b> كتاب
+    </div>
+
     <div class="actions">
       <button
         type="button"
-        class="secondary"
+        class="secondary btn-glow"
         (click)="export()"
         [disabled]="loading()"
-        title="تصدير النتائج الحالية إلى Excel">
+        title="تصدير النتائج الحالية إلى Excel"
+      >
+        <span class="ico" aria-hidden="true">
+          <!-- أيقونة تصدير -->
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+            <path
+              d="M5 20h14a1 1 0 0 0 1-1v-6h-2v5H6v-5H4v6a1 1 0 0 0 1 1Zm7-16 4 4h-3v6h-2V8H8l4-4Z"
+            />
+          </svg>
+        </span>
         تصدير Excel
       </button>
 
-      <!-- يظهر فقط لمن يملك صلاحية الإضافة -->
       <button
         *ngIf="canCreate"
         type="button"
-        class="primary"
+        class="primary btn-glow"
         (click)="openCreate()"
-        title="إضافة كتاب جديد">
+        title="إضافة كتاب جديد"
+      >
+        <span class="ico" aria-hidden="true">
+          <!-- أيقونة إضافة -->
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+            <path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2h6Z" />
+          </svg>
+        </span>
         إضافة كتاب
       </button>
     </div>
@@ -46,22 +50,27 @@
       لا توجد نتائج مطابقة.
       <button type="button" (click)="reset()">مسح الفلاتر</button>
     </div>
-
-    <div class="control">
-      <input formControlName="Q" placeholder="ابحث عن كتاب..." autocomplete="off" />
-    </div>
     <div class="grid">
-      <label>العنوان
-        <input type="text" formControlName="Title" placeholder="ابحث بالعنوان" autocomplete="off">
+      <label
+        >العنوان
+        <input type="text" formControlName="Title" placeholder="ابحث بالعنوان" autocomplete="off" />
       </label>
-      <label>المؤلف
-        <input type="text" formControlName="Author" placeholder="ابحث بالمؤلف" autocomplete="off">
+      <label
+        >المؤلف
+        <input type="text" formControlName="Author" placeholder="ابحث بالمؤلف" autocomplete="off" />
       </label>
-      <label>التصنيف
-        <input type="text" formControlName="Category" placeholder="ابحث بالتصنيف" autocomplete="off">
+      <label
+        >التصنيف
+        <input
+          type="text"
+          formControlName="Category"
+          placeholder="ابحث بالتصنيف"
+          autocomplete="off"
+        />
       </label>
-      <label>ISBN
-        <input type="text" formControlName="Isbn" placeholder="ابحث بالـ ISBN" autocomplete="off">
+      <label
+        >ISBN
+        <input type="text" formControlName="Isbn" placeholder="ابحث بالـ ISBN" autocomplete="off" />
       </label>
     </div>
   </div>
@@ -70,51 +79,59 @@
   <div class="sortbar" aria-label="الترتيب">
     <span class="label">ترتيب حسب:</span>
 
-    <button type="button"
-            class="chip"
-            [class.active]="filters.value.SortBy==='title'"
-            (click)="sort('title')">
+    <button
+      type="button"
+      class="chip"
+      [class.active]="filters.value.SortBy === 'title'"
+      (click)="sort('title')"
+    >
       العنوان <small>{{ sortIcon('title') }}</small>
     </button>
 
-    <button type="button"
-            class="chip"
-            [class.active]="filters.value.SortBy==='author'"
-            (click)="sort('author')">
+    <button
+      type="button"
+      class="chip"
+      [class.active]="filters.value.SortBy === 'author'"
+      (click)="sort('author')"
+    >
       المؤلف <small>{{ sortIcon('author') }}</small>
     </button>
 
-    <button type="button"
-            class="chip"
-            [class.active]="filters.value.SortBy==='year'"
-            (click)="sort('year')">
+    <button
+      type="button"
+      class="chip"
+      [class.active]="filters.value.SortBy === 'year'"
+      (click)="sort('year')"
+    >
       السنة <small>{{ sortIcon('year') }}</small>
     </button>
 
-    <button type="button"
-            class="chip"
-            [class.active]="filters.value.SortBy==='isbn'"
-            (click)="sort('isbn')">
+    <button
+      type="button"
+      class="chip"
+      [class.active]="filters.value.SortBy === 'isbn'"
+      (click)="sort('isbn')"
+    >
       ISBN <small>{{ sortIcon('isbn') }}</small>
     </button>
 
     <!-- زر عكْس الاتجاه بسرعة -->
     <button type="button" class="dir" (click)="toggleDir()">
-      {{ filters.value.SortDir==='Asc' ? 'تصاعدي ▲' : 'تنازلي ▼' }}
+      {{ filters.value.SortDir === 'Asc' ? 'تصاعدي ▲' : 'تنازلي ▼' }}
     </button>
   </div>
 
   <!-- شريط التحكم/الباجينايشن -->
   <div class="toolbar" aria-label="الترقيم والتحكم">
     <div class="paging">
-      <button type="button" (click)="prev()" [disabled]="page()<=1">‹</button>
+      <button type="button" (click)="prev()" [disabled]="page() <= 1">‹</button>
       <span>صفحة {{ page() }} من {{ totalPages() }}</span>
-      <button type="button" (click)="next()" [disabled]="page()>=totalPages()">›</button>
+      <button type="button" (click)="next()" [disabled]="page() >= totalPages()">›</button>
     </div>
     <div class="page-size">
       <label for="pgSize">حجم الصفحة:</label>
       <select id="pgSize" [value]="pageSize()" (change)="setPageSize($any($event.target).value)">
-        <option *ngFor="let s of [6,12,20,50,100]" [value]="s">{{ s }}</option>
+        <option *ngFor="let s of [6, 12, 20, 50, 100]" [value]="s">{{ s }}</option>
       </select>
     </div>
   </div>
@@ -128,35 +145,65 @@
     <div class="book-card slide-up" *ngFor="let b of items()">
       <!-- سطر علوي لعرض الـID -->
       <div class="top">
-        <span class="id-chip">#{{ b.id }}</span>
+        <span class="id-chip">#{{ b.title }}</span>
       </div>
 
       <div class="cover" *ngIf="coverOf(b) as img">
-        <img [src]="img" alt="غلاف {{ b.title }}" (error)="onCoverError($event)">
+        <img [src]="img" alt="غلاف {{ b.title }}" (error)="onCoverError($event)" />
       </div>
 
       <h4 class="text-gradient">{{ b.title }}</h4>
-      <p class="muted">ID: <b>#{{ b.id }}</b></p>
-      <p>المؤلف: {{ b.author }}</p>
-      <p>السنة: {{ b.year || '—' }}</p>
-      <p>التصنيف: {{ b.category || '—' }}</p>
-       <p>عدد النسخ: {{ b.copiesCount }}</p>
-      <p *ngIf="b.isbn">ISBN: {{ b.isbn }}</p>
+      <p class="kv">
+        <span class="k">المؤلف:</span><span class="v">{{ b.author || '—' }}</span>
+      </p>
+      <p class="kv">
+        <span class="k">السنة:</span><span class="v">{{ b.year || '—' }}</span>
+      </p>
+      <p class="kv">
+        <span class="k">التصنيف:</span><span class="v">{{ b.category || '—' }}</span>
+      </p>
+      <p class="kv">
+        <span class="k">عدد النسخ الكامل:</span><span class="v">{{ b.copiesCount }}</span>
+      </p>
+      <p class="kv">
+        <span class="k">عدد النسخ المتاحة:</span><span class="v">{{ b.availableCopies }}</span>
+      </p>
+      <p class="kv" *ngIf="b.isbn">
+        <span class="k">ISBN:</span><span class="v">{{ b.isbn }}</span>
+      </p>
 
-      <!-- لا تظهر الحاوية إن لم توجد أي صلاحية -->
       <div class="actions" *ngIf="canUpdate || canDelete">
         <button
           *ngIf="canUpdate"
           type="button"
+          class="btn btn--edit"
           (click)="openEdit(b)"
-          title="تعديل هذا الكتاب">
+          title="تعديل هذا الكتاب"
+        >
+          <span class="ico" aria-hidden="true">
+            <!-- أيقونة تعديل (قلم) -->
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25Zm15.71-9.46c.39-.39.39-1.02 0-1.41l-2.09-2.09a1 1 0 0 0-1.41 0l-1.82 1.82 3.75 3.75 1.57-1.57Z"
+              />
+            </svg>
+          </span>
           تعديل
         </button>
+
         <button
           *ngIf="canDelete"
           type="button"
+          class="btn btn--delete"
           (click)="remove(b)"
-          title="حذف هذا الكتاب">
+          title="حذف هذا الكتاب"
+        >
+          <span class="ico" aria-hidden="true">
+            <!-- أيقونة حذف (سلة) -->
+            <svg viewBox="0 0 24 24">
+              <path d="M6 7h12v2H6V7Zm2 3h8l-1 10H9L8 10Zm3-6h2l1 1h5v2H5V5h5l1-1Z" />
+            </svg>
+          </span>
           حذف
         </button>
       </div>

@@ -1,10 +1,5 @@
 <dialog #dlg class="modal" dir="rtl">
-  <form method="dialog"
-        class="box"
-        novalidate
-        (submit)="$event.preventDefault(); submit()"
-        [formGroup]="form">
-
+  <form class="box" novalidate (submit)="$event.preventDefault(); submit()" [formGroup]="form">
     <header class="head">
       <h3>{{ title }}</h3>
       <button type="button" class="x" (click)="close()" aria-label="إغلاق">✕</button>
@@ -18,30 +13,73 @@
     </div>
 
     <div class="grid">
-      <!-- قائمة الأعضاء -->
+      <!-- العضو: Typeahead -->
       <label class="field">
         <span class="label">العضو</span>
-        <select formControlName="memberId">
-          <option *ngFor="let member of members()" [value]="member.id">{{ member.name }}</option>
-        </select>
+
+        <div class="typeahead" [class.err]="fieldHasBackendErr.memberId()">
+          <input
+            type="text"
+            autocomplete="off"
+            [formControl]="memberSearch"
+            [placeholder]="selectedMember?.label || 'ابحث بالاسم أو البريد…'"
+            (focus)="memberMenuOpen = true"
+            (input)="memberMenuOpen = true"
+            (blur)="closeMenuLater('member')"
+            (keydown.enter)="pickFirst('member'); $event.preventDefault()"
+            (keydown.escape)="memberMenuOpen=false"
+          />
+          <button type="button" class="x" *ngIf="selectedMember" (mousedown)="$event.preventDefault()" (click)="clearMember()">✕</button>
+
+          <ul class="menu" *ngIf="memberMenuOpen">
+            <li *ngIf="!(memberOptions$ | async)?.length" class="empty">لا توجد نتائج — اكتب أكثر…</li>
+            <li
+              *ngFor="let m of memberOptions$ | async"
+              (mousedown)="$event.preventDefault()"
+              (click)="pickMember(m)">
+              <b>{{ m.label }}</b>
+              <small *ngIf="m.sub">— {{ m.sub }}</small>
+            </li>
+          </ul>
+        </div>
       </label>
 
-      <!-- قائمة الكتب -->
+      <!-- الكتاب: Typeahead -->
       <label class="field">
         <span class="label">الكتاب</span>
-        <select formControlName="bookId">
-          <option *ngFor="let book of books()" [value]="book.id">{{ book.title }}</option>
-        </select>
+
+        <div class="typeahead" [class.err]="fieldHasBackendErr.bookId()">
+          <input
+            type="text"
+            autocomplete="off"
+            [formControl]="bookSearch"
+            [placeholder]="selectedBook?.label || 'ابحث بالعنوان أو ISBN…'"
+            (focus)="bookMenuOpen = true"
+            (input)="bookMenuOpen = true"
+            (blur)="closeMenuLater('book')"
+            (keydown.enter)="pickFirst('book'); $event.preventDefault()"
+            (keydown.escape)="bookMenuOpen=false"
+          />
+          <button type="button" class="x" *ngIf="selectedBook" (mousedown)="$event.preventDefault()" (click)="clearBook()">✕</button>
+
+          <ul class="menu" *ngIf="bookMenuOpen">
+            <li *ngIf="!(bookOptions$ | async)?.length" class="empty">لا توجد نتائج — اكتب أكثر…</li>
+            <li
+              *ngFor="let b of bookOptions$ | async"
+              (mousedown)="$event.preventDefault()"
+              (click)="pickBook(b)">
+              <b>{{ b.label }}</b>
+              <small *ngIf="b.sub">— {{ b.sub }}</small>
+            </li>
+          </ul>
+        </div>
       </label>
 
       <!-- مدة الإعارة -->
-      <label class="field span-2">
+      <label class="field span-2" [class.err]="fieldHasBackendErr.durationDays()">
         <span class="label">مدة الإعارة (أيام)</span>
         <div class="with-addon">
-          <input type="number"
-                 formControlName="durationDays"
-                 placeholder="14"
-                 min="1" max="365" inputmode="numeric">
+          <input type="number" formControlName="durationDays" placeholder="14" min="1" max="365" inputmode="numeric" />
           <span class="addon">يوم</span>
         </div>
         <small class="hint">المدّة المسموحة: 1–365 يوماً</small>

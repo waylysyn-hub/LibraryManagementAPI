@@ -1,7 +1,7 @@
 // src/app/auth.service.spec.ts
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { AuthService } from './auth.service';
+import { AuthService } from './api/auth.service';
 
 describe('AuthService', () => {
   let service: AuthService;

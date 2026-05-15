@@ -1,5 +1,3 @@
-/* غلاف الصفحة - صورة رأسية بانورامية مع تأثير الإضاءة */
-/* ===== رأس القسم + الأزرار ===== */
 .head{
   position: relative; /* لضمان ظهور الزر حتى لو في تراكب بصري */
   z-index: 2;
@@ -91,53 +89,62 @@
   background:linear-gradient(90deg,#4f46e5,#6366f1); animation:move 1.2s infinite;
 }
 @keyframes move{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
-
 .books-hero {
-  color: #111;
-  position: relative;
-  height: 100vh; /* الغلاف يأخذ كامل العرض */
-  width: 100%;
-  background-image: url('/book-hero.jpg'); /* صورة الغلاف */
+  background: linear-gradient( rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5) ), url('/book-hero.jpg');
   background-size: cover;
   background-position: center;
-  filter: brightness(40%); /* زيادة السطوع قليلاً */
-  transition: filter 0.7s ease;
+  background-repeat: no-repeat;
 }
 
-/* تأثيرات عند التمرير */
-.books-hero:hover {
-  filter: brightness(80%); /* تأثير السطوع عند المرور بالفأرة */
-}
-
-.hero-overlay {
-  position: absolute;
-  top: 20%; /* رفع العبارة للأعلى */
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  color: white;
-  padding: 3rem;
-  background: rgba(0, 0, 0, 0.4); /* إضافة شفافية بسيطة */
-  transition: background 0.3s ease;
-}
-.filters, .sortbar {
-  position: sticky;
-  top: 0; /* بدل 72px */
-  z-index: 100; /* اجعلها أعلى من الغلاف وأي عناصر أخرى */
-  margin-top: 0; /* إزالة أي مسافة إضافية */
-}
 .filters {
+  background: #fff;
+  border: 4px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 2rem 1.25rem;
+  margin-top: 1rem;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
   position: sticky;
-  top: 0;
+  top: 0; /* تثبيت الفلاتر في أعلى الصفحة */
   z-index: 100;
 }
-.filters, .sortbar {
-  margin-top: 0;
+
+/* ترتيب الفلاتر بشكل منسق */
+.filters .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* توزيع الأعمدة بشكل متجاوب */
+  gap: 1.5rem; /* المسافة بين الأعمدة */
+  margin-top: 1rem; /* زيادة المسافة بين الفلاتر */
 }
+
+
+/* ترتيب كل مدخل في الفلتر */
+.filters label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.1rem; /* المسافة بين العنوان والمدخل */
+}
+
+/* تقليل حجم مربعات الفلاتر */
+.filters input {
+  width: 98%;
+  height: 35px; /* تقليل الارتفاع */
+  border: 2px solid #e5e7eb;
+  border-radius: 8px; /* تقليل الحواف لجعل المدخل أصغر */
+  padding: 0 .8rem;
+  transition: 0.2s;
+  background: #fff;
+  margin-bottom: 1rem; /* زيادة المسافة بين المدخلات */
+}
+
+/* تأثير الفوكس */
+.filters input:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+
 
 /* عنوان ونص غلاف الصفحة مع تأثير مميز */
 .hero-overlay h2 {
@@ -174,7 +181,7 @@
   background: linear-gradient(135deg, #ffffff, #f3f4f6);
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
+  padding:1.7rem;
   text-align: center;
   width: 300px;
   margin: 1rem;
@@ -202,7 +209,7 @@
 
 /* تصميم الأزرار داخل البطاقة */
 .book-card .actions button {
-  padding: 0.5rem 1rem;
+  padding:0.5rem 1rem;
   background: #4f46e5;
   color: white;
   border-radius: 8px;
@@ -241,3 +248,581 @@
   border:1px solid var(--stroke, #e5e7eb); border-radius:10px; padding:4px 8px;
 }
 .muted{ color:#6b7280 }
+/* إزالة الحواف الزائدة حول الحاوية */
+body, html {
+  margin: 0;
+  padding: 0;
+}
+
+/* إزالة الحواف حول العنصر الرئيس */
+.books-hero {
+  margin: 0;
+  padding: 0;
+  height: 100vh; /* تأكد من أنه يأخذ المساحة بالكامل */
+}
+/* ========= Responsive only (بدون أي تعديل على .filters) ========= */
+
+/* شاشات كبيرة إلى متوسطة (≤ 1200px) */
+@media (max-width: 1200px){
+  .books-container{
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+  .book-card{ padding: 1.25rem; }
+  .cover img{ width:110px; height:150px; }
+  .hero-overlay h2{ font-size: 3rem; }
+  .hero-overlay p{ font-size: 1.25rem; }
+}
+
+/* تابلت (≤ 992px) */
+@media (max-width: 992px){
+  .head{
+    gap:.75rem;
+    padding:.9rem 1rem;
+  }
+  .head .actions{
+    width:100%;
+    order:3;          /* الأزرار على سطر مستقل */
+    justify-content:flex-start;
+    gap:.5rem;
+  }
+  .meta{ font-size:.9rem; }
+
+  .sortbar{
+    padding:.55rem .7rem;
+    gap:.4rem;
+  }
+  .sortbar .dir{ padding:.4rem .7rem; }
+
+  .toolbar{
+    padding:.7rem .9rem;
+  }
+  .paging button{
+    width:34px; height:34px;
+  }
+
+  .books-hero{ height:70vh; }
+}
+
+/* موبايل متوسط (≤ 768px) */
+@media (max-width: 768px){
+  .head{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  .head h2{ font-size:1.25rem; }
+
+  .actions .primary,
+  .actions .secondary{
+    flex:1 1 auto;
+    min-width:140px;
+    font-size:.9rem;
+    padding:.55rem .9rem;
+  }
+
+  .sortbar .chip{ padding:.35rem .65rem; }
+  .sortbar .label{ font-size:.95rem; }
+
+  .books-container{
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap:1rem;
+    margin-top:1.5rem;
+  }
+  .book-card{
+    width:auto;
+    margin:0;
+    border-radius:12px;
+  }
+  .book-card .top{ gap:.5rem; }
+  .cover img{ width:100px; height:140px; }
+
+  .hero-overlay h2{ font-size:2.2rem; }
+  .hero-overlay p{ font-size:1.1rem; }
+}
+
+/* موبايل صغير (≤ 600px) */
+@media (max-width: 600px){
+  .head{
+    margin-top:.6rem;
+    padding:.75rem .85rem;
+    border-radius:10px;
+  }
+  .meta{ padding:.25rem .55rem; border-radius:7px; }
+
+  .actions{ gap:.45rem; }
+
+  .sortbar{ border-radius:10px; }
+  .sortbar .dir{
+    margin-inline-start:0;
+    width:100%;
+  }
+
+  .paging{ gap:.35rem; }
+  .paging button{ width:32px; height:32px; }
+
+  .books-hero{
+    height:56vh;
+    background-position:center 30%;
+  }
+  .hero-overlay h2{ font-size:1.8rem; }
+  .hero-overlay p{ font-size:1rem; }
+
+  .id-chip{ font-size:.85rem; padding:3px 7px; }
+
+  /* ظلال أخف لتقليل الزحام */
+  .head, .sortbar, .toolbar{
+    box-shadow:0 1px 6px rgba(0,0,0,.05);
+  }
+}
+
+/* شاشات أصغر جدًا (≤ 420px) */
+@media (max-width: 420px){
+  .actions .primary,
+  .actions .secondary{
+    min-width:0;
+    width:100%;
+  }
+  .book-card h4{ font-size:1.05rem; }
+  .book-card p{ font-size:.92rem; }
+  .cover img{ width:92px; height:128px; }
+}
+
+/* تحسين كسر عناصر sortbar فقط عند الضيق (بدون لمس .filters) */
+@media (max-width: 768px){
+  .sortbar{
+    display:grid;
+    grid-template-columns: 1fr auto;
+    row-gap:.5rem;
+    align-items:stretch;
+  }
+  .sortbar .label{ grid-column:1 / -1; }
+  .sortbar .dir{ grid-column:1 / -1; }
+}
+
+/* تقليل الحركة على الأجهزة التي تفضّل ذلك */
+@media (prefers-reduced-motion: reduce){
+  *{ animation:none !important; transition:none !important; }
+}
+
+/* تعطيل hover الثقيل على الشاشات اللمسية */
+@media (hover:none){
+  .book-card:hover{
+    transform:none;
+    box-shadow:0 4px 12px rgba(0,0,0,.08);
+  }
+}
+  /* ===== Books — تباعد داخلي + حقول بإطار + تقليل المسافة بين الكروت ===== */
+
+/* 1) الكروت أقرب لبعض شوي */
+.books-container{
+  gap: 1rem !important; /* كان 1.5rem */
+}
+
+/* 2) تنظيم التباعد داخل بطاقة الكتاب */
+.book-card{
+  display: grid;
+  row-gap: 12px;               /* مسافة موحدة بين عناصر البطاقة */
+  border: 2px solid #d9def0;   /* إبراز حد البطاقة */
+  box-shadow: 0 12px 28px rgba(15,23,42,.08);
+}
+
+/* 3) كل p مباشر داخل البطاقة = حقل بإطار */
+.book-card > p{
+  padding: 12px 14px;
+  margin: 0;                   /* نلغىMargins الافتراضية */
+  border: 2px solid #d7dbee;
+  border-radius: 14px;
+  background: linear-gradient(180deg,#ffffff,#f9fbff);
+  box-shadow: 0 3px 8px rgba(15,23,42,.05) inset;
+  line-height: 1.55;
+  font-weight: 800;
+  color: #0f172a;
+  transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
+  text-align: right;           /* لأن المحتوى عربي */
+}
+
+/* تعزيز لون النص الثانوي داخل الحقل (مثل سطر الـID) */
+.book-card > p.muted{
+  color: #475569;
+  background: #fff;
+}
+
+/* 4) تفاعل بسيط عند المرور */
+.book-card > p:hover{
+  border-color: #4f46e5;
+  background: linear-gradient(180deg,#f9faff,#eef2ff);
+  box-shadow: 0 4px 10px rgba(79,70,229,.12) inset;
+}
+
+/* 5) تنسيقات إضافية لعناصر أعلى البطاقة */
+.book-card .top{ margin-bottom: 4px; }     /* مسافة خفيفة تحت الشريط العلوي */
+.book-card h4{ margin: 4px 0; }            /* تقليل مسافة عنوان الكتاب */
+.cover{ margin-top: 4px; }                  /* تقليل مسافة الغلاف عن الأعلى */
+
+/* 6) استجابة للجوال: حشوات أخف */
+@media (max-width: 640px){
+  .book-card{ row-gap: 10px; }
+  .book-card > p{ padding: 10px 12px; }
+}
+
+/* ===================================================== */
+/*            Enhancements & Fixes (Overrides)           */
+/* ===================================================== */
+
+/* توحيد طبقات العناصر لمنع التداخل مع الشريط الجانبي */
+.head{ z-index:30; }
+.filters{ z-index:25; }
+.sortbar{ z-index:22; }
+.toolbar{ z-index:20; }
+
+/* إزالة التضارب: نجعل الفلاتر دائماً أسفل الهيدر */
+.filters{
+  position:sticky;
+  top:72px;              /* نفس ارتفاع الهيدر */
+  border-width:1px;      /* لأن لديك تعريف آخر بـ 4px */
+  padding:1rem 1.25rem;  /* نعيدها للوضع الأخف */
+}
+
+/* في حالة طيّ الشريط الجانبي وتقلّص الهيدر لديك */
+body.sidebar-collapsed .filters{ top:64px; }
+body.sidebar-collapsed .sortbar{ top: calc(64px + 56px); }
+
+/* توهج وأيقونات للأزرار (بدون تعديل HTML) */
+.actions .primary,
+.actions .secondary{ box-shadow:0 8px 22px rgba(15,23,42,.06); }
+.actions .primary:hover{ box-shadow:0 12px 28px rgba(79,70,229,.28); }
+.actions .secondary:hover{ box-shadow:0 12px 26px rgba(15,23,42,.10); }
+
+/* أيقونة قبل زر التصدير (يعتمد على الـtitle) */
+.actions button[title*="تصدير"]::before{
+  content:"";
+  display:inline-block;
+  margin-inline-end:.45rem;
+  font-weight:900;
+}
+
+/* أيقونة قبل زر الإضافة */
+.actions button[title*="إضافة"]::before{
+  content:"";
+  
+  display:inline-block;
+  margin-inline-end:.45rem;
+  font-weight:900;
+}
+
+/* حالة التركيز الواضحة (Glow) */
+.actions .primary:focus-visible,
+.actions .secondary:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 6px rgba(79,70,229,.18);
+  transform:translateY(-1px);
+}
+
+/* تأكيد أن sortbar يثبت بعد الفلاتر في التمرير الطويل */
+.sortbar{
+  position:sticky;
+  top: calc(72px + 56px); /* 56px تقدير ارتفاع الفلاتر */
+}
+
+/* لأجهزة أصغر — نعيد حساب الإزاحات */
+@media (max-width: 768px){
+  .filters{ top:68px; }
+  .sortbar{ top: calc(68px + 54px); }
+}
+/* ===== أزرار موحّدة + متغيّرات ألوان ===== */
+.btn{
+  display:inline-flex; align-items:center; gap:.45rem;
+  border:none; border-radius:10px; font-weight:800; font-size:.95rem;
+  padding:.55rem 1rem; cursor:pointer; transition:.2s;
+  box-shadow:0 8px 22px rgba(15,23,42,.06);
+}
+.btn .ico{ display:inline-flex; }
+.btn:disabled{ opacity:.6; cursor:not-allowed; }
+
+/* حلقات تركيز (إتاحة) */
+.btn:focus-visible{ outline:none; box-shadow:0 0 0 6px rgba(79,70,229,.18), 0 8px 22px rgba(15,23,42,.12); transform:translateY(-1px); }
+
+/* متغيرات ألوان */
+:root{
+  --green:#16a34a;      /* إضافة */
+  --green-600:#15803d;
+
+  --amber:#f59e0b;      /* تعديل */
+  --amber-700:#b45309;
+
+  --red:#ef4444;        /* حذف */
+  --red-700:#b91c1c;
+
+  --teal:#0d9488;       /* تصدير */
+  --teal-700:#0f766e;
+}
+
+/* أصناف ملوّنة */
+.btn--add{ background:var(--green); color:#fff; }
+.btn--add:hover{ filter:brightness(1.05); background:var(--green-600); }
+
+.btn--edit{ background:var(--amber); color:#111827; }
+.btn--edit:hover{ filter:brightness(1.05); background:var(--amber-700); color:#fff; }
+
+.btn--delete{ background:var(--red); color:#fff; }
+.btn--delete:hover{ filter:brightness(1.05); background:var(--red-700); }
+
+.btn--export{ background:var(--teal); color:#fff; }
+.btn--export:hover{ filter:brightness(1.05); background:var(--teal-700); }
+
+/* جعل أزرار الكرت مرتّبة ومساحتها مناسبة */
+.book-card .actions{
+  display:flex; gap:.5rem; justify-content:flex-end; flex-wrap:wrap; margin-top:.35rem;
+}
+
+/* تصغير طفيف لأزرار داخل البطاقة */
+.book-card .actions .btn{ padding:.45rem .85rem; font-size:.9rem; }
+
+/* أيقونات SVG بنفس قياس موحّد */
+.btn .ico svg{ width:18px; height:18px; fill:currentColor; }
+/* ===== Fix strong overrides for button colors (put at the very end) ===== */
+
+/* لوحة الألوان */
+:root{
+  --add:#10b981;   --add-600:#059669;   /* إضافة */
+  --export:#0ea5a8;--export-700:#0b7f82;/* تصدير */
+  --edit:#f59e0b;  --edit-700:#b45309;  /* تعديل */
+  --del:#ef4444;   --del-700:#b91c1c;   /* حذف */
+}
+
+/* الهيدر: نكسر الأزرق القديم داخل .actions */
+header.head .actions .primary{
+  background:var(--add) !important;
+  color:#fff !important;
+  border:none !important;
+}
+header.head .actions .primary:hover{
+  background:var(--add-600) !important;
+  filter:brightness(1.05);
+}
+
+header.head .actions .secondary{
+  background:var(--export) !important;
+  color:#fff !important;
+  border:none !important; /* كان عندك border رمادي */
+}
+header.head .actions .secondary:hover{
+  background:var(--export-700) !important;
+  filter:brightness(1.05);
+}
+
+/* أيقونات تتبع لون الزر */
+header.head .actions .primary .ico svg,
+header.head .actions .secondary .ico svg,
+.book-card .actions .btn .ico svg{
+  fill:currentColor !important;
+}
+
+/* بطاقات الكتب: نكسر القاعدة القديمة (.book-card .actions button { background:#4f46e5; ... }) فقط على أزرارنا */
+.book-card .actions .btn.btn--edit{
+  background:var(--edit) !important;
+  color:#111827 !important;
+}
+.book-card .actions .btn.btn--edit:hover{
+  background:var(--edit-700) !important;
+  color:#fff !important;
+  filter:brightness(1.05);
+}
+
+.book-card .actions .btn.btn--delete{
+  background:var(--del) !important;
+  color:#fff !important;
+}
+.book-card .actions .btn.btn--delete:hover{
+  background:var(--del-700) !important;
+  filter:brightness(1.05);
+}
+/* ===== أقوى تصحيح للألوان داخل صفحة الكتب فقط ===== */
+
+/* نلغي أي تلوين قديم داخل بطاقات الكتب */
+section[aria-labelledby="books-title"] .book-card .actions button{
+  background: unset !important;
+  color: inherit !important;
+  border: none;
+}
+
+/* أزرار الهيدر (داخل .head .actions) */
+section[aria-labelledby="books-title"] header.head .actions .primary{
+  background: #10b981 !important;   /* أخضر: إضافة */
+  color:#fff !important;
+  border:none !important;
+}
+section[aria-labelledby="books-title"] header.head .actions .primary:hover{
+  background:#059669 !important;
+  filter:brightness(1.05);
+}
+
+section[aria-labelledby="books-title"] header.head .actions .secondary{
+  background:#0ea5a8 !important;    /* تركوازي: تصدير */
+  color:#fff !important;
+  border:none !important;
+}
+section[aria-labelledby="books-title"] header.head .actions .secondary:hover{
+  background:#0b7f82 !important;
+  filter:brightness(1.05);
+}
+
+/* أيقونات تتبع لون النص */
+section[aria-labelledby="books-title"] header.head .actions .primary .ico svg,
+section[aria-labelledby="books-title"] header.head .actions .secondary .ico svg,
+section[aria-labelledby="books-title"] .book-card .actions .btn .ico svg{
+  fill: currentColor !important;
+}
+
+/* أزرار البطاقات (تعديل/حذف) */
+section[aria-labelledby="books-title"] .book-card .actions .btn.btn--edit{
+  background:#e1e7e2 !important;    /* كهرماني: تعديل */
+  color:#111827 !important;
+}
+section[aria-labelledby="books-title"] .book-card .actions .btn.btn--edit:hover{
+  background:#0460eb !important;
+  color:#fff !important;
+  filter:brightness(1.05);
+}
+
+section[aria-labelledby="books-title"] .book-card .actions .btn.btn--delete{
+  background:#ee0505 !important;    /* أحمر: حذف */
+  color:#fff !important;
+}
+section[aria-labelledby="books-title"] .book-card .actions .btn.btn--delete:hover{
+  background:#b91c1c !important;
+  filter:brightness(1.05);
+}
+/* ===== Sticky filters: مصدر واحد للحقيقة ===== */
+:root{
+  /* عدّلها حسب ارتفاع الهيدر الفعلي لديك */
+  --header-h: 72px;
+  /* تقدير ارتفاع شريط الفلاتر لو بدك تثبّت sortbar تحته */
+  --filters-h: 56px;
+}
+
+/* امنع كسر sticky بسبب overflow على الأسلاف */
+main, .container, .page, .page-wrap, section[dir="rtl"]{
+  overflow: visible !important;
+}
+
+/* الفلاتر تلزق تحت الهيدر دومًا */
+.filters{
+  position: sticky !important;
+  top: calc(var(--header-h) + env(safe-area-inset-top)) !important;
+  z-index: 100 !important;
+  border-width: 1px !important; /* لتفادي التعارض مع تعريف 4px القديم */
+  padding: 1rem 1.25rem !important;
+}
+
+/* لو عندك شريط ترتيب تحت الفلاتر وبدك يثبت تحته */
+.sortbar{
+  position: sticky !important;
+  top: calc(var(--header-h) + var(--filters-h) + env(safe-area-inset-top)) !important;
+  z-index: 95 !important;
+}
+
+/* لما يكون الشريط الجانبي مطوي ويصغر الهيدر */
+body.sidebar-collapsed{
+  --header-h: 64px;
+}
+
+/* شاشات صغيرة: غالبًا الهيدر أصغر */
+@media (max-width: 768px){
+  :root{ --header-h: 68px; }
+}
+
+/* إذا عندك hero قبل الفلاتر وبتحس في "قفزة"، زيد هامشًا بسيطًا تحت الهيرو */
+.books-hero + .filters{
+  margin-top: .5rem;
+}
+/* 1) أوقف الفراغ الناتج عن الهيرو */
+.books-hero{
+  /* إذا بدك تُظهرها: خفّف الارتفاع بدل 100vh */
+  min-height: 40vh;
+  height: auto;           /* بدلاً من height:100vh */
+}
+.books-hero:empty{ display:none; } /* لو ما فيها محتوى ما تطلع */
+
+/* لو حالياً ما بدك هيرو أبداً، استخدم هذا بدل الأعلى */
+/* .books-hero{ display:none !important; } */
+
+/* 2) توحيد إزاحات العناصر المثبّتة */
+:root{
+  --header-h: 72px;
+  --filters-h: 56px; /* تقديري حسب ارتفاع الفلاتر عندك */
+}
+
+/* خليه sticky تحت الهيدر مباشرة بدون مسافات إضافية */
+.filters{
+  position: sticky !important;
+  top: var(--header-h) !important;
+  margin-top: .5rem !important;
+  margin-bottom: .5rem !important;
+  z-index: 100 !important;
+  border-width: 1px !important;
+  padding: 1rem 1.25rem !important;
+}
+
+/* شريط الترتيب يثبت تحت الفلاتر مباشرة */
+.sortbar{
+  position: sticky !important;
+  top: calc(var(--header-h) + var(--filters-h)) !important;
+  margin-top: .25rem !important;
+  margin-bottom: .5rem !important;
+  z-index: 95 !important;
+}
+
+/* 3) منع أي overflow يلغّي sticky ويعمل قفزات/فراغ */
+main, .container, .page, .page-wrap, section[dir="rtl"]{
+  overflow: visible !important;
+}
+
+/* 4) ضبط مسافات القسم حتى ما تتراكم */
+section[aria-labelledby="books-title"]{
+  padding-block: .5rem 1.25rem;
+}
+
+/* 5) تقليل مسافة الشبكة قليلاً (اختياري) */
+.books-container{ gap: 1rem !important; }
+  /* ===== Tighten cards inside the grid ===== */
+
+/* خَلّي الشبكة تتحكم بالمسافات فقط */
+.books-container{
+  gap: 12px !important;      /* كان كبير شوي */
+  padding-inline: 8px !important;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important; /* بدون قنوات فاضية */
+}
+
+/* امنع التباعد المزدوج: احذف Margin الكرت وثبّت عرضه داخل الـgrid */
+.books-container .book-card{
+  margin: 0 !important;      /* كان 1rem */
+  width: auto !important;    /* كسر width:300px */
+}
+
+/* خفّف حشوة الكرت شوي */
+.book-card{
+  padding: 1rem !important;
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(15,23,42,.06);
+}
+
+/* قلل المسافات داخل الكرت */
+.book-card .cover{ margin: 0 auto .5rem !important; }
+.book-card h4{ margin: .25rem 0 .5rem !important; }
+.book-card > p{
+  margin: 0 !important;
+  padding: .6rem .8rem !important;
+}
+
+/* حواف القسم نفسه */
+section[aria-labelledby="books-title"]{
+  padding-block: .5rem 1rem !important;
+  padding-inline: .5rem !important;
+}
+
+/* لو عندك تعريف قديم للـ hero عامل فراغ، عطّله أو خفّفه */
+.books-hero{ height: auto !important; min-height: 0 !important; }
+.book-card p.kv{display:flex;align-items:center;justify-content:space-between;gap:.75rem;direction:rtl;text-align:right}
+.book-card p.kv .k{font-weight:800;color:#111827;white-space:nowrap}
+.book-card p.kv .v{font-weight:800;color:#0f172a;direction:ltr;unicode-bidi:plaintext;text-align:left;margin-inline-start:1rem;max-width:60%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:600px){.book-card p.kv .v{max-width:70%}}

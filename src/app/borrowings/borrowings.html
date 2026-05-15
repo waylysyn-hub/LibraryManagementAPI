@@ -1,7 +1,6 @@
-<!-- src/app/borrowings/borrowings.html -->
 <app-borrow-form #borrowForm (save)="save($event)" (cancel)="borrowForm.close()"></app-borrow-form>
 
-<section dir="rtl" aria-labelledby="br-title">
+<section dir="rtl" aria-labelledby="br-title" [attr.aria-busy]="loading()">
   <header class="head">
     <div class="left">
       <h2 id="br-title">الاستعارات</h2>
@@ -9,21 +8,54 @@
         إجمالي: <b>{{ total() }}</b>
       </div>
     </div>
+
     <div class="actions">
-      <button class="secondary" type="button" (click)="export()" [disabled]="loading()">
+      <!-- تصدير -->
+      <button
+        class="secondary btn-ico"
+        type="button"
+        (click)="export()"
+        [disabled]="loading()"
+        aria-label="تصدير إلى Excel"
+      >
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 20h14a1 1 0 0 0 1-1v-6h-2v5H6v-5H4v6a1 1 0 0 0 1 1Zm7-16 4 4h-3v6h-2V8H8l4-4Z"/>
+        </svg>
         تصدير Excel
       </button>
-      <button class="secondary" type="button" (click)="reload()" [disabled]="loading()">
+
+      <!-- تحديث -->
+      <button
+        class="secondary btn-ico"
+        type="button"
+        (click)="reload()"
+        [disabled]="loading()"
+        aria-label="تحديث القائمة"
+      >
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M17.65 6.35A7.95 7.95 0 0 0 12 4V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 13.65-6.65Z"/>
+        </svg>
         تحديث
       </button>
-      <button class="primary" type="button" *ngIf="canCreate" (click)="openCreate()">
+
+      <!-- إضافة -->
+      <button
+        class="primary btn-ico"
+        type="button"
+        *ngIf="canCreate"
+        (click)="openCreate()"
+        aria-label="إضافة استعارة جديدة"
+      >
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2h6Z"/>
+        </svg>
         إضافة استعارة
       </button>
     </div>
   </header>
 
   <!-- إحصاءات -->
-  <div class="stats">
+  <div class="stats" role="region" aria-label="إحصاءات الاستعارات">
     <div class="card total">
       <div class="n">{{ statTotal() }}</div>
       <div class="t">المجموع</div>
@@ -43,28 +75,44 @@
   </div>
 
   <!-- فلاتر وترتيب -->
-  <div class="filters" [formGroup]="filters">
+  <div class="filters" [formGroup]="filters" role="region" aria-label="فلاتر وفرز">
     <div class="grid">
-      <label
-        >العضو ID <input type="number" formControlName="memberId" placeholder="مثال: 12"
-      /></label>
-      <label
-        >الكتاب ID <input type="number" formControlName="bookId" placeholder="مثال: 45"
-      /></label>
-      <label
-        >العرض
-        <select formControlName="view">
+      <label>
+        العضو
+        <select formControlName="memberId" aria-label="تصفية حسب العضو">
+          <option [ngValue]="null">الكل</option>
+          <option *ngFor="let m of members()" [ngValue]="m.id">
+            {{ m.name || m.username || 'عضو #' + m.id }}
+          </option>
+        </select>
+      </label>
+
+      <label>
+        الكتاب
+        <select formControlName="bookId" aria-label="تصفية حسب الكتاب">
+          <option [ngValue]="null">الكل</option>
+          <option *ngFor="let b of books()" [ngValue]="b.id">
+            {{ b.title || 'كتاب #' + b.id }}
+          </option>
+        </select>
+      </label>
+
+      <label>
+        العرض
+        <select formControlName="view" aria-label="تبديل نوع العرض">
           <option value="cards">شبكة كروت</option>
           <option value="table">جدول</option>
         </select>
       </label>
     </div>
-    <div class="sortbar">
+
+    <div class="sortbar" role="toolbar" aria-label="شريط الترتيب">
       <span>ترتيب حسب:</span>
       <button
         type="button"
         class="chip"
         [class.active]="filters.value.sortBy === 'borrowedDate'"
+        [attr.aria-pressed]="filters.value.sortBy === 'borrowedDate'"
         (click)="toggleSort('borrowedDate')"
       >
         تاريخ الاستعارة <small>{{ sortIcon('borrowedDate') }}</small>
@@ -73,6 +121,7 @@
         type="button"
         class="chip"
         [class.active]="filters.value.sortBy === 'dueDate'"
+        [attr.aria-pressed]="filters.value.sortBy === 'dueDate'"
         (click)="toggleSort('dueDate')"
       >
         موعد الإرجاع <small>{{ sortIcon('dueDate') }}</small>
@@ -81,6 +130,7 @@
         type="button"
         class="chip"
         [class.active]="filters.value.sortBy === 'returnedDate'"
+        [attr.aria-pressed]="filters.value.sortBy === 'returnedDate'"
         (click)="toggleSort('returnedDate')"
       >
         تاريخ الإرجاع <small>{{ sortIcon('returnedDate') }}</small>
@@ -89,15 +139,15 @@
   </div>
 
   <!-- شريط الباجينيشن -->
-  <div class="toolbar">
+  <div class="toolbar" role="navigation" aria-label="التنقل بين الصفحات">
     <div class="paging">
-      <button (click)="prev()" [disabled]="page() <= 1">‹</button>
-      <span>صفحة {{ page() }} من {{ totalPages() }}</span>
-      <button (click)="next()" [disabled]="page() >= totalPages()">›</button>
+      <button (click)="prev()" [disabled]="page() <= 1" aria-label="الصفحة السابقة">‹</button>
+      <span aria-live="polite">صفحة {{ page() }} من {{ totalPages() }}</span>
+      <button (click)="next()" [disabled]="page() >= totalPages()" aria-label="الصفحة التالية">›</button>
     </div>
     <div class="page-size">
       <label for="ps">حجم الصفحة:</label>
-      <select id="ps" [value]="pageSize()" (change)="setPageSize($any($event.target).value)">
+      <select id="ps" [value]="pageSize()" (change)="setPageSize($any($event.target).value)" aria-label="تغيير حجم الصفحة">
         <option *ngFor="let s of [12, 24, 48, 96]" [value]="s">{{ s }}</option>
       </select>
     </div>
@@ -107,60 +157,56 @@
   <div *ngIf="filters.value.view === 'cards'" class="cards" [class.loading]="loading()">
     <div *ngIf="!items().length && !loading()" class="empty">لا توجد بيانات</div>
 
-    <div class="borrow-card" *ngFor="let r of items()" [attr.data-status]="statusKey(r)">
-      <!-- شريط جانبي ملون حسب الحالة -->
-      <span class="accent"></span>
+    <div class="borrow-card" *ngFor="let r of items()" [attr.data-status]="statusKey(r)" tabindex="-1">
+      <span class="accent" aria-hidden="true"></span>
 
       <div class="top">
-        <span
-          class="badge"
-          [class.ok]="isActive(r)"
-          [class.late]="isLate(r)"
-          [class.done]="isReturned(r)"
-        >
+        <span class="badge" [class.ok]="isActive(r)" [class.late]="isLate(r)" [class.done]="isReturned(r)" [attr.aria-label]="statusLabel(r)" role="status">
           {{ statusLabel(r) }}
         </span>
         <div class="id">#{{ r.id }}</div>
       </div>
 
       <div class="body">
-      <!-- عرض اسم العضو بدلاً من ID -->
-      <div class="row">
-        <span>العضو:</span><b>{{ getMemberName(r.memberId) }}</b>
-      </div>
-      <!-- عرض اسم الكتاب بدلاً من ID -->
-      <div class="row">
-        <span>الكتاب:</span><b>{{ getBookTitle(r.bookId) }}</b>
-      </div>
-        <div class="row">
-          <span>الاستعارة:</span><b>{{ r.borrowedDate | date : 'yyyy/MM/dd' }}</b>
-        </div>
-        <div class="row">
-          <span>الاستحقاق:</span><b>{{ r.dueDate | date : 'yyyy/MM/dd' }}</b>
-        </div>
-        <div class="row" *ngIf="r.returnedDate">
-          <span>الإرجاع:</span><b>{{ r.returnedDate | date : 'yyyy/MM/dd' }}</b>
-        </div>
+        <div class="row"><span>العضو:</span><b>{{ getMemberName(r.memberId) }}</b></div>
+        <div class="row"><span>الكتاب:</span><b>{{ getBookTitle(r.bookId) }}</b></div>
+        <div class="row"><span>تاريخ الاستعارة:</span><b>{{ r.borrowedDate | date : 'yyyy/MM/dd' }}</b></div>
+        <div class="row"><span>تاريخ الاستحقاق:</span><b>{{ r.dueDate | date : 'yyyy/MM/dd' }}</b></div>
+        <div class="row" *ngIf="r.returnedDate"><span>الإرجاع:</span><b>{{ r.returnedDate | date : 'yyyy/MM/dd' }}</b></div>
 
-        <!-- عدّاد الأيام -->
         <div class="days" *ngIf="!r.returnedDate">
           <span *ngIf="daysLeft(r) > 0">متبقي {{ daysLeft(r) }} يوم</span>
           <span *ngIf="daysLeft(r) === 0">اليوم آخر موعد</span>
           <span *ngIf="daysLeft(r) < 0">متأخر {{ abs(daysLeft(r)) }} يوم</span>
         </div>
 
-        <!-- شريط التقدّم -->
-        <div class="progress" [attr.aria-valuenow]="progressPct(r)">
+        <div class="progress" role="progressbar" [attr.aria-valuenow]="progressPct(r)" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="'تقدم الاستعارة: ' + progressPct(r) + '%'">
           <div class="bar" [style.width.%]="progressPct(r)"></div>
         </div>
       </div>
 
+      <!-- CTA أسفل يسار -->
       <div class="cta" *ngIf="canUpdate || canDelete">
-        <button *ngIf="canUpdate" class="ghost" (click)="openEdit(r)">تعديل</button>
-        <button *ngIf="canUpdate && !r.returnedDate" class="primary attn" (click)="returnNow(r)">
+        <button *ngIf="canUpdate" class="ghost btn-ico" (click)="openEdit(r)">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25Zm15.71-9.46c.39-.39.39-1.02 0-1.41l-2.09-2.09a1 1 0 0 0-1.41 0l-1.82 1.82 3.75 3.75 1.57-1.57Z"/>
+          </svg>
+          تعديل
+        </button>
+
+        <button *ngIf="canUpdate && !r.returnedDate" class="primary btn-ico " (click)="returnNow(r)">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 21v-6H5l7-8 7 8h-4v6H9z"/> <!-- سهم/منزل ليرمز للإرجاع -->
+          </svg>
           إرجاع الآن
         </button>
-        <button *ngIf="canDelete" class="danger" (click)="remove(r)">حذف</button>
+
+        <button *ngIf="canDelete" class="danger btn-ico" (click)="remove(r)">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 7h12v2H6V7Zm2 3h8l-1 10H9L8 10Zm3-6h2l1 1h5v2H5V5h5l1-1Z"/>
+          </svg>
+          حذف
+        </button>
       </div>
     </div>
   </div>
@@ -170,31 +216,48 @@
     <table>
       <thead>
         <tr>
-          <th>#</th>
-          <th>العضو</th>
-          <th>الكتاب</th>
-          <th>تاريخ الاستعارة</th>
-          <th>موعد الإرجاع</th>
-          <th>الإرجاع</th>
-          <th *ngIf="canUpdate || canDelete">إجراءات</th>
+          <th scope="col">#</th>
+          <th scope="col">العضو</th>
+          <th scope="col">الكتاب</th>
+          <th scope="col">تاريخ الاستعارة</th>
+          <th scope="col">موعد الإرجاع</th>
+          <th scope="col">الإرجاع</th>
+          <th *ngIf="canUpdate || canDelete" scope="col">إجراءات</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let r of items(); index as i">
           <td>{{ (page() - 1) * pageSize() + i + 1 }}</td>
-          <td>{{ r.memberId }}</td>
-          <td>{{ r.bookId }}</td>
+          <td>{{ getMemberName(r.memberId) }}</td>
+          <td>{{ getBookTitle(r.bookId) }}</td>
           <td>{{ r.borrowedDate | date : 'yyyy/MM/dd' }}</td>
           <td>{{ r.dueDate | date : 'yyyy/MM/dd' }}</td>
           <td>{{ r.returnedDate ? (r.returnedDate | date : 'yyyy/MM/dd') : 'لم يُرجع' }}</td>
+
           <td *ngIf="canUpdate || canDelete" class="row-actions">
-            <button *ngIf="canUpdate" (click)="openEdit(r)">تعديل</button>
-            <button *ngIf="canUpdate && !r.returnedDate" class="primary" (click)="returnNow(r)">
+            <button *ngIf="canUpdate" class="btn-ico" (click)="openEdit(r)">
+              <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25Zm15.71-9.46c.39-.39.39-1.02 0-1.41l-2.09-2.09a1 1 0 0 0-1.41 0l-1.82 1.82 3.75 3.75 1.57-1.57Z"/>
+              </svg>
+              تعديل
+            </button>
+
+            <button *ngIf="canUpdate && !r.returnedDate" class="primary btn-ico" (click)="returnNow(r)">
+              <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 21v-6H5l7-8 7 8h-4v6H9z"/>
+              </svg>
               إرجاع الآن
             </button>
-            <button *ngIf="canDelete" class="danger" (click)="remove(r)">حذف</button>
+
+            <button *ngIf="canDelete" class="danger btn-ico" (click)="remove(r)">
+              <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 7h12v2H6V7Zm2 3h8l-1 10H9L8 10Zm3-6h2l1 1h5v2H5V5h5l1-1Z"/>
+              </svg>
+              حذف
+            </button>
           </td>
         </tr>
+
         <tr *ngIf="!items().length && !loading()">
           <td colspan="7" class="empty">لا توجد بيانات</td>
         </tr>

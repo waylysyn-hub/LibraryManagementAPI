@@ -5,7 +5,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { catchError } from 'rxjs/operators';
 import { of, throwError } from 'rxjs';
-import { AuthService } from './auth.service';
+import { AuthService } from './api/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);

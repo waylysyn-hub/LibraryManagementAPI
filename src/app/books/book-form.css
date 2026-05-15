@@ -1,94 +1,367 @@
+/* =========================
+   Book Form Modal — Clean, Wide, No-H-Scroll
+   ========================= */
+
+/* Theme tokens (إن حبيت تعدّل الألوان لاحقاً) */
 :root{
   --primary-color:#4f46e5; --primary-hover:#4338ca;
   --secondary-color:#6366f1;
-  --success-color:#10b981;
   --danger-color:#ef4444;
-  --gray-50:#f9fafb; --gray-100:#f3f4f6; --gray-200:#e5e7eb; --gray-300:#d1d5db; --gray-400:#9ca3af; --gray-500:#6b7280; --gray-600:#4b5563; --gray-700:#374151; --gray-800:#1f2937; --gray-900:#111827;
-  --white:#fff;
-  --shadow-sm:0 1px 2px 0 rgb(0 0 0 / .05);
-  --shadow-md:0 4px 6px -1px rgb(0 0 0 / .1), 0 2px 4px -2px rgb(0 0 0 / .1);
-  --shadow-lg:0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1);
-  --shadow-xl:0 20px 25px -5px rgb(0 0 0 / .1), 0 8px 10px -6px rgb(0 0 0 / .1);
-  --border-radius:12px; --border-radius-sm:8px;
-  --transition:all .3s cubic-bezier(.4,0,.2,1);
+  --gray-50:#f9fafb; --gray-100:#f1f5f9; --gray-200:#e5e7eb; --gray-300:#d1d5db;
+  --gray-600:#475569; --gray-700:#334155; --gray-900:#0f172a;
+  --shadow-xl:0 28px 80px rgba(2,6,23,.28), 0 10px 30px rgba(2,6,23,.16);
+  --radius:18px;
+  --transition:.18s ease;
 }
 
-.error-messages{background:rgba(239,68,68,.08);border:1px solid #ef4444;color:#b91c1c;padding:12px 14px;border-radius:10px;margin-bottom:14px}
-.error-messages ul{margin:0;padding-inline-start:18px}
-.error-messages li{margin:4px 0}
+/* إخفاء الديالوج إذا لم يكن مفتوحاً */
+dialog.modal:not([open]){ display:none !important; }
 
-.modal{padding:0;border:0;border-radius:14px;box-shadow:var(--shadow-xl);width:min(700px,95vw);backdrop-filter:blur(10px)}
-.modal::backdrop{background:rgba(0,0,0,.5);backdrop-filter:blur(5px)}
-.box{padding:2rem;background:#fff;border-radius:14px}
-.head{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid var(--gray-100)}
-.head h3{margin:0;font-size:1.5rem;font-weight:700;color:var(--gray-900)}
-.x{margin-inline-start:auto;border:0;background:var(--gray-100);color:var(--gray-600);width:2.5rem;height:2.5rem;border-radius:50%;font-size:1.25rem;cursor:pointer;transition:var(--transition)}
-.x:hover{background:var(--danger-color);color:#fff;transform:rotate(90deg)}
+/* تمركز المودال عند الفتح + خلفية */
+dialog.modal[open]{
+  position: fixed !important;
+  inset: 0 !important;
+  padding-inline: 10px !important;
+  display: grid !important;
+  place-items: center !important;
+  z-index: 10000 !important;
+}
+dialog.modal::backdrop{ background: rgba(2,6,23,.55); backdrop-filter: blur(4px); }
 
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem;margin:1.5rem 0}
-label{display:flex;flex-direction:column;gap:.5rem;font-weight:600;color:var(--gray-700)}
-input{height:2.75rem;padding:0 1rem;border:2px solid var(--gray-300);border-radius:8px;font-size:1rem;transition:var(--transition);background:#fff}
-input:focus{outline:none;border-color:var(--primary-color);box-shadow:0 0 0 3px rgba(79,70,229,.1)}
-input.err{border-color:var(--danger-color);box-shadow:0 0 0 3px rgba(239,68,68,.1)}
-.error-message{color:var(--danger-color);font-size:.875rem;margin-top:.25rem}
-
-.actions{display:flex;gap:1rem;justify-content:flex-end;margin-top:2rem;padding-top:1.5rem;border-top:2px solid var(--gray-100)}
-.primary{background:linear-gradient(135deg,var(--primary-color),var(--secondary-color));color:#fff;padding:.75rem 1.5rem;box-shadow:var(--shadow-md);border:none;border-radius:8px;font-weight:600;font-size:.875rem;cursor:pointer;transition:var(--transition)}
-.primary:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
-.primary:disabled{opacity:.6;cursor:not-allowed;background:var(--gray-400)}
-.ghost{background:transparent;color:var(--gray-600);border:2px solid var(--gray-300);padding:.75rem 1.5rem;border-radius:8px;font-weight:600;font-size:.875rem;cursor:pointer;transition:var(--transition)}
-.ghost:hover{background:var(--gray-100);color:var(--gray-800)}
-
-@media (max-width:640px){.grid{grid-template-columns:1fr}}
-/* Footer actions inside the modal */
-.actions{
-  display:flex;
-  gap:12px;
-  justify-content:flex-end;
-  align-items:center;
-  margin-top:1.25rem;
-  padding-top:1rem;
-  border-top:2px solid #f3f4f6;
+/* صندوق المودال */
+dialog.modal .box{
+  display: grid !important;
+  grid-template-rows: auto minmax(0,1fr) auto !important; /* header | body | footer */
+  width: min(980px, 96dvw) !important;
+  max-height: min(92dvh, 840px) !important;
+  background: #fff !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow-xl) !important;
+  overflow: hidden !important;          /* لا يسمح بأي تسرب أفقي */
+  padding: 26px 26px 16px !important;
+  box-sizing: border-box !important;
+  direction: rtl; text-align: right;
 }
 
-/* Cancel button (ghost) */
-.actions .ghost{
-  background:#fff;                   /* أبيض واضح */
-  color:#374151;                     /* نص غامق */
-  border:2px solid #e5e7eb;
-  padding:.6rem 1.1rem;
-  border-radius:10px;
-  font-weight:800;
-  font-size:.95rem;                  /* تأكد النص واضح */
-  line-height:1;
-  cursor:pointer;
-  transition:.2s ease;
+/* رأس المودال */
+dialog.modal .head{
+  display:flex; align-items:center; gap:12px;
+  margin:0 0 12px 0; padding-bottom:12px;
+  border-bottom:1px solid var(--gray-100);
 }
-.actions .ghost:hover{
-  background:#f9fafb;
+dialog.modal .head h3{ margin:0; font-size:1.7rem; font-weight:800; color:var(--gray-900); }
+dialog.modal .x{
+  margin-inline-start:auto; width:38px; height:38px; border-radius:999px;
+  border:0; background:#eef2f7; color:#475569; cursor:pointer;
+  transition: transform .2s ease, background .2s ease;
+}
+dialog.modal .x:hover{ background:var(--danger-color); color:#fff; transform: rotate(90deg); }
+
+/* جسم قابل للتمرير — عمودي فقط */
+dialog.modal .scroll{
+  min-height: 0;                 /* مفتاح لإتاحة التمرير داخل 1fr */
+  overflow-y: auto;
+  overflow-x: hidden !important; /* يمنع الشريط الأفقي */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-block: 6px;
 }
 
-/* Save button (primary) */
-.actions .primary{
-  background:#4f46e5;               /* بنفسجي واضح */
-  color:#fff;                        /* نص أبيض */
-  border:none;
-  padding:.65rem 1.2rem;
-  border-radius:10px;
-  font-weight:900;
-  font-size:.98rem;                  /* لا يكون 0 أبداً */
-  line-height:1;
-  cursor:pointer;
-  box-shadow:0 4px 10px rgba(79,70,229,.25);
-  transition:.2s ease;
-}
-.actions .primary:hover{ filter:brightness(1.05); transform:translateY(-1px) }
-.actions .primary:disabled{ opacity:.6; cursor:not-allowed; box-shadow:none }
-
-/* لو في أنماط عامة كانت تعمل text-fill transparent، امنعها هنا */
-.actions .primary, .actions .ghost{
-  -webkit-text-fill-color: initial;
+/* شبكة الحقول — عمودان مرنان (بدون تمدّد أفقي) */
+dialog.modal .grid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* minmax(0,1fr) يمنع H-scroll */
+  gap: 18px;
+  margin: 8px 0 4px;
 }
 
-/* ترتيب رسائل الأخطاء والعناوين عشان ما تزاحم الأزرار */
-.error-messages{ margin-bottom:12px }
+/* الحقول */
+dialog.modal label{ display:flex; flex-direction:column; gap:6px; min-width:0; color:var(--gray-700); font-weight:700; }
+dialog.modal input,
+dialog.modal select,
+dialog.modal textarea{
+  width: 100% !important; max-width: 100% !important; box-sizing: border-box !important;
+  height: 48px; border:2px solid var(--gray-200); border-radius:12px;
+  background:#fff; font-size:16px; padding:0 16px; transition: var(--transition);
+}
+dialog.modal textarea{ min-height:120px; height:auto; resize:vertical; }
+dialog.modal input:focus,
+dialog.modal select:focus,
+dialog.modal textarea:focus{
+  outline:0; border-color:var(--primary-color); box-shadow:0 0 0 3px rgba(79,70,229,.12);
+}
+dialog.modal input.err{ border-color:var(--danger-color); box-shadow:0 0 0 3px rgba(239,68,68,.12); }
+dialog.modal .error-message{ color:var(--danger-color); font-size:.86rem; }
+
+/* اتجاه LTR لحقول الإنجليزية/الأرقام */
+dialog.modal input[type="number"],
+dialog.modal input[name*="isbn" i],
+dialog.modal input[name*="title" i],
+dialog.modal input[name*="author" i],
+dialog.modal input.ltr,
+dialog.modal textarea.ltr{ direction:ltr; text-align:left; }
+
+/* صندوق رسائل الأخطاء */
+dialog.modal .error-messages{
+  background:rgba(239,68,68,.08); border:1px solid var(--danger-color); color:#b91c1c;
+  padding:12px 14px; border-radius:10px; margin-bottom:12px; overflow:auto; max-height:30vh;
+}
+dialog.modal .error-messages ul{ margin:0; padding-inline-start:18px; }
+dialog.modal .error-messages li{ margin:4px 0; }
+
+/* فوتر ثابت وواضح */
+dialog.modal .actions{
+  position: sticky; bottom: 0; z-index: 1;
+  display:flex; gap:10px; justify-content:flex-end; align-items:center;
+  padding-top: 12px; margin-top: 10px;
+  background: linear-gradient(#fff, #fff) padding-box;
+  border-top: 1px solid var(--gray-100);
+}
+
+/* أزرار الفوتر */
+dialog.modal .actions .ghost{
+  background:#fff !important; color:#374151 !important;
+  border:2px solid var(--gray-200) !important;
+  padding:.75rem 1.1rem !important; border-radius:12px !important;
+  font-weight:800; font-size:1rem; line-height:1;
+  box-shadow: 0 2px 8px rgba(15,23,42,.06);
+}
+dialog.modal .actions .ghost:hover{ background:#f9fafb !important; }
+
+dialog.modal .actions .primary{
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+  color:#fff !important; -webkit-text-fill-color:#fff !important;
+  border:0 !important;
+  padding:.8rem 1.2rem !important; border-radius:12px !important;
+  font-weight:900 !important; font-size:1rem !important; line-height:1;
+  min-width:110px; box-shadow:0 6px 18px rgba(79,70,229,.28) !important;
+  transition: transform .15s ease, filter .15s ease;
+}
+dialog.modal .actions .primary:hover{ filter:brightness(1.06); transform: translateY(-1px); }
+dialog.modal .actions .primary:disabled{ opacity:.6; cursor:not-allowed; box-shadow:none !important; }
+dialog.modal .actions .primary span,
+dialog.modal .actions .ghost span{ white-space: nowrap; }
+
+/* تركيز واضح */
+dialog.modal button:focus-visible,
+dialog.modal .x:focus-visible,
+dialog.modal input:focus,
+dialog.modal select:focus,
+dialog.modal textarea:focus{
+  outline:0; box-shadow:0 0 0 3px rgba(79,70,229,.15);
+}
+
+/* ريسبونسف */
+@media (max-width: 900px){
+  dialog.modal .grid{ grid-template-columns: 1fr; gap:14px; }
+}
+
+@media (max-width:640px){
+  dialog.modal .box{
+    width: calc(100dvw - 8px) !important;
+    max-height: calc(100dvh - 8px) !important;
+    padding: 16px 16px 14px !important;
+    border-radius: 16px !important;
+  }
+  dialog.modal .actions{ flex-wrap: wrap; }
+  dialog.modal .actions .primary, dialog.modal .actions .ghost{
+    flex:1 1 48%; min-height:46px;
+  }
+}
+
+/* قفل تمرير الصفحة بالخلفية عند فتح المودال */
+html:has(dialog.modal[open]), body:has(dialog.modal[open]){ overflow:hidden; }
+
+/* تقليل الحركة */
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{ transition:none !important; animation:none !important; }
+}
+/* ===== Errors: block + inline ===== */
+
+/* بلوك أخطاء الباك (فوق الفورم) */
+dialog.modal .error-messages{
+  background: rgba(239,68,68,.08) !important;
+  border: 1px solid #ef4444 !important;
+  color: #b91c1c !important;
+  padding: 12px 14px !important;
+  border-radius: 12px !important;       /* ← radius */
+  margin: 0 0 12px 0 !important;
+}
+dialog.modal .error-messages ul{ margin:0; padding-inline-start:18px; }
+dialog.modal .error-messages li{ margin:4px 0; }
+
+/* رسالة الخطأ أسفل الحقل (inline) */
+dialog.modal .error-message{
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px !important;
+  font-size: .88rem !important;
+  color: #b91c1c !important;
+  background: rgba(239,68,68,.08) !important;
+  border: 1px solid rgba(239,68,68,.35) !important;
+  padding: 6px 10px !important;
+  border-radius: 10px !important;       /* ← radius */
+  line-height: 1.2;
+}
+
+/* إبراز الحقل الخاطئ */
+dialog.modal input.err,
+dialog.modal select.err,
+dialog.modal textarea.err{
+  border-color:#ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239,68,68,.12) !important;
+}
+
+/* ===== Rounded corners (inputs + box) ===== */
+dialog.modal .box{
+  border-radius: 18px !important;       /* صندوق المودال */
+}
+dialog.modal input,
+dialog.modal select,
+dialog.modal textarea{
+  border-radius: 12px !important;       /* الحقول */
+}
+
+/* ===== Ensure Save button is visible ===== */
+dialog.modal .actions{
+  position: sticky; bottom: 0; z-index: 2;
+  background: linear-gradient(#fff,#fff) padding-box;
+  border-top: 1px solid #eef2f7;
+  padding-top: 12px; margin-top: 10px;
+}
+
+dialog.modal .actions .primary{
+  display: inline-flex !important;
+  align-items: center; justify-content: center;
+  min-width: 110px !important;
+  min-height: 44px !important;
+  padding: .8rem 1.2rem !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, var(--primary-color,#4f46e5), var(--secondary-color,#6366f1)) !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;  /* ينسخ أي ستايل عام */
+  border: 0 !important;
+  opacity: 1 !important; visibility: visible !important;
+  box-shadow: 0 6px 18px rgba(79,70,229,.28) !important;
+}
+dialog.modal .actions .primary:hover{
+  filter: brightness(1.06); transform: translateY(-1px);
+}
+dialog.modal .actions .primary:disabled{
+  opacity: .6 !important; cursor: not-allowed; box-shadow: none !important;
+}
+
+/* لو فيه قواعد عامة تخلي .primary أو .btn بخلفية شفافة، لغها داخل المودال */
+dialog.modal .actions .primary.btn,
+dialog.modal .actions .primary.button{
+  background: linear-gradient(135deg, var(--primary-color,#4f46e5), var(--secondary-color,#6366f1)) !important;
+  color: #fff !important;
+}
+
+/* منع أي تمدد يسبب سكروول أفقي */
+dialog.modal .scroll{ overflow-x: hidden !important; }
+dialog.modal .grid > *{ min-width: 0 !important; }
+/* ===== Modal Frame like screenshot ===== */
+
+
+مسافة صغيرة حول الصندوق ليبان الإطار بشكل أنيق
+dialog.modal[open]{
+  padding: 14px 14px !important;
+}
+
+/* خط فاصل علوي رفيع (مثل الصورة) */
+dialog.modal .head{
+  border-bottom: 1px solid rgba(15,23,42,.08) !important;
+  margin-bottom: 12px !important;
+  padding-bottom: 12px !important;
+}
+
+/* الحقول تبقى بزوايا دائرية لطيفة */
+dialog.modal input,
+dialog.modal select,
+dialog.modal textarea{
+  border-radius: 12px !important;
+}
+
+/* زر الحفظ: تأكيد الظهور فوق الإطار */
+dialog.modal .actions .primary{
+  position: relative; z-index: 1;
+}
+/* اخفاء أي حدود/أوتلاين على عنصر الـ dialog نفسه */
+dialog.modal{
+  border: 0 !important;
+  outline: none !important;
+}
+
+/* إبقاء الإطار الداخلي فقط (inset) وإزالة الإطار الخارجي */
+dialog.modal .box{
+  border-radius: 20px !important;
+  /* كان فيها 4 طبقات، حذفنا الثانية (اللي بدون inset) */
+  box-shadow:
+    0 0 0 2px rgba(0,0,0,.85) inset,   /* الإطار الداخلي يبقى */
+    0 28px 80px rgba(2,6,23,.28),
+    0 10px 30px rgba(2,6,23,.16) !important;
+}
+
+/* تأكد من عدم وجود حدّ على الـ backdrop */
+dialog.modal::backdrop{
+  outline: none !important;
+  border: 0 !important;
+}
+/* اخفاء أي حدود/أوتلاين على عنصر الـ dialog نفسه */
+dialog.modal{
+  border: 0 !important;
+  outline: none !important;
+}
+
+/* إبقاء الإطار الداخلي فقط (inset) وإزالة الإطار الخارجي */
+dialog.modal .box{
+  border-radius: 20px !important;
+  /* كان فيها 4 طبقات، حذفنا الثانية (اللي بدون inset) */
+  box-shadow:
+    0 0 0 2px rgba(0,0,0,.85) inset,   /* الإطار الداخلي يبقى */
+    0 28px 80px rgba(2,6,23,.28),
+    0 10px 30px rgba(2,6,23,.16) !important;
+}
+
+/* تأكد من عدم وجود حدّ على الـ backdrop */
+dialog.modal::backdrop{
+  outline: none !important;
+  border: 0 !important;
+}
+/* ————— 1) الغِ أي إطار خارجي للـ <dialog> نفسه ————— */
+dialog.modal,
+dialog.modal[open]{
+  background: transparent !important;   /* ما في خلفية بيضا برا الصندوق */
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;          /* بعض المتصفحات بتحط ظل افتراضي */
+  padding: 0 !important;                /* يلغي "مسافة صغيرة حول الصندوق" */
+}
+
+/* ————— 2) خلّي الإطار الداخلي للصندوق فقط ————— */
+dialog.modal .box{
+  border-radius: 20px !important;
+  box-shadow:
+    0 0 0 2px rgba(0,0,0,.85) inset,    /* إطار داخلي فقط */
+    0 28px 80px rgba(2,6,23,.28),
+    0 10px 30px rgba(2,6,23,.16) !important;
+}
+
+/* ————— 3) الـ backdrop بلا حدود ————— */
+dialog.modal::backdrop{
+  border: 0 !important;
+  outline: none !important;
+}
+
+/* ————— 4) زر الإغلاق: لا يختفي عند الضغط ويظل واضح ————— */
+dialog.modal .x{
+  position: relative;
+  z-index: 2;
+  background: #eef2f7 !important;
+  color: #475569 !important;
+  transform: none !important;
+}
+dialog.modal .x:hover{ background:#ef4444 !important; color:#fff !important; }
+dialog.modal .x:active{ transform: scale(.97) !important; }

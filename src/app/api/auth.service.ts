@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 
-const API_BASE = 'https://localhost:7091/api/Auth';
 const TOKEN_KEY = 'authToken';
 const REMEMBER_FLAG = 'rememberMe'; // '1' إذا محفوظ في localStorage
 
@@ -25,7 +24,8 @@ export class AuthService {
     credentials: { email: string; password: string },
     rememberMe: boolean
   ): Observable<AuthResponse> {
-    const url = `${API_BASE}/login`;
+    const url = '/api/Auth/login';
+
     return this.http.post<AuthResponse>(url, credentials).pipe(
       tap((res: any) => {
         console.log('[AuthService] login response:', res);
@@ -39,7 +39,6 @@ export class AuthService {
           res?.data?.accessToken ??
           null;
 
-        // نظّف دائماً قبل التخزين
         this.clearAll();
 
         if (token) {

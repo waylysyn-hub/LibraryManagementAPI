@@ -5,31 +5,42 @@ import { ShellComponent } from './shell/shell';
 import { BooksComponent } from './books/books';
 import { BorrowingsComponent } from './borrowings/borrowings';
 import { MembersComponent } from './members/members';
+import { ReportsComponent } from './reports/reports';
+import { UsersComponent } from './users/users';
+import { ForgotPasswordComponent } from './forgot-password/forgot-password';
+import { ResetCodeComponent } from './reset-code/reset-code';
+import { ResetChangeComponent } from './reset-change/reset-change';
+import { ProfileComponent } from './profile/profile';
 
 export const routes: Routes = [
-  // ابدأ دائمًا من صفحة الدخول
   { path: 'login', component: Login },
+    { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'reset/code', component: ResetCodeComponent },
+  { path: 'reset/change', component: ResetChangeComponent },
+   { path: 'register', component: MembersComponent },
 
-  // أي شيء داخل الشل يحتاج مصادقة
   {
     path: '',
     component: ShellComponent,
     canMatch: [authzCanMatch],
     children: [
-      // أمثلة على تقييد الأدوار:
-      // الكتب: الكل (أدمن + موظف + عضو)
-      { path: 'books', component: BooksComponent, data: { roles: ['Admin', 'Employee', 'Member'] } },
-
-      // الاستعارات: أدمن + موظف فقط
-      { path: 'borrowings', component: BorrowingsComponent, data: { roles: ['Admin', 'Employee'] } },
-
-      // الأعضاء: أدمن فقط
+      {
+        path: 'books',
+        component: BooksComponent,
+        data: { roles: ['Admin', 'Employee', 'Member'] },
+      },
+      {
+        path: 'borrowings',
+        component: BorrowingsComponent,
+        data: { roles: ['Admin', 'Employee'] },
+      },
       { path: 'members', component: MembersComponent, data: { roles: ['Admin'] } },
-
-      { path: '', pathMatch: 'full', redirectTo: 'books' }
-    ]
+      { path: 'reports', component: ReportsComponent, data: { roles: ['Admin', 'Employee'] } },
+      { path: 'users', component: UsersComponent, data: { roles: ['Admin'] } },
+      { path: 'profile', component: ProfileComponent },
+      { path: '', pathMatch: 'full', redirectTo: 'books' },
+    ],
   },
 
-  // مسارات غير معروفة → إلى /login (سيُعاد توجيه المصادقين تلقائيًا بعد الدخول)
-  { path: '**', redirectTo: 'login' }
+  { path: '**', redirectTo: 'login' },
 ];
